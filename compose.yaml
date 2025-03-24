@@ -1,0 +1,71 @@
+services:
+  # Web API
+  api:
+    build:
+      context: .
+      target: dev-app
+      dockerfile: ./docker/api/Dockerfile
+    container_name: api
+    hostname: api
+    environment:
+      TZ: "Asia/Tokyo"
+      DATABASE_HOST: db
+      DATABASE_USER: root
+      DATABASE_PASSWORD: root
+      DATABASE_NAME: app
+      DATABASE_DEBUG: 1
+    tty: true
+    volumes:
+      - ./:/opt/app
+    ports:
+      - 8000:8000
+    depends_on:
+      db:
+        condition: service_healthy
+      test_db:
+        condition: service_healthy
+        
+  # DB (mysql)
+  db:
+    image: mysql:8.4
+    container_name: db
+    hostname: db
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      TZ: "Asia/Tokyo"
+    volumes:
+      - ./docker/db/my.conf:/etc/mysql/conf.d/my.cnf
+      - ./docker/db/init:/docker-entrypoint-initdb.d
+      - db-store:/var/lib/mysql
+    ports:
+      - 3306:3306
+    healthcheck:
+      test: "mysqladmin ping -h 127.0.0.1 -u root -p$$MYSQL_ROOT_PASSWORD"
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # DB for test(mysql)
+  test_db:
+    image: mysql:8.4
+    container_name: test_db
+    hostname: test_db
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      TZ: "Asia/Tokyo"
+    volumes:
+      - ./docker/db/my.conf:/etc/mysql/conf.d/my.cnf
+      - ./docker/db/init:/docker-entrypoint-initdb.d
+    tmpfs:
+      - /var/lib/mysql
+      - /var/log/mysql
+    ports:
+      - 3307:3306
+    healthcheck:
+      test: "mysqladmin ping -h 127.0.0.1 -u root -p$$MYSQL_ROOT_PASSWORD"
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  db-store:

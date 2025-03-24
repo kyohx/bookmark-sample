@@ -1,0 +1,7 @@
+.*_cache
+.git
+.venv
+.dockerignore
+.gitignore
+docker
+README.md

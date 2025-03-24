@@ -1,0 +1,51 @@
+[project]
+name = "bookmark"
+version = "0.1.0"
+description = "Bookmark sample"
+readme = "README.md"
+requires-python = "==3.13.*"
+dependencies = [
+    "fastapi==0.115.*",
+    "uvicorn[standard]==0.34.*",
+    "PyMySQL==1.1.*",
+    "orjson==3.10.*",
+    "sqlalchemy==2.0.*",
+]
+
+[dependency-groups]
+dev = [
+    "httpx==0.28.*",
+    "mypy==1.13.*",
+    "pytest==8.3.*",
+    "ruff==0.9.*",
+    "taskipy==1.14.*",
+    "types-PyMySQL==1.1.0.*",
+]
+
+[tool.ruff]
+line-length = 100
+indent-width = 4
+target-version = "py313"
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
+docstring-code-format = false
+docstring-code-line-length = "dynamic"
+
+[tool.ruff.lint.isort]
+combine-as-imports = true
+split-on-trailing-comma = true
+
+[tool.mypy]
+python_version = "3.13"
+
+[tool.taskipy.tasks]
+test = "docker compose exec api pytest"
+format = "ruff format src/"
+check = "mypy src"
+buildapp = "docker compose build api"
+loginapp = "docker compose exec api bash"
+buildprodapp = "docker build -t $(basename $PWD)-prod-api --target prod-app -f ./docker/app/Dockerfile ."
