@@ -4,37 +4,20 @@ from src.dao.models.bookmark import BookmarkDao
 from src.dao.models.bookmark_tag import BookmarkTagDao
 from src.dao.models.tag import TagDao
 from src.libs.util import datetime_to_str
-from tests.conftest import TEST_TAG_NAME, TEST_URL, SessionForTest
+from tests.conftest import SessionForTest
 
-from .factory import DataFactory
+from .base import BaseTest
 
 
-class TestUpdateBookmark:
+class TestUpdateBookmark(BaseTest):
     """
     ブックマーク更新テストクラス
     """
 
-    def create_bookmarks(self, db_session: SessionForTest, num: int = 1) -> list[BookmarkDao]:
-        """
-        テスト用ブックマークを作成する
-
-        :param db_session: DBセッション
-        :param num: 作成個数
-        :return: 作成したブックマークDAOのリスト
-        """
-        factory = DataFactory(db_session)
-        return [
-            factory.create_bookmark(
-                url=f"{TEST_URL}/{i}",
-                memo=f"Example{i}",
-                tagnames=[f"{TEST_TAG_NAME}_1_{i}", f"{TEST_TAG_NAME}_2_{i}"],
-            )
-            for i in range(1, num + 1)
-        ]
-
     def test_update_normal(self, client: TestClient, db_session: SessionForTest):
         """
-        通常更新
+        正常系:
+        ブックマークを1件更新
         """
         bookmarks = self.create_bookmarks(db_session, num=2)
         bookmark1 = bookmarks[0]
@@ -80,6 +63,7 @@ class TestUpdateBookmark:
 
     def test_update_same_tags(self, client: TestClient, db_session: SessionForTest):
         """
+        正常系:
         他のURLと同じタグ名に更新
         """
         bookmarks = self.create_bookmarks(db_session, num=2)

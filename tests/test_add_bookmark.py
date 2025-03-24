@@ -5,8 +5,10 @@ from src.dao.models.bookmark_tag import BookmarkTagDao
 from src.dao.models.tag import TagDao
 from tests.conftest import TEST_TAGS, TEST_URL, SessionForTest
 
+from .base import BaseTest
 
-class TestAddBookmark:
+
+class TestAddBookmark(BaseTest):
     """
     ブックマーク追加のテストクラス
     """
@@ -29,7 +31,6 @@ class TestAddBookmark:
         response = client.post("/bookmarks", json=request_body)
 
         # レスポンスの検証
-        print(response.json())
         assert response.status_code == 200
         response_body = response.json()
         assert "hashed_id" in response_body
