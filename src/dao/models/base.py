@@ -26,22 +26,6 @@ class BaseDao(DeclarativeBase):
         """
         return dict([(k, v) for k, v in self.__dict__.items() if not k.startswith("_")])
 
-    def clone(self):
-        """
-        クローン作成
-
-        :return: クローンしたDAOインスタンス
-        """
-        columns = dict(
-            [
-                (k, v)
-                for k, v in self.to_dict().items()
-                # クローン対象外の属性を除外
-                if k not in ("id", "created_at", "updated_at")
-            ]
-        )
-        return self.__class__(**columns)
-
 
 # "CURRENT_TIMESTAMP" の略称
 CT = "CURRENT_TIMESTAMP"
