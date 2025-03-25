@@ -18,10 +18,10 @@ jobs:
           docker compose --profile test up -d test_api
       - name: Check format
         run: |
-          docker compose exec -u root api ruff check src/
+          docker compose exec -u root test_api ruff check src/
       - name: Check types
         run: |
-          docker compose exec -u root api mypy src
+          docker compose exec -u root test_api mypy src
       - name: Run tests
         run: |
-          docker compose exec -u root api pytest
+          docker compose exec -u root test_api pytest
