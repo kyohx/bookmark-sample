@@ -12,6 +12,8 @@ class BaseRepository:
     レポジトリベースクラス
     外部データ(DB等)に対し操作する
     """
+    class Error(RepositoryError):
+        pass
 
     class NotFoundError(RepositoryError):
         pass

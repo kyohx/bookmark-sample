@@ -59,31 +59,45 @@ class BookmarkRepository(BaseRepository):
         ]
 
     @error_handler
-    def save(self, bookmark: BookmarkEntity) -> str:
+    def add_one(self, bookmark: BookmarkEntity):
         """
-        ブックマーク情報を保存
+        ブックマーク情報を1件新規追加
+        """
+        bookmark_dao = BookmarkDao(**bookmark.model_dump(mode="python", exclude={"tags"}))
 
-        :return: ブックマークのハッシュID
-        """
-        # ブックマークの保存
-        if self.loaded_bookmark_dao:
-            bookmark_dao = self.loaded_bookmark_dao
-            for k, v in bookmark.model_dump(mode="python", exclude_none=True, exclude={"tags"}).items():
-                setattr(bookmark_dao, k, v)
-        else:
-            bookmark_dao = BookmarkDao(**bookmark.model_dump(mode="python", exclude={"tags"}))
         self.bookmark_operator.save(bookmark_dao)
-
-        if bookmark.tags is not None:
-            # タグの保存
-            tag_dao_list = self.tag_operator.save_by_names(bookmark.tags)
-            # ブックマークとタグの紐付け
-            self.bookmark_tag_operator.save_by_tags(bookmark_dao.id, tag_dao_list)
-
-        return bookmark_dao.hashed_id
+        self._save_tags(bookmark.tags, bookmark_dao.id)
 
     @error_handler
-    def delete(self, /, hashed_id: str):
+    def update_one(self, bookmark: BookmarkEntity):
+        """
+        ブックマーク情報を1件更新
+
+        事前に更新対象を find_one() で取得しておくこと
+        """
+        if self.loaded_bookmark_dao is None:
+            raise self.Error("Not loaded bookmark")
+
+        bookmark_dao = self.loaded_bookmark_dao
+        for k, v in bookmark.model_dump(mode="python", exclude_none=True, exclude={"tags"}).items():
+            setattr(bookmark_dao, k, v)
+
+        self.bookmark_operator.save(bookmark_dao)
+        self._save_tags(bookmark.tags, bookmark_dao.id)
+
+    def _save_tags(self, tags: list[str] | None, bookmark_dao_id: int):
+        """
+        タグ更新・追加
+        """
+        if tags is None:
+            return
+        # タグの保存
+        tag_dao_list = self.tag_operator.save_by_names(tags)
+        # ブックマークとタグの紐付け
+        self.bookmark_tag_operator.save_by_tags(bookmark_dao_id, tag_dao_list)
+
+    @error_handler
+    def delete_one(self, /, hashed_id: str):
         """
         ブックマーク情報を削除
         """
