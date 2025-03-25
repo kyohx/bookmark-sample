@@ -1,0 +1,27 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  run-check-tests:
+    name: Run Check and Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup containers
+        run: |
+          docker compose up -d
+      - name: Check format
+        run: |
+          docker compose exec api ruff check src/
+      - name: Check types
+        run: |
+          docker compose exec api mypy src
+      - name: Run tests
+        run: |
+          docker compose exec api pytest
