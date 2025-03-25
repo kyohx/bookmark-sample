@@ -23,7 +23,7 @@ class BookmarkUsecase(UsecaseBase):
         """
         bookmark = BookmarkEntity(**request_body.model_dump(mode="python"))
         bookmark.hashed_id = get_hashed_id(str(bookmark.url))
-        self.bookmark_repository.save(bookmark)
+        self.bookmark_repository.add_one(bookmark)
 
         res = {
             "hashed_id": bookmark.hashed_id,
@@ -40,7 +40,7 @@ class BookmarkUsecase(UsecaseBase):
         for k, v in request_body.model_dump(mode="python", exclude_none=True).items():
             setattr(bookmark, k, v)
 
-        self.bookmark_repository.save(bookmark)
+        self.bookmark_repository.update_one(bookmark)
 
         res = {"updated_bookmark": bookmark.model_dump(mode="python")}
 
@@ -50,7 +50,7 @@ class BookmarkUsecase(UsecaseBase):
         """
         削除
         """
-        self.bookmark_repository.delete(hashed_id=hashed_id)
+        self.bookmark_repository.delete_one(hashed_id=hashed_id)
 
         return self.response_model()
 
