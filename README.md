@@ -1,5 +1,8 @@
 # ブックマーク API
 
+[![Check and Tests](https://github.com/kyohx/bookmark-sample/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/kyohx/bookmark-sample/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-brightgreen.svg)](https://opensource.org/licenses/MIT)
+
 ## 概要
 
 Web URL ブックマーク管理API (サンプルコード)
