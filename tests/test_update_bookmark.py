@@ -23,7 +23,7 @@ class TestUpdateBookmark(BaseTest):
         bookmark1 = bookmarks[0]
 
         # リクエストボディの作成
-        request_body = {"memo": "Updated", "tags": ["updated_tag_1", "upfdated_tag_2"]}
+        request_body = {"memo": "Updated", "tags": ["updated_tag_1", "updated_tag_2"]}
         # リクエストの送信
         response = client.patch(f"/bookmarks/{bookmark1.hashed_id}", json=request_body)
 
