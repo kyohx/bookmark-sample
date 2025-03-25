@@ -18,10 +18,10 @@ jobs:
           docker compose up -d
       - name: Check format
         run: |
-          docker compose exec api ruff check src/
+          docker compose exec -u root api ruff check src/
       - name: Check types
         run: |
-          docker compose exec api mypy src
+          docker compose exec -u root api mypy src
       - name: Run tests
         run: |
-          docker compose exec api pytest
+          docker compose exec -u root api pytest
