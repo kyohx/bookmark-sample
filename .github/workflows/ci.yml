@@ -15,7 +15,7 @@ jobs:
         uses: actions/checkout@v4
       - name: Setup containers
         run: |
-          docker compose up -d
+          docker compose --profile test up -d test_api
       - name: Check format
         run: |
           docker compose exec -u root api ruff check src/

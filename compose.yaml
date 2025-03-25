@@ -24,7 +24,31 @@ services:
         condition: service_healthy
       test_db:
         condition: service_healthy
-        
+
+  # Web API for test on github actions
+  test_api:
+    build:
+      context: .
+      target: dev-app
+      dockerfile: ./docker/api/Dockerfile
+    container_name: test_api
+    hostname: test_api
+    environment:
+      TZ: "Asia/Tokyo"
+      DATABASE_HOST: test_db
+      DATABASE_USER: root
+      DATABASE_PASSWORD: root
+      DATABASE_NAME: app
+      DATABASE_DEBUG: 1
+    tty: true
+    volumes:
+      - ./:/opt/app
+    depends_on:
+      test_db:
+        condition: service_healthy
+    profiles:
+      - test
+
   # DB (mysql)
   db:
     image: mysql:8.4
