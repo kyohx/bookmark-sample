@@ -68,7 +68,7 @@ class BookmarkRepository(BaseRepository):
         # ブックマークの保存
         if self.loaded_bookmark_dao:
             bookmark_dao = self.loaded_bookmark_dao
-            for k, v in bookmark.model_dump(mode="python", exclude_none=True).items():
+            for k, v in bookmark.model_dump(mode="python", exclude_none=True, exclude={"tags"}).items():
                 setattr(bookmark_dao, k, v)
         else:
             bookmark_dao = BookmarkDao(**bookmark.model_dump(mode="python", exclude={"tags"}))

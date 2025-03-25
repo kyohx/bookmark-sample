@@ -21,5 +21,5 @@ class BookmarkEntity(BaseModel):
     tags: FIELD_TAGS | None = None
 
     @field_serializer("url")
-    def serialize_url(self, value):
+    def serialize_url(self, value) -> str:
         return str(value)
