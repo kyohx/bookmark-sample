@@ -1,3 +1,5 @@
+import os
+
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
@@ -29,8 +31,8 @@ def db_engine():
     """
     config = URL.create(
         "mysql+pymysql",
-        host="test_db",
-        port=3306,
+        host=os.getenv("TEST_DB_HOST", "test_db"),
+        port=int(os.getenv("TEST_DB_PORT", "3306")),
         username="root",
         password="root",
         database="app",
