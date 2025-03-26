@@ -25,6 +25,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
+          file: ./docker/api/Dockerfile
           cache-from: type=gha
           cache-to: type=gha,mode=max
       - name: Setup containers
