@@ -19,6 +19,14 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - neme: Setup docker buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Cache docker layers
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
       - name: Setup containers
         run: |
           docker compose up -d --quiet-pull
