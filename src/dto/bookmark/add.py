@@ -10,7 +10,7 @@ class RequestForAddBookmark(BaseModel):
     tags: FIELD_TAGS
 
     @field_serializer("url")
-    def serialize_url(self, value):
+    def serialize_url(self, value) -> str:
         return str(value)
 
     model_config = ConfigDict(

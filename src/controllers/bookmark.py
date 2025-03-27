@@ -19,14 +19,11 @@ router = APIRouter()
 def add_bookmark(
     req: RequestForAddBookmark,
     session: SessionDepend,
-):
+) -> ResponseForAddBookmark:
     """
     ブックマーク追加
     """
-    return BookmarkUsecase(
-        session=session,
-        response_model=ResponseForAddBookmark,
-    ).add(req)
+    return BookmarkUsecase(session=session).add(req)
 
 
 @router.patch(
@@ -37,14 +34,11 @@ def update_bookmark(
     hashed_id: PATH_HASHED_ID,
     req: RequestForUpdateBookmark,
     session: SessionDepend,
-):
+) -> ResponseForUpdateBookmark:
     """
     ブックマーク更新
     """
-    return BookmarkUsecase(
-        session=session,
-        response_model=ResponseForUpdateBookmark,
-    ).update(req, hashed_id)
+    return BookmarkUsecase(session=session).update(req, hashed_id)
 
 
 @router.delete(
@@ -54,14 +48,11 @@ def update_bookmark(
 def delete_bookmark(
     hashed_id: PATH_HASHED_ID,
     session: SessionDepend,
-):
+) -> ResponseForDeleteBookmark:
     """
     ブックマーク削除
     """
-    return BookmarkUsecase(
-        session=session,
-        response_model=ResponseForDeleteBookmark,
-    ).delete(hashed_id)
+    return BookmarkUsecase(session=session).delete(hashed_id)
 
 
 @router.get(
@@ -71,14 +62,11 @@ def delete_bookmark(
 def get_bookmark(
     hashed_id: PATH_HASHED_ID,
     session: SessionDepend,
-):
+) -> ResponseForGetBookmark:
     """
     ブックマーク取得
     """
-    return BookmarkUsecase(
-        session=session,
-        response_model=ResponseForGetBookmark,
-    ).get_one(hashed_id)
+    return BookmarkUsecase(session=session).get_one(hashed_id)
 
 
 @router.get(
@@ -88,11 +76,8 @@ def get_bookmark(
 def get_bookmarks(
     session: SessionDepend,
     tag: QUERY_TAGS = None,
-):
+) -> ResponseForGetBookmarkList:
     """
     ブックマークリスト取得
     """
-    return BookmarkUsecase(
-        session=session,
-        response_model=ResponseForGetBookmarkList,
-    ).get_list(tag_names=tag)
+    return BookmarkUsecase(session=session).get_list(tag_names=tag)

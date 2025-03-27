@@ -12,12 +12,12 @@ class BookmarkRepository(BaseRepository):
     ブックマークリポジトリクラス
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.bookmark_operator = BookmarkDaoOperator(self.session)
         self.tag_operator = TagDaoOperator(self.session)
         self.bookmark_tag_operator = BookmarkTagDaoOperator(self.session)
-        self.loaded_bookmark_dao = None  # 読み込み済みのブックマークDAO(updateで使用)
+        self.loaded_bookmark_dao: BookmarkDao | None = None
 
     @error_handler
     def find_one(self, /, hashed_id: str) -> BookmarkEntity:
@@ -59,17 +59,17 @@ class BookmarkRepository(BaseRepository):
         ]
 
     @error_handler
-    def add_one(self, bookmark: BookmarkEntity):
+    def add_one(self, bookmark: BookmarkEntity) -> None:
         """
         ブックマーク情報を1件新規追加
         """
-        bookmark_dao = BookmarkDao(**bookmark.model_dump(mode="python", exclude={"tags"}))
+        bookmark_dao = BookmarkDao(**bookmark.model_dump(exclude={"tags"}))
 
         self.bookmark_operator.save(bookmark_dao)
         self._save_tags(bookmark.tags, bookmark_dao.id)
 
     @error_handler
-    def update_one(self, bookmark: BookmarkEntity):
+    def update_one(self, bookmark: BookmarkEntity) -> None:
         """
         ブックマーク情報を1件更新
 
@@ -79,13 +79,13 @@ class BookmarkRepository(BaseRepository):
             raise self.Error("Not loaded bookmark")
 
         bookmark_dao = self.loaded_bookmark_dao
-        for k, v in bookmark.model_dump(mode="python", exclude_none=True, exclude={"tags"}).items():
+        for k, v in bookmark.model_dump(exclude_none=True, exclude={"tags"}).items():
             setattr(bookmark_dao, k, v)
 
         self.bookmark_operator.save(bookmark_dao)
         self._save_tags(bookmark.tags, bookmark_dao.id)
 
-    def _save_tags(self, tags: list[str] | None, bookmark_dao_id: int):
+    def _save_tags(self, tags: list[str] | None, bookmark_dao_id: int) -> None:
         """
         タグ更新・追加
         """
@@ -97,7 +97,7 @@ class BookmarkRepository(BaseRepository):
         self.bookmark_tag_operator.save_by_tags(bookmark_dao_id, tag_dao_list)
 
     @error_handler
-    def delete_one(self, /, hashed_id: str):
+    def delete_one(self, /, hashed_id: str) -> None:
         """
         ブックマーク情報を削除
         """

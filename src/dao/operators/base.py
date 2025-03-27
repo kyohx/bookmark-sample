@@ -53,10 +53,7 @@ class BaseDaoOperator:
         statement = select(self.MAIN_DAO)
         return list(self.session.execute(statement).scalars().all())
 
-    def save(
-        self,
-        d: BaseDao | Sequence[BaseDao],
-    ) -> None:
+    def save(self, d: BaseDao | Sequence[BaseDao]) -> None:
         """
         指定されたDAOを保存する
 
