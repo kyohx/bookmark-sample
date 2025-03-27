@@ -31,8 +31,8 @@ def db_engine():
     """
     config = URL.create(
         "mysql+pymysql",
-        host=os.getenv("TEST_DB_HOST", "test_db"),
-        port=int(os.getenv("TEST_DB_PORT", "3306")),
+        host=os.environ.get("TEST_DB_HOST", "test_db"),
+        port=int(os.environ.get("TEST_DB_PORT", "3306")),
         username="root",
         password="root",
         database="app",

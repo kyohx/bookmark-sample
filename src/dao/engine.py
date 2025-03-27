@@ -17,9 +17,6 @@ class DBConfig:
     password: str = "root"
     name: str = "db"
     debug: bool = False
-    retry: int = 10
-    is_output_query_count: bool = True
-    auto_rollback: bool = True
 
 
 # DB設定を環境変数から取得
