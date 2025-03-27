@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from pydantic import BaseModel, ConfigDict, field_validator
 
 from ...libs.util import datetime_to_str
@@ -15,17 +17,21 @@ class BookmarkDigest(BaseModel):
 
     @field_validator("created_at", mode="before")
     @classmethod
-    def parse_created_at(cls, value):
+    def parse_created_at(cls, value) -> str:
         if isinstance(value, str):
             return value
-        return datetime_to_str(value)
+        if isinstance(value, datetime):
+            return datetime_to_str(value)
+        raise ValueError("Invalid type")
 
     @field_validator("updated_at", mode="before")
     @classmethod
-    def parse_updated_at(cls, value):
+    def parse_updated_at(cls, value) -> str:
         if isinstance(value, str):
             return value
-        return datetime_to_str(value)
+        if isinstance(value, datetime):
+            return datetime_to_str(value)
+        raise ValueError("Invalid type")
 
 
 #### リスト取得レスポンス

@@ -4,11 +4,10 @@ from fastapi.responses import ORJSONResponse
 
 from .controllers import bookmark
 from .dto.version import Version
-from .libs import log
 from .libs.version import APP_VERSION
 
 
-def create_app():
+def create_app() -> FastAPI:
     """
     WebAPP インスタンス生成
     """
@@ -29,8 +28,6 @@ def create_app():
     return app
 
 
-logger = log.get_logger()
-
 app = create_app()
 
 
@@ -39,7 +36,7 @@ app = create_app()
     response_model=Version,
     responses={200: {"description": "Get Version", "model": Version}},
 )
-def get_version():
+def get_version() -> Version:
     """
     バージョン番号取得
     """

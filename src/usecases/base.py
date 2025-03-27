@@ -1,6 +1,3 @@
-from typing import Type
-
-from pydantic import BaseModel
 from sqlalchemy.orm.session import Session
 
 
@@ -16,10 +13,10 @@ class UsecaseBase:
     class Error(UsecaseError):
         pass
 
-    def __init__(
-        self,
-        session: Session,
-        response_model: Type[BaseModel],
-    ):
+    def __init__(self, session: Session) -> None:
+        """
+        初期化
+
+        :param session: セッション
+        """
         self.session = session
-        self.response_model = response_model
