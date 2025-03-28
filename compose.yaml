@@ -38,7 +38,7 @@ services:
       - 3306:3306
     healthcheck:
       test: "mysqladmin ping -h 127.0.0.1 -u root -p$$MYSQL_ROOT_PASSWORD"
-      start_period: 10s
+      start_period: 20s
       start_interval: 1s
       interval: 60s
       timeout: 5s
