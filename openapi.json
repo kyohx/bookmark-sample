@@ -1,0 +1,585 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Bookmark API",
+    "description": "API for bookmarking web page URL",
+    "version": "0.1.0.250327"
+  },
+  "paths": {
+    "/bookmarks": {
+      "post": {
+        "summary": "Add Bookmark",
+        "description": "ブックマーク追加",
+        "operationId": "add_bookmark_bookmarks_post",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RequestForAddBookmark"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseForAddBookmark"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "summary": "Get Bookmarks",
+        "description": "ブックマークリスト取得",
+        "operationId": "get_bookmarks_bookmarks_get",
+        "parameters": [
+          {
+            "name": "tag",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Tag"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseForGetBookmarkList"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/bookmarks/{hashed_id}": {
+      "patch": {
+        "summary": "Update Bookmark",
+        "description": "ブックマーク更新",
+        "operationId": "update_bookmark_bookmarks__hashed_id__patch",
+        "parameters": [
+          {
+            "name": "hashed_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 64,
+              "maxLength": 64,
+              "pattern": "[0-9a-f]+",
+              "title": "Hashed Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RequestForUpdateBookmark"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseForUpdateBookmark"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete Bookmark",
+        "description": "ブックマーク削除",
+        "operationId": "delete_bookmark_bookmarks__hashed_id__delete",
+        "parameters": [
+          {
+            "name": "hashed_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 64,
+              "maxLength": 64,
+              "pattern": "[0-9a-f]+",
+              "title": "Hashed Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseForDeleteBookmark"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "summary": "Get Bookmark",
+        "description": "ブックマーク取得",
+        "operationId": "get_bookmark_bookmarks__hashed_id__get",
+        "parameters": [
+          {
+            "name": "hashed_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 64,
+              "maxLength": 64,
+              "pattern": "[0-9a-f]+",
+              "title": "Hashed Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseForGetBookmark"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/version": {
+      "get": {
+        "summary": "Get Version",
+        "description": "バージョン番号取得",
+        "operationId": "get_version_version_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseForGetVersion"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "BookmarkDetail": {
+        "properties": {
+          "hashed_id": {
+            "type": "string",
+            "title": "Hashed Id"
+          },
+          "url": {
+            "type": "string",
+            "title": "Url"
+          },
+          "memo": {
+            "type": "string",
+            "title": "Memo"
+          },
+          "created_at": {
+            "type": "string",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "title": "Updated At"
+          },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Tags"
+          }
+        },
+        "type": "object",
+        "required": [
+          "hashed_id",
+          "url",
+          "memo",
+          "created_at",
+          "updated_at",
+          "tags"
+        ],
+        "title": "BookmarkDetail"
+      },
+      "BookmarkDigest": {
+        "properties": {
+          "hashed_id": {
+            "type": "string",
+            "title": "Hashed Id"
+          },
+          "url": {
+            "type": "string",
+            "title": "Url"
+          },
+          "memo": {
+            "type": "string",
+            "title": "Memo"
+          },
+          "created_at": {
+            "type": "string",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "hashed_id",
+          "url",
+          "memo",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "BookmarkDigest"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "RequestForAddBookmark": {
+        "properties": {
+          "url": {
+            "type": "string",
+            "maxLength": 400,
+            "minLength": 1,
+            "format": "uri",
+            "title": "Url"
+          },
+          "memo": {
+            "type": "string",
+            "maxLength": 400,
+            "title": "Memo"
+          },
+          "tags": {
+            "items": {
+              "type": "string",
+              "maxLength": 100,
+              "minLength": 1
+            },
+            "type": "array",
+            "maxItems": 10,
+            "minItems": 1,
+            "title": "Tags"
+          }
+        },
+        "type": "object",
+        "required": [
+          "url",
+          "memo",
+          "tags"
+        ],
+        "title": "RequestForAddBookmark",
+        "examples": [
+          {
+            "memo": "サンプル",
+            "tags": [
+              "work",
+              "test"
+            ],
+            "url": "https://exsample.com"
+          }
+        ]
+      },
+      "RequestForUpdateBookmark": {
+        "properties": {
+          "memo": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 400
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Memo"
+          },
+          "tags": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string",
+                  "maxLength": 100,
+                  "minLength": 1
+                },
+                "type": "array",
+                "maxItems": 10,
+                "minItems": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tags"
+          }
+        },
+        "type": "object",
+        "title": "RequestForUpdateBookmark",
+        "examples": [
+          {
+            "memo": "サンプル",
+            "tags": [
+              "private",
+              "test"
+            ]
+          }
+        ]
+      },
+      "ResponseForAddBookmark": {
+        "properties": {
+          "hashed_id": {
+            "type": "string",
+            "title": "Hashed Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "hashed_id"
+        ],
+        "title": "ResponseForAddBookmark"
+      },
+      "ResponseForDeleteBookmark": {
+        "properties": {},
+        "type": "object",
+        "title": "ResponseForDeleteBookmark"
+      },
+      "ResponseForGetBookmark": {
+        "properties": {
+          "bookmark": {
+            "$ref": "#/components/schemas/BookmarkDetail"
+          }
+        },
+        "type": "object",
+        "required": [
+          "bookmark"
+        ],
+        "title": "ResponseForGetBookmark",
+        "examples": [
+          {
+            "bookmark": {
+              "created_at": "2025-01-01 12:34:56",
+              "hashed_id": "123456789012345678901234567890123456789012345678901234567890abcd",
+              "memo": "サンプル",
+              "tags": [
+                "private",
+                "test"
+              ],
+              "updated_at": "2025-01-01 12:34:56",
+              "url": "https://exsample.com"
+            }
+          }
+        ]
+      },
+      "ResponseForGetBookmarkList": {
+        "properties": {
+          "bookmarks": {
+            "items": {
+              "$ref": "#/components/schemas/BookmarkDigest"
+            },
+            "type": "array",
+            "title": "Bookmarks"
+          }
+        },
+        "type": "object",
+        "required": [
+          "bookmarks"
+        ],
+        "title": "ResponseForGetBookmarkList",
+        "examples": [
+          {
+            "bookmarks": [
+              {
+                "created_at": "2025-01-01 12:34:56",
+                "hashed_id": "123456789012345678901234567890123456789012345678901234567890abcd",
+                "memo": "サンプル",
+                "updated_at": "2025-01-01 12:34:56",
+                "url": "https://exsample.com"
+              }
+            ]
+          }
+        ]
+      },
+      "ResponseForGetVersion": {
+        "properties": {
+          "version": {
+            "type": "string",
+            "title": "Version"
+          }
+        },
+        "type": "object",
+        "required": [
+          "version"
+        ],
+        "title": "ResponseForGetVersion",
+        "examples": [
+          {
+            "version": "0.1.0.250327"
+          }
+        ]
+      },
+      "ResponseForUpdateBookmark": {
+        "properties": {
+          "updated_bookmark": {
+            "$ref": "#/components/schemas/BookmarkDetail"
+          }
+        },
+        "type": "object",
+        "required": [
+          "updated_bookmark"
+        ],
+        "title": "ResponseForUpdateBookmark",
+        "examples": [
+          {
+            "updated_bookmark": {
+              "created_at": "2025-01-01 12:34:56",
+              "hashed_id": "123456789012345678901234567890123456789012345678901234567890abcd",
+              "memo": "サンプル",
+              "tags": [
+                "private",
+                "test"
+              ],
+              "updated_at": "2025-01-01 12:34:56",
+              "url": "https://exsample.com"
+            }
+          }
+        ]
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    }
+  }
+}

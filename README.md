@@ -29,6 +29,7 @@ Web URL ブックマーク管理API (サンプルコード)
 - `src/` : Web API ソースコード
 - `tests/` : テストコード
 - `compose.yaml` : docker compose 設定ファイル
+- `openapi.json` : OpenAPI(API仕様)ファイル
 - `pyproject.toml` : プロジェクト設定ファイル
 - `uv.lock` : パッケージ依存関係ロックファイル
 
@@ -116,4 +117,10 @@ task check
 
 ```bash
 task test
+```
+
+#### OpenAPIファイル生成
+
+```bash
+task openapi
 ```
