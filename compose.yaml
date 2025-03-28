@@ -22,9 +22,6 @@ services:
     depends_on:
       db:
         condition: service_healthy
-      test_db:
-        condition: service_healthy
-        
   # DB (mysql)
   db:
     image: mysql:8.4
@@ -39,30 +36,6 @@ services:
       - db-store:/var/lib/mysql
     ports:
       - 3306:3306
-    healthcheck:
-      test: "mysqladmin ping -h 127.0.0.1 -u root -p$$MYSQL_ROOT_PASSWORD"
-      start_period: 10s
-      start_interval: 1s
-      interval: 60s
-      timeout: 5s
-      retries: 10
-
-  # DB for test(mysql)
-  test_db:
-    image: mysql:8.4
-    container_name: test_db
-    hostname: test_db
-    environment:
-      MYSQL_ROOT_PASSWORD: root
-      TZ: "Asia/Tokyo"
-    volumes:
-      - ./docker/db/my.conf:/etc/mysql/conf.d/my.cnf
-      - ./docker/db/init:/docker-entrypoint-initdb.d
-    tmpfs:
-      - /var/lib/mysql
-      - /var/log/mysql
-    ports:
-      - 3307:3306
     healthcheck:
       test: "mysqladmin ping -h 127.0.0.1 -u root -p$$MYSQL_ROOT_PASSWORD"
       start_period: 10s

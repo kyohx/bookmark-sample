@@ -48,9 +48,8 @@ jobs:
       - name: Install python packages
         run: uv sync --all-extras
       - name: Setup DB container 
-        run: docker compose up -d --quiet-pull --wait test_db
+        run: docker compose up -d --quiet-pull --wait db
       - name: Run tests
         run: uv run pytest
         env:
           TEST_DB_HOST: localhost
-          TEST_DB_PORT: 3307
