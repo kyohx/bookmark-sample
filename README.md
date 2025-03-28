@@ -10,6 +10,7 @@ Web URL ブックマーク管理API (サンプルコード)
 ## 免責条項・ライセンス
 
 本リポジトリ(`bookmark-sample.git`)の内容は**本格的な使用を想定していないサンプル**であることを理解した方のみ閲覧・使用をしてください。
+
 ライセンスはMITライセンスです。
 
 ## 実装予定
@@ -26,6 +27,7 @@ Web URL ブックマーク管理API (サンプルコード)
 
 - `docker/` : Docker関連
 - `src/` : Web API ソースコード
+- `tests/` : テストコード
 - `compose.yaml` : docker compose 設定ファイル
 - `pyproject.toml` : プロジェクト設定ファイル
 - `uv.lock` : パッケージ依存関係ロックファイル
@@ -33,7 +35,7 @@ Web URL ブックマーク管理API (サンプルコード)
 ## 動作に必要なもの
 
 - uv (Pythonパッケージマネージャ)
-  - [インストール方法](https://github.com/astral-sh/uv/blob/main/README.md#installation)  
+  - [インストール方法](https://docs.astral.sh/uv/getting-started/installation/)
 - Docker 環境
   - docker compose が使用可能なこと
 
@@ -41,8 +43,10 @@ Web URL ブックマーク管理API (サンプルコード)
 
 後述の手順でコンテナを起動後に以下のURLを参照
 
-- Swagger http://localhost:8000/docs
-- Redoc http://localhost:8000/redoc
+- Swagger形式
+  - http://localhost:8000/docs
+- Redoc形式
+  - http://localhost:8000/redoc
 
 ## 接続情報
 
@@ -60,24 +64,24 @@ http://localhost:8000
 
 ## 手順
 
-### 初期設定
+### 開発作業開始時
 
 ```bash
 uv sync
-. .venv/bin/activate
+source .venv/bin/activate
 ```
 
 ### 通常開発時
 
 #### 全コンテナの起動
 
-```
+```bash
 docker compose up -d
 ```
 
 #### 全コンテナの停止・削除
 
-```
+```bash
 docker compose down
 ```
 
@@ -86,30 +90,30 @@ DB内容はコンテナを削除しても保持される。
 
 #### DB内容を完全に削除
 
-```
+```bash
 docker compose down -v
 ```
 
 #### APIコンテナのビルド
 
-```
+```bash
 task buildapp
 ```
 
 #### ソースコードのフォーマット
 
-```
+```bash
 task format
 ```
 
 #### ソースコードのチェック(型チェック等)
 
-```
+```bash
 task check
 ```
 
 #### テスト実行
 
-```
+```bash
 task test
 ```
