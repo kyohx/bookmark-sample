@@ -42,6 +42,13 @@ Web URL ブックマーク管理API (サンプルコード)
 
 ## API仕様
 
+### ファイル
+
+- JSON形式
+  - `openapi.json`
+
+### GUI
+
 後述の手順でコンテナを起動後に以下のURLを参照
 
 - Swagger形式
