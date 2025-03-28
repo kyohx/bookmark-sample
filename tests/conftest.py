@@ -2,11 +2,12 @@ import os
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from sqlalchemy.engine.url import URL
 from sqlalchemy.orm import Session, scoped_session, sessionmaker
 
 from src.dao.session import get_session
+from src.dao.models.base import BaseDao
 from src.main import app
 
 TEST_URL = "https://exsample.com/test"
@@ -88,3 +89,16 @@ def scope_funtion_test():
 
     # DBにデータ内容を保存させないためロールバックする
     session.rollback()
+
+
+@pytest.fixture(scope="session", autouse=True)
+def truncate_tables():
+    """
+    テーブル内容削除
+    """
+    with engine.connect() as con:
+        con.execute(text("SET FOREIGN_KEY_CHECKS = 0;"))
+        for table in BaseDao.metadata.sorted_tables:
+            con.execute(text(f"TRUNCATE TABLE {table.name};"))
+        con.execute(text("SET FOREIGN_KEY_CHECKS = 1;"))
+        con.commit()
