@@ -9,15 +9,6 @@ class BaseDao(DeclarativeBase):
     DAO基底クラス
     """
 
-    @property
-    def tablename(self) -> str:
-        """
-        テーブル名を取得する
-
-        :return: テーブル名
-        """
-        return self.__tablename__
-
     def to_dict(self) -> dict:
         """
         属性を辞書型に変換する
