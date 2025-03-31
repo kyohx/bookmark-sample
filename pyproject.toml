@@ -26,6 +26,13 @@ dev = [
 line-length = 100
 indent-width = 4
 target-version = "py313"
+exclude = [
+    ".venv",
+    ".mypy_cache",
+    ".pytest_cache",
+    ".ruff_cache",
+    "tests",
+]
 
 [tool.ruff.format]
 quote-style = "double"
@@ -41,11 +48,12 @@ split-on-trailing-comma = true
 
 [tool.mypy]
 python_version = "3.13"
+exclude = "^tests/"
 
 [tool.taskipy.tasks]
 test = "docker compose exec api pytest"
-format = "ruff format src/"
-check = "mypy src"
+format = "ruff format ./"
+check = "mypy ."
 buildapp = "docker compose build api"
 loginapp = "docker compose exec api bash"
 openapi = "python -m src.generate_openapi > openapi.json"

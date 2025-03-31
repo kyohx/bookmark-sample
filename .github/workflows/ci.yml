@@ -28,10 +28,10 @@ jobs:
       - name: Install python packages
         run: uv sync --all-extras
       - name: Check format
-        run: uv run ruff check src/
+        run: uv run ruff check ./
       - name: Check types
-        run: uv run mypy src
-      - name: Check openapi.json
+        run: uv run mypy .
+      - name: Check update openapi.json
         run: diff ./openapi.json <(uv run python -m src.generate_openapi)
   test:
     name: Run tests
