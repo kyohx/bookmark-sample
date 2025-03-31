@@ -1,6 +1,7 @@
 # ブックマーク API
 
 [![Check and Tests](https://github.com/kyohx/bookmark-sample/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/kyohx/bookmark-sample/actions/workflows/ci.yml)
+[![security: bandit](https://img.shields.io/badge/security-bandit-yellow.svg)](https://github.com/PyCQA/bandit)
 [![License: MIT](https://img.shields.io/badge/License-MIT-brightgreen.svg)](https://opensource.org/licenses/MIT)
 
 ## 概要

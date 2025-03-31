@@ -31,6 +31,8 @@ jobs:
         run: uv run ruff check ./
       - name: Check types
         run: uv run mypy .
+      - name: Check security issues in Python code
+        run: uv run bandit --quiet --recursive src
       - name: Check update openapi.json
         run: diff ./openapi.json <(uv run python -m src.generate_openapi)
   test:
