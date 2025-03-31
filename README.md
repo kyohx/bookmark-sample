@@ -45,7 +45,7 @@ Web URL ブックマーク管理API (サンプルコード)
 ### ファイル
 
 - JSON形式
-  - `openapi.json`
+  - [openapi.json](https://github.com/kyohx/bookmark-sample/blob/main/openapi.json)
 
 ### GUI
 

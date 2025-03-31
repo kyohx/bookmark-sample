@@ -31,13 +31,11 @@ class TagDaoOperator(BaseDaoOperator):
         statement = select(TagDao).where(TagDao.name.in_(names))
         return list(self.session.scalars(statement).all())
 
-    def save_by_names(self, names: list[str]) -> list[TagDao]:
+    def save_by_names(self, names: list[str]) -> None:
         """
         タグ名リストからタグリストを保存
         """
         already_exsist_tag_names = [tag.name for tag in self.find_by_names(names)]
         new_tag_names = set(names) - set(already_exsist_tag_names)
-        tag_dao_list = [TagDao(name=tagname) for tagname in list(new_tag_names)]
-        self.save(tag_dao_list)
-
-        return tag_dao_list
+        new_tag_dao_list = [TagDao(name=tagname) for tagname in list(new_tag_names)]
+        self.save(new_tag_dao_list)

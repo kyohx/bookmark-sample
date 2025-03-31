@@ -1,6 +1,8 @@
 from fastapi.testclient import TestClient
 
 from src.dao.models.bookmark import BookmarkDao
+from src.dao.models.bookmark_tag import BookmarkTagDao
+from src.dao.models.tag import TagDao
 from tests.conftest import TEST_URL, SessionForTest
 
 from .base import BaseTest
@@ -18,6 +20,7 @@ class TestDeleteBookmark(BaseTest):
         """
         # テストデータ作成
         bookmarks = self.create_bookmarks(db_session, num=1)
+        bookmark_id = bookmarks[0].id
 
         # リクエストの送信
         response = client.delete(f"/bookmarks/{bookmarks[0].hashed_id}")
@@ -26,8 +29,9 @@ class TestDeleteBookmark(BaseTest):
         assert response.status_code == 200
 
         # データベースの検証
-        bookmarks = db_session.query(BookmarkDao).filter_by(url=TEST_URL).all()
-        assert len(bookmarks) == 0
+        assert db_session.query(BookmarkDao).filter_by(url=TEST_URL).count() == 0
+        assert db_session.query(BookmarkTagDao).filter_by(bookmark_id=bookmark_id).count() == 0
+        assert db_session.query(TagDao).count() == 2  # タグは削除されない
 
     def test_delete_notfound(self, client: TestClient, db_session: SessionForTest):
         """
@@ -56,6 +60,6 @@ class TestDeleteBookmark(BaseTest):
         assert response.status_code == 422
 
         # ハッシュIDのフォーマット不正
-        hashed_id = "invalid_hashed_id"
+        hashed_id = "x" * 64
         response = client.delete(f"/bookmarks/{hashed_id}")
         assert response.status_code == 422
