@@ -119,7 +119,7 @@ class TestGetBookmark(BaseTest):
         assert response.status_code == 422
 
         # ハッシュIDのフォーマット不正
-        hashed_id = "invalid_hashed_id"
+        hashed_id = "x" * 64
         response = client.get(f"/bookmarks/{hashed_id}")
         assert response.status_code == 422
 
@@ -151,4 +151,9 @@ class TestGetBookmark(BaseTest):
 
         # タグ名がユニークでない
         response = client.get("/bookmarks?tag=tag1&tag=tag1")
+        assert response.status_code == 422
+
+        # タグ名の長さ不正
+        tagname = "x" * 101
+        response = client.get(f"/bookmarks?tag={tagname}")
         assert response.status_code == 422

@@ -92,9 +92,10 @@ class BookmarkRepository(BaseRepository):
         if tags is None:
             return
         # タグの保存
-        tag_dao_list = self.tag_operator.save_by_names(tags)
+        self.tag_operator.save_by_names(tags)
         # ブックマークとタグの紐付け
-        self.bookmark_tag_operator.save_by_tags(bookmark_dao_id, tag_dao_list)
+        new_tags = self.tag_operator.find_by_names(tags)
+        self.bookmark_tag_operator.save_by_tags(bookmark_dao_id, new_tags)
 
     @error_handler
     def delete_one(self, /, hashed_id: str) -> None:
