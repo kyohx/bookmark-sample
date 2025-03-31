@@ -14,6 +14,7 @@ dependencies = [
 
 [dependency-groups]
 dev = [
+    "bandit==1.8.*",
     "httpx==0.28.*",
     "mypy==1.13.*",
     "pytest==8.3.*",
@@ -52,7 +53,7 @@ exclude = "^tests/"
 [tool.taskipy.tasks]
 test = "docker compose exec api pytest"
 format = "ruff format ./"
-check = "mypy ."
+check = "mypy . ; bandit --quiet --recursive src"
 buildapp = "docker compose build api"
 loginapp = "docker compose exec api bash"
 openapi = "python -m src.generate_openapi > openapi.json"
