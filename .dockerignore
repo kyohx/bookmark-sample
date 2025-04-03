@@ -1,7 +1,13 @@
 .*_cache
+**/__pycache__
 .git
+.github
 .venv
 .dockerignore
 .gitignore
 docker
+tests
 README.md
+LICENSE
+compose.yaml
+openapi.json
