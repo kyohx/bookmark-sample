@@ -1,3 +1,5 @@
+## Dockerfile for Heroku
+
 ## ----- Stage for building python packages base
 FROM python:3.13 AS builder
 
@@ -12,9 +14,6 @@ RUN uv sync --no-dev --frozen
 
 ## ----- Stage for web app base
 FROM python:3.13-slim AS app
-
-# ポート指定
-EXPOSE 8000
 
 # ubuntuパッケージインストール
 RUN apt-get update &&\
@@ -52,4 +51,4 @@ ENV PYTHONDONTWRITEBYTECODE=1
 COPY . ${APP_HOME}
 
 # デフォルトの起動コマンド設定
-CMD ["uvicorn", "src.main:app", "--workers", "4", "--host", "0.0.0.0", "--port", "8000"]
+CMD uvicorn src.main:app --workers 2 --host 0.0.0.0 --port $PORT
