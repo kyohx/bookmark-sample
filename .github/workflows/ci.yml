@@ -64,18 +64,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Setup Docker Buildx
-        uses: docker/setup-buildx-action@v3
-      - name: Build Docker image
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          target: prod-app
-          file: ./docker/api/Dockerfile
-          load: true
-          tags: app:latest
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
       - name: Install Heroku CLI
         run: |
           curl https://cli-assets.heroku.com/install.sh | sh
