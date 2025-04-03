@@ -1,6 +1,7 @@
 # ブックマーク API
 
 [![Check and Tests](https://github.com/kyohx/bookmark-sample/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/kyohx/bookmark-sample/actions/workflows/ci.yml)
+[![Deploy](https://github.com/kyohx/bookmark-sample/actions/workflows/deploy.yml/badge.svg)](https://github.com/kyohx/bookmark-sample/actions/workflows/deploy.yml)
 [![security: bandit](https://img.shields.io/badge/security-bandit-yellow.svg)](https://github.com/PyCQA/bandit)
 [![License: MIT](https://img.shields.io/badge/License-MIT-brightgreen.svg)](https://opensource.org/licenses/MIT)
 
@@ -26,15 +27,16 @@ Web URL ブックマーク管理API (サンプルコード)
 
 ## ディレクトリ/ファイル構成
 
-- `docker/` : Docker関連
+- `docker/` : ローカル環境向け Docker関連ファイル
 - `src/` : Web API ソースコード
 - `tests/` : テストコード
-- `compose.yaml` : docker compose 設定ファイル
+- `compose.yaml` : ローカル環境向け docker compose 設定ファイル
+- `Dockerfile` : Heroku環境向け Dockerfile
 - `openapi.json` : OpenAPI(API仕様)ファイル
 - `pyproject.toml` : プロジェクト設定ファイル
 - `uv.lock` : パッケージ依存関係ロックファイル
 
-## 動作に必要なもの
+## ローカル環境での動作に必要なもの
 
 - uv (Pythonパッケージマネージャ)
   - [インストール方法](https://docs.astral.sh/uv/getting-started/installation/)
