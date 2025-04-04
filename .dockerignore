@@ -3,6 +3,7 @@
 .git
 .github
 .venv
+.env
 .dockerignore
 .gitignore
 docker
