@@ -6,11 +6,79 @@
     "version": "0.1.0.250327"
   },
   "paths": {
+    "/token": {
+      "post": {
+        "summary": "Login",
+        "description": "ログインしてアクセストークンを取得する",
+        "operationId": "login_token_post",
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_login_token_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseForLogin"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/me": {
+      "get": {
+        "summary": "Me",
+        "description": "現在のユーザ情報を取得する",
+        "operationId": "me_me_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseForGetCurrentUser"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
     "/bookmarks": {
       "post": {
         "summary": "Add Bookmark",
         "description": "ブックマーク追加",
         "operationId": "add_bookmark_bookmarks_post",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -48,6 +116,11 @@
         "summary": "Get Bookmarks",
         "description": "ブックマークリスト取得",
         "operationId": "get_bookmarks_bookmarks_get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "tag",
@@ -100,6 +173,11 @@
         "summary": "Update Bookmark",
         "description": "ブックマーク更新",
         "operationId": "update_bookmark_bookmarks__hashed_id__patch",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "hashed_id",
@@ -151,6 +229,11 @@
         "summary": "Delete Bookmark",
         "description": "ブックマーク削除",
         "operationId": "delete_bookmark_bookmarks__hashed_id__delete",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "hashed_id",
@@ -192,6 +275,11 @@
         "summary": "Get Bookmark",
         "description": "ブックマーク取得",
         "operationId": "get_bookmark_bookmarks__hashed_id__get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "hashed_id",
@@ -252,6 +340,63 @@
   },
   "components": {
     "schemas": {
+      "Body_login_token_post": {
+        "properties": {
+          "grant_type": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^password$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Grant Type"
+          },
+          "username": {
+            "type": "string",
+            "title": "Username"
+          },
+          "password": {
+            "type": "string",
+            "title": "Password"
+          },
+          "scope": {
+            "type": "string",
+            "title": "Scope",
+            "default": ""
+          },
+          "client_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Client Id"
+          },
+          "client_secret": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Client Secret"
+          }
+        },
+        "type": "object",
+        "required": [
+          "username",
+          "password"
+        ],
+        "title": "Body_login_token_post"
+      },
       "BookmarkDetail": {
         "properties": {
           "hashed_id": {
@@ -502,6 +647,19 @@
           }
         ]
       },
+      "ResponseForGetCurrentUser": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "title": "ResponseForGetCurrentUser"
+      },
       "ResponseForGetVersion": {
         "properties": {
           "version": {
@@ -519,6 +677,24 @@
             "version": "0.1.0.250327"
           }
         ]
+      },
+      "ResponseForLogin": {
+        "properties": {
+          "access_token": {
+            "type": "string",
+            "title": "Access Token"
+          },
+          "token_type": {
+            "type": "string",
+            "title": "Token Type"
+          }
+        },
+        "type": "object",
+        "required": [
+          "access_token",
+          "token_type"
+        ],
+        "title": "ResponseForLogin"
       },
       "ResponseForUpdateBookmark": {
         "properties": {
@@ -579,6 +755,17 @@
           "type"
         ],
         "title": "ValidationError"
+      }
+    },
+    "securitySchemes": {
+      "OAuth2PasswordBearer": {
+        "type": "oauth2",
+        "flows": {
+          "password": {
+            "scopes": {},
+            "tokenUrl": "token"
+          }
+        }
       }
     }
   }
