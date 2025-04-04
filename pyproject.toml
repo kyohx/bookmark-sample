@@ -5,9 +5,13 @@ description = "Bookmark sample"
 readme = "README.md"
 requires-python = "==3.13.*"
 dependencies = [
+    "bcrypt==4.0.1",
     "fastapi==0.115.*",
     "uvicorn[standard]==0.34.*",
+    "passlib[bcrypt]==1.7.*",
     "PyMySQL==1.1.*",
+    "pyjwt==2.10.*",
+    "python-multipart==0.0.*",
     "orjson==3.10.*",
     "sqlalchemy==2.0.*",
 ]
@@ -20,7 +24,8 @@ dev = [
     "pytest==8.3.*",
     "ruff==0.9.*",
     "taskipy==1.14.*",
-    "types-PyMySQL==1.1.0.*",
+    "types-passlib==1.7.*",
+    "types-PyMySQL==1.1.*",
 ]
 
 [tool.ruff]

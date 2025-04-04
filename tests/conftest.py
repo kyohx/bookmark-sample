@@ -6,8 +6,10 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.engine.url import URL
 from sqlalchemy.orm import Session, scoped_session, sessionmaker
 
-from src.dao.session import get_session
 from src.dao.models.base import BaseDao
+from src.dao.session import get_session
+from src.entities.user import User
+from src.libs.auth import get_current_active_user
 from src.main import app
 
 TEST_URL = "https://exsample.com/test"
@@ -79,11 +81,15 @@ def scope_funtion_test():
     """
     session = get_test_session()
 
-    def get_session_for_testing_app():
+    def get_session_for_testing():
         yield session
 
-    # APIで使用しているセッション取得処理をテスト用に置き換え
-    app.dependency_overrides[get_session] = get_session_for_testing_app
+    def get_current_active_user_for_testing():
+        return User(name="test_user", hashed_password="****", disabled=False)
+
+    # 依存処理をテスト用に置き換え
+    app.dependency_overrides[get_session] = get_session_for_testing
+    app.dependency_overrides[get_current_active_user] = get_current_active_user_for_testing
 
     yield  # テスト関数実行
 
