@@ -8,6 +8,7 @@ from ..dto.bookmark.get_list import ResponseForGetBookmarkList
 from ..dto.bookmark.update import RequestForUpdateBookmark, ResponseForUpdateBookmark
 from ..libs.auth import UserDepends
 from ..libs.constraints import PATH_HASHED_ID, QUERY_TAGS
+from ..libs.enum import AuthorityEnum
 from ..usecases.bookmark import BookmarkUsecase
 
 router = APIRouter()
@@ -25,7 +26,11 @@ def add_bookmark(
     """
     ブックマーク追加
     """
-    return BookmarkUsecase(session=session).add(req)
+    return BookmarkUsecase(
+        session=session,
+        user=user,
+        required_authority=AuthorityEnum.READWRITE,
+    ).add(req)
 
 
 @router.patch(
@@ -41,7 +46,11 @@ def update_bookmark(
     """
     ブックマーク更新
     """
-    return BookmarkUsecase(session=session).update(req, hashed_id)
+    return BookmarkUsecase(
+        session=session,
+        user=user,
+        required_authority=AuthorityEnum.READWRITE,
+    ).update(req, hashed_id)
 
 
 @router.delete(
@@ -56,7 +65,11 @@ def delete_bookmark(
     """
     ブックマーク削除
     """
-    return BookmarkUsecase(session=session).delete(hashed_id)
+    return BookmarkUsecase(
+        session=session,
+        user=user,
+        required_authority=AuthorityEnum.READWRITE,
+    ).delete(hashed_id)
 
 
 @router.get(
@@ -71,7 +84,11 @@ def get_bookmark(
     """
     ブックマーク取得
     """
-    return BookmarkUsecase(session=session).get_one(hashed_id)
+    return BookmarkUsecase(
+        session=session,
+        user=user,
+        required_authority=AuthorityEnum.READ,
+    ).get_one(hashed_id)
 
 
 @router.get(
@@ -86,4 +103,8 @@ def get_bookmarks(
     """
     ブックマークリスト取得
     """
-    return BookmarkUsecase(session=session).get_list(tag_names=tag)
+    return BookmarkUsecase(
+        session=session,
+        user=user,
+        required_authority=AuthorityEnum.READ,
+    ).get_list(tag_names=tag)

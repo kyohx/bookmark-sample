@@ -3,7 +3,7 @@
   "info": {
     "title": "Bookmark API",
     "description": "API for bookmarking web page URL",
-    "version": "0.2.0.250404"
+    "version": "0.2.1.250405"
   },
   "paths": {
     "/token": {
@@ -340,6 +340,17 @@
   },
   "components": {
     "schemas": {
+      "AuthorityEnum": {
+        "type": "integer",
+        "enum": [
+          0,
+          1,
+          2,
+          9
+        ],
+        "title": "AuthorityEnum",
+        "description": "権限\n[権限なし: 0]\n[読み取り可: 1]\n[読み書き可: 2]\n[管理者権限: 9]"
+      },
       "Body_login_token_post": {
         "properties": {
           "grant_type": {
@@ -652,11 +663,15 @@
           "name": {
             "type": "string",
             "title": "Name"
+          },
+          "authority": {
+            "$ref": "#/components/schemas/AuthorityEnum"
           }
         },
         "type": "object",
         "required": [
-          "name"
+          "name",
+          "authority"
         ],
         "title": "ResponseForGetCurrentUser"
       },
@@ -674,7 +689,7 @@
         "title": "ResponseForGetVersion",
         "examples": [
           {
-            "version": "0.2.0.250404"
+            "version": "0.2.1.250405"
           }
         ]
       },
