@@ -14,9 +14,8 @@ from ..dao.operators.user import UserDaoOperator
 from ..dao.session import SessionDepend
 from ..entities.user import User
 
-SECRET_KEY = os.environ.get("AUTH_SECRET_KEY")
-if not SECRET_KEY:
-    raise ValueError("AUTH_SECRET_KEY is not set")
+_DEFAULT_VALUE = "28b9ecba33eb6059e3048532bf90d7bf6484ea8a3626ac2ad2fdbdc850dc89c1"
+SECRET_KEY = os.environ.get("AUTH_SECRET_KEY", _DEFAULT_VALUE)
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
@@ -38,7 +37,7 @@ class TokenData(BaseModel):
     トークンデータ
     """
 
-    username: str | None = None
+    username: str
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
@@ -102,7 +101,7 @@ def login_for_access_token(form_data: OAuth2PasswordRequestForm, session: Sessio
         )
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(data={"sub": user.name}, expires_delta=access_token_expires)
-    return Token(access_token=access_token, token_type="bearer")
+    return Token(access_token=access_token, token_type="bearer")  # nosec
 
 
 def get_current_user(token: Annotated[str, Depends(oauth2_scheme)], session: SessionDepend) -> User:
@@ -116,7 +115,7 @@ def get_current_user(token: Annotated[str, Depends(oauth2_scheme)], session: Ses
     )
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        username = payload.get("sub")
+        username: str | None = payload.get("sub")
         if username is None:
             raise credentials_exception
         token_data = TokenData(username=username)

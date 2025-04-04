@@ -82,6 +82,7 @@ dev = [
     { name = "pytest" },
     { name = "ruff" },
     { name = "taskipy" },
+    { name = "types-passlib" },
     { name = "types-pymysql" },
 ]
 
@@ -106,6 +107,7 @@ dev = [
     { name = "pytest", specifier = "==8.3.*" },
     { name = "ruff", specifier = "==0.9.*" },
     { name = "taskipy", specifier = "==1.14.*" },
+    { name = "types-passlib", specifier = "==1.7.*" },
     { name = "types-pymysql", specifier = "==1.1.0.*" },
 ]
 
@@ -634,6 +636,15 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/5b/b9/1ed31d167be802da0fc95020d04cd27b7d7065cc6fbefdd2f9186f60d7bd/tomli-2.2.1-cp313-cp313-win32.whl", hash = "sha256:d3f5614314d758649ab2ab3a62d4f2004c825922f9e370b29416484086b264ec", size = 98724 },
     { url = "https://files.pythonhosted.org/packages/c7/32/b0963458706accd9afcfeb867c0f9175a741bf7b19cd424230714d722198/tomli-2.2.1-cp313-cp313-win_amd64.whl", hash = "sha256:a38aa0308e754b0e3c67e344754dff64999ff9b513e691d0e786265c93583c69", size = 109383 },
     { url = "https://files.pythonhosted.org/packages/6e/c2/61d3e0f47e2b74ef40a68b9e6ad5984f6241a942f7cd3bbfbdbd03861ea9/tomli-2.2.1-py3-none-any.whl", hash = "sha256:cb55c73c5f4408779d0cf3eef9f762b9c9f147a77de7b258bef0a5628adc85cc", size = 14257 },
+]
+
+[[package]]
+name = "types-passlib"
+version = "1.7.7.20250401"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/7b/db/9742d322a7301dd4165ce22406d53150b7887ffc8bd41a2f51026085f52e/types_passlib-1.7.7.20250401.tar.gz", hash = "sha256:d0868558b732d83b60c8049ee0d388762af555058ae6a91696a140a7734957ba", size = 24830 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/06/23/1d2b3bef0fdf3abf5b7fc39e55660048f56da417c1cafb087ca8a74d39e6/types_passlib-1.7.7.20250401-py3-none-any.whl", hash = "sha256:4e2b3e51a87522916d3c963e9158b3a5883bd6f1031346abc540a37a36a8a920", size = 39949 },
 ]
 
 [[package]]
