@@ -10,6 +10,7 @@ from src.dao.models.base import BaseDao
 from src.dao.session import get_session
 from src.entities.user import User
 from src.libs.auth import get_current_active_user
+from src.libs.enum import AuthorityEnum
 from src.main import app
 
 TEST_URL = "https://exsample.com/test"
@@ -85,7 +86,12 @@ def scope_funtion_test():
         yield session
 
     def get_current_active_user_for_testing():
-        return User(name="test_user", hashed_password="****", disabled=False)
+        return User(
+            name="test_user",
+            hashed_password="****",
+            authority=AuthorityEnum.READWRITE,
+            disabled=False,
+        )
 
     # 依存処理をテスト用に置き換え
     app.dependency_overrides[get_session] = get_session_for_testing

@@ -135,7 +135,7 @@ def get_current_active_user(
     """
     # サーバ側からユーザログインを即時制御するためにdisabledフラグをチェックする
     if current_user.disabled:
-        raise HTTPException(status_code=400, detail="Inactive user")
+        raise HTTPException(status_code=401, detail="Inactive user")
     return current_user
 
 
