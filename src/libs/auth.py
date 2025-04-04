@@ -15,7 +15,7 @@ from ..dao.session import SessionDepend
 from ..entities.user import User
 
 _DEFAULT_VALUE = "28b9ecba33eb6059e3048532bf90d7bf6484ea8a3626ac2ad2fdbdc850dc89c1"
-SECRET_KEY = os.environ.get("AUTH_SECRET_KEY", _DEFAULT_VALUE)
+JWT_SECRET_KEY = os.environ.get("JWT_SECRET_KEY", _DEFAULT_VALUE)
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
@@ -84,7 +84,7 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None) -> s
     else:
         expire = datetime.now(timezone.utc) + timedelta(minutes=15)
     to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    encoded_jwt = jwt.encode(to_encode, JWT_SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
 
@@ -114,7 +114,7 @@ def get_current_user(token: Annotated[str, Depends(oauth2_scheme)], session: Ses
         headers={"WWW-Authenticate": "Bearer"},
     )
     try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=[ALGORITHM])
         username: str | None = payload.get("sub")
         if username is None:
             raise credentials_exception
