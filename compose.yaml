@@ -13,6 +13,7 @@ services:
       DATABASE_PASSWORD: root
       DATABASE_NAME: app
       DATABASE_DEBUG: 1
+      AUTH_SECRET_KEY: 28b9ecba33eb6059e3048532bf90d7bf6484ea8a3626ac2ad2fdbdc850dc89c1
     tty: true
     volumes:
       - ./:/opt/app

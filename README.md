@@ -65,6 +65,11 @@ Web URL ブックマーク管理API (サンプルコード)
 
 http://localhost:8000
 
+#### API認証
+
+- ユーザ名: testuser
+- パスワード: n3#7%$tB5T
+
 ### DB
 
 - ホスト名: localhost

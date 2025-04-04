@@ -31,3 +31,13 @@ create table if not exists `bookmark_tag` (
 	`updated_at`		datetime not null default current_timestamp on update current_timestamp comment "更新日時",
 	unique (bookmark_id, tag_id)
 ) comment 'ブックマークとタグの関連情報';
+
+-- ユーザ情報
+create table if not exists `user` (
+	`id`				integer primary key auto_increment not null comment "ID",
+	`name`				varchar(32) unique not null comment "ユーザ名",
+	`hashed_password`	varchar(64) not null comment "パスワードハッシュ",
+	`disabled`			tinyint(1) not null default 0 comment "無効フラグ",
+	`created_at`		datetime not null default current_timestamp comment "登録日時",
+	`updated_at`		datetime not null default current_timestamp on update current_timestamp comment "更新日時"
+) comment 'ユーザ情報';

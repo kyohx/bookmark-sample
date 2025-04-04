@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import ORJSONResponse
 
-from .controllers import bookmark, version
+from .controllers import auth, bookmark, version
 from .libs.version import APP_VERSION
 
 
@@ -22,6 +22,7 @@ def create_app() -> FastAPI:
 
     # ルーティング設定
     for router in (
+        auth.router,
         bookmark.router,
         version.router,
     ):

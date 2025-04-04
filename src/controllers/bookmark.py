@@ -6,6 +6,7 @@ from ..dto.bookmark.delete import ResponseForDeleteBookmark
 from ..dto.bookmark.get import ResponseForGetBookmark
 from ..dto.bookmark.get_list import ResponseForGetBookmarkList
 from ..dto.bookmark.update import RequestForUpdateBookmark, ResponseForUpdateBookmark
+from ..libs.auth import UserDepends
 from ..libs.constraints import PATH_HASHED_ID, QUERY_TAGS
 from ..usecases.bookmark import BookmarkUsecase
 
@@ -19,6 +20,7 @@ router = APIRouter()
 def add_bookmark(
     req: RequestForAddBookmark,
     session: SessionDepend,
+    user: UserDepends,
 ) -> ResponseForAddBookmark:
     """
     ブックマーク追加
@@ -34,6 +36,7 @@ def update_bookmark(
     hashed_id: PATH_HASHED_ID,
     req: RequestForUpdateBookmark,
     session: SessionDepend,
+    user: UserDepends,
 ) -> ResponseForUpdateBookmark:
     """
     ブックマーク更新
@@ -48,6 +51,7 @@ def update_bookmark(
 def delete_bookmark(
     hashed_id: PATH_HASHED_ID,
     session: SessionDepend,
+    user: UserDepends,
 ) -> ResponseForDeleteBookmark:
     """
     ブックマーク削除
@@ -62,6 +66,7 @@ def delete_bookmark(
 def get_bookmark(
     hashed_id: PATH_HASHED_ID,
     session: SessionDepend,
+    user: UserDepends,
 ) -> ResponseForGetBookmark:
     """
     ブックマーク取得
@@ -75,6 +80,7 @@ def get_bookmark(
 )
 def get_bookmarks(
     session: SessionDepend,
+    user: UserDepends,
     tag: QUERY_TAGS = None,
 ) -> ResponseForGetBookmarkList:
     """
