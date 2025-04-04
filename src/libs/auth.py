@@ -3,6 +3,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Annotated
 
 import jwt
+from dotenv import dotenv_values
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jwt.exceptions import InvalidTokenError
@@ -15,7 +16,8 @@ from ..dao.session import SessionDepend
 from ..entities.user import User
 
 _DEFAULT_VALUE = "28b9ecba33eb6059e3048532bf90d7bf6484ea8a3626ac2ad2fdbdc850dc89c1"
-JWT_SECRET_KEY = os.environ.get("JWT_SECRET_KEY", _DEFAULT_VALUE)
+_dotenv_jwt_secret = dotenv_values().get("JWT_SECRET_KEY", _DEFAULT_VALUE)
+JWT_SECRET_KEY = os.environ.get("JWT_SECRET_KEY", _dotenv_jwt_secret)
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
