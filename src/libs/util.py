@@ -1,8 +1,10 @@
-import os
 from datetime import datetime
 from hashlib import sha256
 
-SALT = os.environ.get("SALT", "__SALTSALTSALT__")
+from ..libs.config import get_config
+
+
+SALT = get_config().hash_salt
 
 
 def get_hashed_id(value: str) -> str:

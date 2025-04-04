@@ -1,4 +1,3 @@
-import os
 from datetime import datetime, timedelta, timezone
 from typing import Annotated
 
@@ -14,10 +13,10 @@ from sqlalchemy.orm import Session
 from ..dao.operators.user import UserDaoOperator
 from ..dao.session import SessionDepend
 from ..entities.user import User
+from ..libs.config import get_config
 
-_DEFAULT_VALUE = "28b9ecba33eb6059e3048532bf90d7bf6484ea8a3626ac2ad2fdbdc850dc89c1"
-_dotenv_jwt_secret = dotenv_values().get("JWT_SECRET_KEY", _DEFAULT_VALUE)
-JWT_SECRET_KEY = os.environ.get("JWT_SECRET_KEY", _dotenv_jwt_secret)
+_config = get_config()
+JWT_SECRET_KEY = _config.jwt_secret_key
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 

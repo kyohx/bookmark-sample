@@ -1,6 +1,9 @@
-import os
 import sys
 from logging import DEBUG, ERROR, INFO, Formatter, StreamHandler, getLogger
+
+from ..libs.config import get_config
+
+_config = get_config()
 
 _LOGLEVEL_TABLE = {
     "DEBUG": DEBUG,
@@ -8,7 +11,7 @@ _LOGLEVEL_TABLE = {
     "ERROR": ERROR,
 }
 
-_level = os.environ.get("LOG_LEVEL", "DEBUG").upper()
+_level = _config.log_level
 _logger = getLogger("API")
 _handler = StreamHandler(sys.stdout)
 _handler.setLevel(_LOGLEVEL_TABLE[_level])

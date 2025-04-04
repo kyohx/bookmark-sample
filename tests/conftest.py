@@ -1,5 +1,3 @@
-import os
-
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, text
@@ -12,6 +10,9 @@ from src.entities.user import User
 from src.libs.auth import get_current_active_user
 from src.libs.enum import AuthorityEnum
 from src.main import app
+from src.libs.config import get_config
+
+_config = get_config()
 
 TEST_URL = "https://exsample.com/test"
 TEST_TAG_NAME = "test_tag"
@@ -35,7 +36,7 @@ def db_engine():
     """
     config = URL.create(
         "mysql+pymysql",
-        host=os.environ.get("TEST_DB_HOST", "db"),
+        host=_config.test_database_host,
         port=3306,
         username="root",
         password="root",
