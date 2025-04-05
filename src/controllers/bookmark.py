@@ -6,9 +6,9 @@ from ..dto.bookmark.delete import ResponseForDeleteBookmark
 from ..dto.bookmark.get import ResponseForGetBookmark
 from ..dto.bookmark.get_list import ResponseForGetBookmarkList
 from ..dto.bookmark.update import RequestForUpdateBookmark, ResponseForUpdateBookmark
-from ..libs.auth import UserDepends
 from ..libs.constraints import PATH_HASHED_ID, QUERY_TAGS
 from ..libs.enum import AuthorityEnum
+from ..services.auth import UserDepends
 from ..usecases.bookmark import BookmarkUsecase
 
 router = APIRouter()
