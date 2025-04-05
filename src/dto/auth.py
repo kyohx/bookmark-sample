@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 
-from ..libs.auth import Token
 from ..libs.enum import AuthorityEnum
+from ..services.auth import Token
 
 
 ## ログインレスポンス

@@ -7,10 +7,10 @@ from sqlalchemy.orm import Session, scoped_session, sessionmaker
 from src.dao.models.base import BaseDao
 from src.dao.session import get_session
 from src.entities.user import User
-from src.libs.auth import get_current_active_user
+from src.libs.config import get_config
 from src.libs.enum import AuthorityEnum
 from src.main import app
-from src.libs.config import get_config
+from src.services.auth import get_current_active_user
 
 _config = get_config()
 
@@ -34,7 +34,7 @@ def db_engine():
     """
     テスト用DBエンジン
     """
-    config = URL.create(
+    db_config = URL.create(
         "mysql+pymysql",
         host=_config.test_database_host,
         port=3306,
@@ -43,7 +43,7 @@ def db_engine():
         database="test_db",
     )
 
-    engine = create_engine(config, echo=True)
+    engine = create_engine(db_config, echo=True)
     return engine
 
 

@@ -5,7 +5,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 
 from ..dao.session import SessionDepend
 from ..dto.auth import ResponseForGetCurrentUser, ResponseForLogin
-from ..libs.auth import UserDepends, login_for_access_token
+from ..services.auth import AuthorizeService, UserDepends
 
 router = APIRouter()
 
@@ -18,7 +18,7 @@ def login(
     """
     ログインしてアクセストークンを取得する
     """
-    res = login_for_access_token(form_data, session)
+    res = AuthorizeService(session=session).login(form_data)
     return ResponseForLogin(**res.model_dump())
 
 
