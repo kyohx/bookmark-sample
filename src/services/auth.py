@@ -6,7 +6,7 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jwt.exceptions import InvalidTokenError
 from passlib.context import CryptContext
-from pydantic import BaseModel, ValidationError
+from pydantic import BaseModel, ConfigDict, ValidationError
 
 from ..dao.operators.user import UserDaoOperator
 from ..dao.session import SessionDepend
@@ -22,13 +22,17 @@ class Token(BaseModel):
     access_token: str
     token_type: str
 
+    model_config = ConfigDict(frozen=True)
 
-class TokenData(BaseModel, frozen=True):
+
+class TokenData(BaseModel):
     """
     トークンデータ
     """
 
     username: str
+
+    model_config = ConfigDict(frozen=True)
 
 
 class AuthorizeService(ServiceBase):
