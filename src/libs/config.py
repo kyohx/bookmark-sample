@@ -1,12 +1,12 @@
 import os
 
 from dotenv import load_dotenv
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 _KEY_DEFAULT_VALUE = "28b9ecba33eb6059e3048532bf90d7bf6484ea8a3626ac2ad2fdbdc850dc89c1"
 
 
-class Config(BaseModel, frozen=True):
+class Config(BaseModel):
     """
     設定値
     """
@@ -21,6 +21,8 @@ class Config(BaseModel, frozen=True):
     jwt_secret_key: str
     log_level: str
     hash_salt: str
+
+    model_config = ConfigDict(frozen=True)
 
 
 load_dotenv()
