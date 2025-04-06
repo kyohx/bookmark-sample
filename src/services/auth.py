@@ -14,7 +14,7 @@ from ..entities.user import User
 from .base import ServiceBase
 
 
-class Token(BaseModel, frozen=True):
+class Token(BaseModel):
     """
     アクセストークン
     """
