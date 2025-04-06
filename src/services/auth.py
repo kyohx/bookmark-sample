@@ -6,7 +6,7 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jwt.exceptions import InvalidTokenError
 from passlib.context import CryptContext
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationError
 
 from ..dao.operators.user import UserDaoOperator
 from ..dao.session import SessionDepend
@@ -23,7 +23,7 @@ class Token(BaseModel):
     token_type: str
 
 
-class TokenData(BaseModel):
+class TokenData(BaseModel, frozen=True):
     """
     トークンデータ
     """
@@ -90,17 +90,23 @@ class AuthorizeService(ServiceBase):
         encoded_jwt = jwt.encode(to_encode, self.jwt_secret_key, algorithm=self.ALGORITHM)
         return encoded_jwt
 
+    def get_exception(self, detail: str) -> HTTPException:
+        """
+        認証エラーを作成する
+        """
+        return HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=detail,
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
     def login(self, form_data: OAuth2PasswordRequestForm) -> Token:
         """
         ログイン処理からアクセストークンを取得する
         """
         user = self.authenticate_user(form_data.username, form_data.password)
         if not user:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Incorrect username or password",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
+            raise self.get_exception(detail="Incorrect username or password")
         access_token_expires = timedelta(minutes=self.ACCESS_TOKEN_EXPIRE_MINUTES)
         access_token = self.create_access_token(
             data={"sub": user.name}, expires_delta=access_token_expires
@@ -111,18 +117,11 @@ class AuthorizeService(ServiceBase):
         """
         トークンからユーザを取得する
         """
-        credentials_exception = HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Could not validate credentials",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+        credentials_exception = self.get_exception(detail="Could not validate credentials")
         try:
             payload = jwt.decode(token, self.jwt_secret_key, algorithms=[self.ALGORITHM])
-            username: str | None = payload.get("sub")
-            if username is None:
-                raise credentials_exception
-            token_data = TokenData(username=username)
-        except InvalidTokenError:
+            token_data = TokenData(username=payload.get("sub"))
+        except (InvalidTokenError, ValidationError):
             raise credentials_exception
         user = self.get_user(name=token_data.username)
         if user is None:

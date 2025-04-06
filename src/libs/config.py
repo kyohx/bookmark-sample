@@ -3,11 +3,10 @@ import os
 from dotenv import load_dotenv
 from pydantic import BaseModel
 
-
 _KEY_DEFAULT_VALUE = "28b9ecba33eb6059e3048532bf90d7bf6484ea8a3626ac2ad2fdbdc850dc89c1"
 
 
-class Config(BaseModel):
+class Config(BaseModel, frozen=True):
     """
     設定値
     """
