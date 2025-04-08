@@ -17,6 +17,7 @@ router = APIRouter()
 @router.post(
     "/bookmarks",
     response_model=ResponseForAddBookmark,
+    tags=["bookmark"],
 )
 def add_bookmark(
     req: RequestForAddBookmark,
@@ -36,6 +37,7 @@ def add_bookmark(
 @router.patch(
     "/bookmarks/{hashed_id}",
     response_model=ResponseForUpdateBookmark,
+    tags=["bookmark"],
 )
 def update_bookmark(
     hashed_id: PATH_HASHED_ID,
@@ -56,6 +58,7 @@ def update_bookmark(
 @router.delete(
     "/bookmarks/{hashed_id}",
     response_model=ResponseForDeleteBookmark,
+    tags=["bookmark"],
 )
 def delete_bookmark(
     hashed_id: PATH_HASHED_ID,
@@ -75,6 +78,7 @@ def delete_bookmark(
 @router.get(
     "/bookmarks/{hashed_id}",
     response_model=ResponseForGetBookmark,
+    tags=["bookmark"],
 )
 def get_bookmark(
     hashed_id: PATH_HASHED_ID,
@@ -94,6 +98,7 @@ def get_bookmark(
 @router.get(
     "/bookmarks",
     response_model=ResponseForGetBookmarkList,
+    tags=["bookmark"],
 )
 def get_bookmarks(
     session: SessionDepend,

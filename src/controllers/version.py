@@ -9,6 +9,7 @@ router = APIRouter()
 @router.get(
     "/version",
     response_model=ResponseForGetVersion,
+    tags=["version"],
 )
 def get_version() -> ResponseForGetVersion:
     """

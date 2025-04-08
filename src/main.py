@@ -13,6 +13,20 @@ def create_app() -> FastAPI:
     app = FastAPI(
         title="Bookmark API",
         description="API for bookmarking web page URL",
+        openapi_tags=[
+            {
+                "name": "auth",
+                "description": "Authentication operations",
+            },
+            {
+                "name": "bookmark",
+                "description": "Bookmark operations",
+            },
+            {
+                "name": "version",
+                "description": "API version",
+            },
+        ],
         version=APP_VERSION,
         default_response_class=ORJSONResponse,
     )
