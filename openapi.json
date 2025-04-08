@@ -8,6 +8,9 @@
   "paths": {
     "/token": {
       "post": {
+        "tags": [
+          "auth"
+        ],
         "summary": "Login",
         "description": "ログインしてアクセストークンを取得する",
         "operationId": "login_token_post",
@@ -47,6 +50,9 @@
     },
     "/me": {
       "get": {
+        "tags": [
+          "auth"
+        ],
         "summary": "Me",
         "description": "現在のユーザ情報を取得する",
         "operationId": "me_me_get",
@@ -71,6 +77,9 @@
     },
     "/bookmarks": {
       "post": {
+        "tags": [
+          "bookmark"
+        ],
         "summary": "Add Bookmark",
         "description": "ブックマーク追加",
         "operationId": "add_bookmark_bookmarks_post",
@@ -113,6 +122,9 @@
         }
       },
       "get": {
+        "tags": [
+          "bookmark"
+        ],
         "summary": "Get Bookmarks",
         "description": "ブックマークリスト取得",
         "operationId": "get_bookmarks_bookmarks_get",
@@ -170,6 +182,9 @@
     },
     "/bookmarks/{hashed_id}": {
       "patch": {
+        "tags": [
+          "bookmark"
+        ],
         "summary": "Update Bookmark",
         "description": "ブックマーク更新",
         "operationId": "update_bookmark_bookmarks__hashed_id__patch",
@@ -226,6 +241,9 @@
         }
       },
       "delete": {
+        "tags": [
+          "bookmark"
+        ],
         "summary": "Delete Bookmark",
         "description": "ブックマーク削除",
         "operationId": "delete_bookmark_bookmarks__hashed_id__delete",
@@ -272,6 +290,9 @@
         }
       },
       "get": {
+        "tags": [
+          "bookmark"
+        ],
         "summary": "Get Bookmark",
         "description": "ブックマーク取得",
         "operationId": "get_bookmark_bookmarks__hashed_id__get",
@@ -320,6 +341,9 @@
     },
     "/version": {
       "get": {
+        "tags": [
+          "version"
+        ],
         "summary": "Get Version",
         "description": "バージョン番号取得",
         "operationId": "get_version_version_get",
@@ -783,5 +807,19 @@
         }
       }
     }
-  }
+  },
+  "tags": [
+    {
+      "name": "auth",
+      "description": "Authentication operations"
+    },
+    {
+      "name": "bookmark",
+      "description": "Bookmark operations"
+    },
+    {
+      "name": "version",
+      "description": "API version"
+    }
+  ]
 }

@@ -10,7 +10,11 @@ from ..services.auth import AuthorizeService, UserDepends
 router = APIRouter()
 
 
-@router.post("/token")
+@router.post(
+    "/token",
+    response_model=ResponseForLogin,
+    tags=["auth"],
+)
 def login(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
     session: SessionDepend,
@@ -22,7 +26,11 @@ def login(
     return ResponseForLogin(**res.model_dump())
 
 
-@router.get("/me")
+@router.get(
+    "/me",
+    response_model=ResponseForGetCurrentUser,
+    tags=["auth"],
+)
 def me(user: UserDepends) -> ResponseForGetCurrentUser:
     """
     現在のユーザ情報を取得する
