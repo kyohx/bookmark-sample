@@ -3,7 +3,10 @@ from sqlalchemy.orm import Session
 from src.dao.models.bookmark import BookmarkDao
 from src.dao.models.bookmark_tag import BookmarkTagDao
 from src.dao.models.tag import TagDao
+from src.dao.models.user import UserDao
+from src.libs.enum import AuthorityEnum
 from src.libs.util import get_hashed_id
+from src.services.auth import AuthorizeService
 
 
 class DataFactory:
@@ -32,3 +35,20 @@ class DataFactory:
 
         self.session.flush()
         return bookmark
+
+    def create_user(
+        self,
+        name: str,
+        password: str = "***",
+        disabled: bool = False,
+        authority: AuthorityEnum = AuthorityEnum.READWRITE,
+    ) -> UserDao:
+        user = UserDao(
+            name=name,
+            hashed_password=AuthorizeService.get_hashed_password(password),
+            disabled=disabled,
+            authority=authority.value,
+        )
+        self.session.add(user)
+        self.session.flush()
+        return user

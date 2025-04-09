@@ -54,7 +54,7 @@
           "auth"
         ],
         "summary": "Me",
-        "description": "現在のユーザ情報を取得する",
+        "description": "ログインユーザ情報を取得する",
         "operationId": "me_me_get",
         "responses": {
           "200": {
@@ -339,6 +339,188 @@
         }
       }
     },
+    "/users": {
+      "get": {
+        "tags": [
+          "user"
+        ],
+        "summary": "Get Users",
+        "description": "ユーザーリスト取得",
+        "operationId": "get_users_users_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseForGetUserList"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "user"
+        ],
+        "summary": "Add User",
+        "description": "ユーザー追加",
+        "operationId": "add_user_users_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RequestForAddUser"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseForAddUser"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/users/{name}": {
+      "patch": {
+        "tags": [
+          "user"
+        ],
+        "summary": "Update User",
+        "description": "ユーザー更新\n - ログインユーザー自身のname,disabled,authorityは変更できない\n - 管理者以外はログインユーザー自身の情報のみ変更可能",
+        "operationId": "update_user_users__name__patch",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 32,
+              "pattern": "^[a-zA-Z0-9_]+$",
+              "title": "Name"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RequestForUpdateUser"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseForUpdateUser"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "user"
+        ],
+        "summary": "Get User",
+        "description": "ユーザー取得",
+        "operationId": "get_user_users__name__get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 32,
+              "pattern": "^[a-zA-Z0-9_]+$",
+              "title": "Name"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseForGetUser"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/version": {
       "get": {
         "tags": [
@@ -563,6 +745,42 @@
           }
         ]
       },
+      "RequestForAddUser": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 32,
+            "minLength": 1,
+            "pattern": "^[a-zA-Z0-9_]+$",
+            "title": "Name"
+          },
+          "password": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 8,
+            "format": "password",
+            "title": "Password",
+            "writeOnly": true
+          },
+          "authority": {
+            "$ref": "#/components/schemas/AuthorityEnum"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "password",
+          "authority"
+        ],
+        "title": "RequestForAddUser",
+        "examples": [
+          {
+            "authority": 2,
+            "name": "test_user",
+            "password": "password"
+          }
+        ]
+      },
       "RequestForUpdateBookmark": {
         "properties": {
           "memo": {
@@ -608,6 +826,70 @@
           }
         ]
       },
+      "RequestForUpdateUser": {
+        "properties": {
+          "name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 32,
+                "minLength": 1,
+                "pattern": "^[a-zA-Z0-9_]+$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "password": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 64,
+                "minLength": 8,
+                "format": "password",
+                "writeOnly": true
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Password"
+          },
+          "authority": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AuthorityEnum"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "disabled": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Disabled"
+          }
+        },
+        "type": "object",
+        "title": "RequestForUpdateUser",
+        "examples": [
+          {
+            "authority": 2,
+            "disabled": false,
+            "name": "test_user",
+            "password": "password"
+          }
+        ]
+      },
       "ResponseForAddBookmark": {
         "properties": {
           "hashed_id": {
@@ -620,6 +902,11 @@
           "hashed_id"
         ],
         "title": "ResponseForAddBookmark"
+      },
+      "ResponseForAddUser": {
+        "properties": {},
+        "type": "object",
+        "title": "ResponseForAddUser"
       },
       "ResponseForDeleteBookmark": {
         "properties": {},
@@ -699,6 +986,54 @@
         ],
         "title": "ResponseForGetCurrentUser"
       },
+      "ResponseForGetUser": {
+        "properties": {
+          "user": {
+            "$ref": "#/components/schemas/UserDetail"
+          }
+        },
+        "type": "object",
+        "required": [
+          "user"
+        ],
+        "title": "ResponseForGetUser",
+        "examples": [
+          {
+            "user": {
+              "authority": 2,
+              "disabled": false,
+              "name": "test_user"
+            }
+          }
+        ]
+      },
+      "ResponseForGetUserList": {
+        "properties": {
+          "users": {
+            "items": {
+              "$ref": "#/components/schemas/UserDetail"
+            },
+            "type": "array",
+            "title": "Users"
+          }
+        },
+        "type": "object",
+        "required": [
+          "users"
+        ],
+        "title": "ResponseForGetUserList",
+        "examples": [
+          {
+            "users": [
+              {
+                "authority": 2,
+                "disabled": false,
+                "name": "test_user"
+              }
+            ]
+          }
+        ]
+      },
       "ResponseForGetVersion": {
         "properties": {
           "version": {
@@ -762,6 +1097,49 @@
           }
         ]
       },
+      "ResponseForUpdateUser": {
+        "properties": {
+          "updated_user": {
+            "$ref": "#/components/schemas/UserDetail"
+          }
+        },
+        "type": "object",
+        "required": [
+          "updated_user"
+        ],
+        "title": "ResponseForUpdateUser",
+        "examples": [
+          {
+            "updated_user": {
+              "authority": 2,
+              "disabled": false,
+              "name": "test_user"
+            }
+          }
+        ]
+      },
+      "UserDetail": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "authority": {
+            "$ref": "#/components/schemas/AuthorityEnum"
+          },
+          "disabled": {
+            "type": "boolean",
+            "title": "Disabled"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "authority",
+          "disabled"
+        ],
+        "title": "UserDetail"
+      },
       "ValidationError": {
         "properties": {
           "loc": {
@@ -816,6 +1194,10 @@
     {
       "name": "bookmark",
       "description": "Bookmark operations"
+    },
+    {
+      "name": "user",
+      "description": "User operations"
     },
     {
       "name": "version",

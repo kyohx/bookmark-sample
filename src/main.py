@@ -2,7 +2,8 @@ from fastapi import FastAPI
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import ORJSONResponse
 
-from .controllers import auth, bookmark, version
+from .controllers import auth, bookmark, user, version
+from .error_handler import add_error_handlers
 from .libs.version import APP_VERSION
 
 
@@ -23,6 +24,10 @@ def create_app() -> FastAPI:
                 "description": "Bookmark operations",
             },
             {
+                "name": "user",
+                "description": "User operations",
+            },
+            {
                 "name": "version",
                 "description": "API version",
             },
@@ -38,9 +43,12 @@ def create_app() -> FastAPI:
     for router in (
         auth.router,
         bookmark.router,
+        user.router,
         version.router,
     ):
         app.include_router(router)
+
+    add_error_handlers(app)
 
     return app
 

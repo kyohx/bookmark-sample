@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session, scoped_session, sessionmaker
 
 from src.dao.models.base import BaseDao
 from src.dao.session import get_session
-from src.entities.user import User
+from src.entities.user import UserEntity
 from src.libs.config import get_config
 from src.libs.enum import AuthorityEnum
 from src.main import app
@@ -87,10 +87,10 @@ def scope_funtion_test():
         yield session
 
     def get_current_active_user_for_testing():
-        return User(
+        return UserEntity(
             name="test_user",
             hashed_password="****",
-            authority=AuthorityEnum.READWRITE,
+            authority=AuthorityEnum.ADMIN,
             disabled=False,
         )
 

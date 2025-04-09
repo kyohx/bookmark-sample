@@ -6,7 +6,7 @@ from src.dao.models.tag import TagDao
 from src.libs.util import datetime_to_str
 from tests.conftest import SessionForTest
 
-from .base import BaseTest
+from ..base import BaseTest
 
 
 class TestUpdateBookmark(BaseTest):

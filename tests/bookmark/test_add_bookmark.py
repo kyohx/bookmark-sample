@@ -5,7 +5,7 @@ from src.dao.models.bookmark_tag import BookmarkTagDao
 from src.dao.models.tag import TagDao
 from tests.conftest import TEST_TAGS, TEST_URL, SessionForTest
 
-from .base import BaseTest
+from ..base import BaseTest
 
 
 class TestAddBookmark(BaseTest):

@@ -3,7 +3,7 @@ from fastapi.testclient import TestClient
 from src.libs.util import datetime_to_str
 from tests.conftest import TEST_TAG_NAME, SessionForTest
 
-from .base import BaseTest
+from ..base import BaseTest
 
 
 class TestGetBookmark(BaseTest):

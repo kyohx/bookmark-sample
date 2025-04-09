@@ -15,7 +15,7 @@ _level = _config.log_level
 _logger = getLogger("API")
 _handler = StreamHandler(sys.stdout)
 _handler.setLevel(_LOGLEVEL_TABLE[_level])
-_handler.setFormatter(Formatter("[%(asctime)s][%(levelname)s]%(message)s"))
+_handler.setFormatter(Formatter("%(asctime)s %(levelname)s %(message)s"))
 _logger.addHandler(_handler)
 _logger.setLevel(_LOGLEVEL_TABLE[_level])
 

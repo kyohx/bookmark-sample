@@ -8,9 +8,9 @@ from jwt.exceptions import InvalidTokenError
 from passlib.context import CryptContext
 from pydantic import BaseModel, ConfigDict, ValidationError
 
-from ..dao.operators.user import UserDaoOperator
 from ..dao.session import SessionDepend
-from ..entities.user import User
+from ..entities.user import UserEntity
+from ..repositories.user import UserRepository
 from .base import ServiceBase
 
 
@@ -63,19 +63,19 @@ class AuthorizeService(ServiceBase):
         """
         return cls.pwd_context.hash(password)
 
-    def get_user(self, name: str) -> User | None:
+    def get_user(self, name: str) -> UserEntity:
         """
         ユーザを取得する
         """
-        user_dao = UserDaoOperator(self.session).find_one_by_name(name)
-        return User(**user_dao.to_dict()) if user_dao else None
+        return UserRepository(self.session).find_one(name)
 
-    def authenticate_user(self, name: str, password: str) -> User | None:
+    def authenticate_user(self, name: str, password: str) -> UserEntity | None:
         """
         ユーザ認証処理
         """
-        user = self.get_user(name)
-        if not user:
+        try:
+            user = self.get_user(name)
+        except UserRepository.NotFoundError:
             return None
         if not self.verify_password(password, user.hashed_password):
             return None
@@ -117,19 +117,16 @@ class AuthorizeService(ServiceBase):
         )
         return Token(access_token=access_token, token_type="bearer")  # nosec
 
-    def get_current_user_from_token(self, token: str) -> User:
+    def get_current_user_from_token(self, token: str) -> UserEntity:
         """
         トークンからユーザを取得する
         """
-        credentials_exception = self.get_exception(detail="Could not validate credentials")
         try:
             payload = jwt.decode(token, self.jwt_secret_key, algorithms=[self.ALGORITHM])
             token_data = TokenData(username=payload.get("sub"))
-        except (InvalidTokenError, ValidationError):
-            raise credentials_exception
-        user = self.get_user(name=token_data.username)
-        if user is None:
-            raise credentials_exception
+            user = self.get_user(name=token_data.username)
+        except (InvalidTokenError, ValidationError, UserRepository.NotFoundError):
+            raise self.get_exception(detail="Could not validate credentials")
         return user
 
 
@@ -138,7 +135,7 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 def get_current_user_from_token(
     token: Annotated[str, Depends(oauth2_scheme)], session: SessionDepend
-) -> User:
+) -> UserEntity:
     """
     トークンからユーザを取得する
     """
@@ -146,7 +143,7 @@ def get_current_user_from_token(
 
 
 def get_current_active_user(
-    current_user: Annotated[User, Depends(get_current_user_from_token)],
+    current_user: Annotated[UserEntity, Depends(get_current_user_from_token)],
 ):
     """
     現在ログイン中かつ有効なユーザを取得する
@@ -158,4 +155,4 @@ def get_current_active_user(
 
 
 # 依存定義
-UserDepends = Annotated[User, Depends(get_current_active_user)]
+UserDepends = Annotated[UserEntity, Depends(get_current_active_user)]

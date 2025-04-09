@@ -2,7 +2,7 @@
 from typing import Annotated
 
 from fastapi import Path, Query
-from pydantic import AfterValidator, Field, HttpUrl, StringConstraints, UrlConstraints
+from pydantic import AfterValidator, Field, HttpUrl, SecretStr, StringConstraints, UrlConstraints
 
 
 def is_unique(values):
@@ -11,6 +11,10 @@ def is_unique(values):
     return values
 
 
+FIELD_STRING_USERNAME = Annotated[
+    str, StringConstraints(min_length=1, max_length=32, pattern="^[a-zA-Z0-9_]+$")
+]
+FIELD_STRING_PASSWORD = Annotated[SecretStr, Field(min_length=8, max_length=64)]
 FIELD_STRING_MAX400 = Annotated[str, StringConstraints(max_length=400)]
 FIELD_TAGS = Annotated[
     Annotated[
