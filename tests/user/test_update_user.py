@@ -1,10 +1,8 @@
 from fastapi.testclient import TestClient
 
 from src.dao.models.user import UserDao
-from src.entities.user import UserEntity
 from src.libs.enum import AuthorityEnum
-from src.main import app
-from src.services.auth import AuthorizeService, get_current_active_user
+from src.services.auth import AuthorizeService
 from tests.conftest import SessionForTest
 
 from ..base import BaseTest
@@ -15,7 +13,12 @@ class TestUpdateUser(BaseTest):
     ブックマーク更新テストクラス
     """
 
-    def test_update_normal(self, client: TestClient, db_session: SessionForTest):
+    def test_update_normal(
+        self,
+        client: TestClient,
+        db_session: SessionForTest,
+        mock_get_current_active_user: None,
+    ):
         """
         正常系:
         ブックマークを1件更新
@@ -44,7 +47,12 @@ class TestUpdateUser(BaseTest):
         assert updated_user["disabled"] == updated_db_user.disabled
         assert updated_user["authority"] == updated_db_user.authority
 
-    def test_update_name_only(self, client: TestClient, db_session: SessionForTest):
+    def test_update_name_only(
+        self,
+        client: TestClient,
+        db_session: SessionForTest,
+        mock_get_current_active_user: None,
+    ):
         """
         正常系:
         ユーザー名のみ更新
@@ -65,7 +73,12 @@ class TestUpdateUser(BaseTest):
         assert updated_user["disabled"] == updated_db_user.disabled
         assert updated_user["authority"] == updated_db_user.authority
 
-    def test_update_password_only(self, client: TestClient, db_session: SessionForTest):
+    def test_update_password_only(
+        self,
+        client: TestClient,
+        db_session: SessionForTest,
+        mock_get_current_active_user: None,
+    ):
         """
         正常系:
         パスワードのみ更新
@@ -89,7 +102,12 @@ class TestUpdateUser(BaseTest):
         assert updated_user["disabled"] == updated_db_user.disabled
         assert updated_user["authority"] == updated_db_user.authority
 
-    def test_update_disabled_only(self, client: TestClient, db_session: SessionForTest):
+    def test_update_disabled_only(
+        self,
+        client: TestClient,
+        db_session: SessionForTest,
+        mock_get_current_active_user: None,
+    ):
         """
         正常系:
         無効フラグのみ更新
@@ -110,7 +128,12 @@ class TestUpdateUser(BaseTest):
         assert updated_user["disabled"] == updated_db_user.disabled
         assert updated_user["authority"] == updated_db_user.authority
 
-    def test_update_authority_only(self, client: TestClient, db_session: SessionForTest):
+    def test_update_authority_only(
+        self,
+        client: TestClient,
+        db_session: SessionForTest,
+        mock_get_current_active_user: None,
+    ):
         """
         正常系:
         権限のみ更新
@@ -131,7 +154,12 @@ class TestUpdateUser(BaseTest):
         assert updated_user["disabled"] == updated_db_user.disabled
         assert updated_user["authority"] == updated_db_user.authority
 
-    def test_update_notfound(self, client: TestClient, db_session: SessionForTest):
+    def test_update_notfound(
+        self,
+        client: TestClient,
+        db_session: SessionForTest,
+        mock_get_current_active_user: None,
+    ):
         """
         異常系:
         ユーザー名が存在しないユーザー更新
@@ -152,7 +180,12 @@ class TestUpdateUser(BaseTest):
         # レスポンスの検証
         assert response.status_code == 404
 
-    def test_update_invalid_name(self, client: TestClient, db_session: SessionForTest):
+    def test_update_invalid_name(
+        self,
+        client: TestClient,
+        db_session: SessionForTest,
+        mock_get_current_active_user: None,
+    ):
         """
         異常系:
         ユーザー名不正
@@ -180,7 +213,12 @@ class TestUpdateUser(BaseTest):
         response = client.patch("/users/test", json=request_body)
         assert response.status_code == 422
 
-    def test_update_invalid_password(self, client: TestClient, db_session: SessionForTest):
+    def test_update_invalid_password(
+        self,
+        client: TestClient,
+        db_session: SessionForTest,
+        mock_get_current_active_user: None,
+    ):
         """
         異常系:
         パスワード不正
@@ -201,7 +239,12 @@ class TestUpdateUser(BaseTest):
         response = client.patch("/users/test", json=request_body)
         assert response.status_code == 422
 
-    def test_update_invalid_disabled(self, client: TestClient, db_session: SessionForTest):
+    def test_update_invalid_disabled(
+        self,
+        client: TestClient,
+        db_session: SessionForTest,
+        mock_get_current_active_user: None,
+    ):
         """
         異常系:
         無効フラグ不正
@@ -215,7 +258,12 @@ class TestUpdateUser(BaseTest):
         response = client.patch("/users/test", json=request_body)
         assert response.status_code == 422
 
-    def test_update_invalid_authority(self, client: TestClient, db_session: SessionForTest):
+    def test_update_invalid_authority(
+        self,
+        client: TestClient,
+        db_session: SessionForTest,
+        mock_get_current_active_user: None,
+    ):
         """
         異常系:
         権限不正
@@ -229,7 +277,12 @@ class TestUpdateUser(BaseTest):
         response = client.patch("/users/test", json=request_body)
         assert response.status_code == 422
 
-    def test_update_own_attribute(self, client: TestClient, db_session: SessionForTest):
+    def test_update_own_attribute(
+        self,
+        client: TestClient,
+        db_session: SessionForTest,
+        mock_get_current_active_user: None,
+    ):
         """
         異常系:
         ログインユーザ自身の属性を更新
@@ -264,24 +317,16 @@ class TestUpdateUser(BaseTest):
         response = client.patch("/users/test_user", json=request_body)
         assert response.status_code == 400
 
-    def test_update_by_not_admin_user(self, client: TestClient, db_session: SessionForTest):
+    def test_update_by_not_admin_user(
+        self,
+        client: TestClient,
+        db_session: SessionForTest,
+        mock_get_current_active_not_admin_user: None,
+    ):
         """
         異常系:
         権限がないユーザーが他のユーザーを更新
         """
-
-        def get_current_active_user_for_not_admin_testing():
-            return UserEntity(
-                name="test_user",
-                hashed_password="****",
-                authority=AuthorityEnum.READWRITE,
-                disabled=False,
-            )
-
-        app.dependency_overrides[get_current_active_user] = (
-            get_current_active_user_for_not_admin_testing
-        )
-
         self.create_user(db_session, "test")
 
         # リクエストボディの作成

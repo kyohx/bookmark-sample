@@ -13,7 +13,12 @@ class TestDeleteBookmark(BaseTest):
     ブックマーク削除のテストクラス
     """
 
-    def test_delete_normal(self, client: TestClient, db_session: SessionForTest):
+    def test_delete_normal(
+        self,
+        client: TestClient,
+        db_session: SessionForTest,
+        mock_get_current_active_user: None,
+    ):
         """
         正常系:
         ブックマークを1つ削除
@@ -33,7 +38,12 @@ class TestDeleteBookmark(BaseTest):
         assert db_session.query(BookmarkTagDao).filter_by(bookmark_id=bookmark_id).count() == 0
         assert db_session.query(TagDao).count() == 2  # タグは削除されない
 
-    def test_delete_notfound(self, client: TestClient, db_session: SessionForTest):
+    def test_delete_notfound(
+        self,
+        client: TestClient,
+        db_session: SessionForTest,
+        mock_get_current_active_user: None,
+    ):
         """
         異常系:
         ハッシュIDが存在しないブックマークを削除
@@ -49,7 +59,12 @@ class TestDeleteBookmark(BaseTest):
         # レスポンスの検証
         assert response.status_code == 404
 
-    def test_add_invalid_hashed_id(self, client: TestClient, db_session: SessionForTest):
+    def test_add_invalid_hashed_id(
+        self,
+        client: TestClient,
+        db_session: SessionForTest,
+        mock_get_current_active_user: None,
+    ):
         """
         異常系:
         ハッシュID不正

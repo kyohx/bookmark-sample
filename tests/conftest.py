@@ -60,7 +60,7 @@ get_test_session = scoped_session(
 )
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def db_session() -> SessionForTest:
     """
     テスト用DBセッションメーカー
@@ -68,12 +68,47 @@ def db_session() -> SessionForTest:
     return get_test_session()
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture
 def client():
     """
     テスト用クライアント
     """
     return TestClient(app)
+
+
+@pytest.fixture
+def mock_get_current_active_user() -> None:
+    """
+    ログインユーザー依存処理のモック化
+    """
+
+    def get_current_active_user_for_testing():
+        return UserEntity(
+            name="test_user",
+            hashed_password="****",
+            authority=AuthorityEnum.ADMIN,
+            disabled=False,
+        )
+
+    app.dependency_overrides[get_current_active_user] = get_current_active_user_for_testing
+
+
+@pytest.fixture
+def mock_get_current_active_not_admin_user() -> None:
+    """
+    ログインユーザー依存処理のモック化
+    (管理者権限ではないユーザーを返す)
+    """
+
+    def get_current_active_user_for_testing():
+        return UserEntity(
+            name="test_user",
+            hashed_password="****",
+            authority=AuthorityEnum.READWRITE,
+            disabled=False,
+        )
+
+    app.dependency_overrides[get_current_active_user] = get_current_active_user_for_testing
 
 
 @pytest.fixture(scope="function", autouse=True)
@@ -86,17 +121,10 @@ def scope_funtion_test():
     def get_session_for_testing():
         yield session
 
-    def get_current_active_user_for_testing():
-        return UserEntity(
-            name="test_user",
-            hashed_password="****",
-            authority=AuthorityEnum.ADMIN,
-            disabled=False,
-        )
-
-    # 依存処理をテスト用に置き換え
+    # セッション依存処理をテスト用に置き換え
     app.dependency_overrides[get_session] = get_session_for_testing
-    app.dependency_overrides[get_current_active_user] = get_current_active_user_for_testing
+    # ユーザー依存処理をリセット
+    app.dependency_overrides[get_current_active_user] = get_current_active_user
 
     yield  # テスト関数実行
 
@@ -105,7 +133,7 @@ def scope_funtion_test():
 
 
 @pytest.fixture(scope="session", autouse=True)
-def truncate_tables():
+def truncate_tables() -> None:
     """
     テーブル内容削除
     """
