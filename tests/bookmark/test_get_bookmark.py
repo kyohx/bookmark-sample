@@ -11,7 +11,12 @@ class TestGetBookmark(BaseTest):
     ブックマーク取得テストクラス
     """
 
-    def test_get_one_normal(self, client: TestClient, db_session: SessionForTest):
+    def test_get_one_normal(
+        self,
+        client: TestClient,
+        db_session: SessionForTest,
+        mock_get_current_active_user: None,
+    ):
         """
         正常系:
         ブックマークを1つ取得
@@ -36,7 +41,12 @@ class TestGetBookmark(BaseTest):
         assert res_bookmark["created_at"] == datetime_to_str(db_bookmark.created_at)
         assert res_bookmark["updated_at"] == datetime_to_str(db_bookmark.updated_at)
 
-    def test_get_list_normal(self, client: TestClient, db_session: SessionForTest):
+    def test_get_list_normal(
+        self,
+        client: TestClient,
+        db_session: SessionForTest,
+        mock_get_current_active_user: None,
+    ):
         """
         通常系:
         ブックマークリスト全件取得
@@ -64,7 +74,12 @@ class TestGetBookmark(BaseTest):
             assert res_bookmark["created_at"] == datetime_to_str(db_bookmark.created_at)
             assert res_bookmark["updated_at"] == datetime_to_str(db_bookmark.updated_at)
 
-    def test_get_list_by_tagname(self, client: TestClient, db_session: SessionForTest):
+    def test_get_list_by_tagname(
+        self,
+        client: TestClient,
+        db_session: SessionForTest,
+        mock_get_current_active_user: None,
+    ):
         """
         通常系:
         タグ名でブックマークリスト取得
@@ -92,7 +107,12 @@ class TestGetBookmark(BaseTest):
         assert res_bookmark["created_at"] == datetime_to_str(db_bookmark.created_at)
         assert res_bookmark["updated_at"] == datetime_to_str(db_bookmark.updated_at)
 
-    def test_get_one_notfound(self, client: TestClient, db_session: SessionForTest):
+    def test_get_one_notfound(
+        self,
+        client: TestClient,
+        db_session: SessionForTest,
+        mock_get_current_active_user: None,
+    ):
         """
         異常系:
         ハッシュIDが存在しないブックマーク取得
@@ -108,7 +128,12 @@ class TestGetBookmark(BaseTest):
         # レスポンスの検証
         assert response.status_code == 404
 
-    def test_get_invalid_hashed_id(self, client: TestClient, db_session: SessionForTest):
+    def test_get_invalid_hashed_id(
+        self,
+        client: TestClient,
+        db_session: SessionForTest,
+        mock_get_current_active_user: None,
+    ):
         """
         異常系:
         ハッシュID不正
@@ -123,7 +148,12 @@ class TestGetBookmark(BaseTest):
         response = client.get(f"/bookmarks/{hashed_id}")
         assert response.status_code == 422
 
-    def test_get_list_by_tagname_notfound(self, client: TestClient, db_session: SessionForTest):
+    def test_get_list_by_tagname_notfound(
+        self,
+        client: TestClient,
+        db_session: SessionForTest,
+        mock_get_current_active_user: None,
+    ):
         """
         正常系:
         存在しないタグ名でブックマークリスト取得
@@ -140,7 +170,12 @@ class TestGetBookmark(BaseTest):
         assert "bookmarks" in response_body
         assert len(response_body["bookmarks"]) == 0
 
-    def test_get_list_by_tagname_invalid(self, client: TestClient, db_session: SessionForTest):
+    def test_get_list_by_tagname_invalid(
+        self,
+        client: TestClient,
+        db_session: SessionForTest,
+        mock_get_current_active_user: None,
+    ):
         """
         異常系:
         タグ名不正

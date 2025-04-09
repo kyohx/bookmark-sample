@@ -1,10 +1,8 @@
 from fastapi.testclient import TestClient
 
 from src.dao.models.user import UserDao
-from src.entities.user import UserEntity
 from src.libs.enum import AuthorityEnum
-from src.main import app
-from src.services.auth import AuthorizeService, get_current_active_user
+from src.services.auth import AuthorizeService
 from tests.conftest import SessionForTest
 
 from ..base import BaseTest
@@ -15,7 +13,12 @@ class TestAddUser(BaseTest):
     ユーザー追加のテストクラス
     """
 
-    def test_add_normal(self, client: TestClient, db_session: SessionForTest):
+    def test_add_normal(
+        self,
+        client: TestClient,
+        db_session: SessionForTest,
+        mock_get_current_active_user: None,
+    ):
         """
         正常系:
         ユーザーを1つ追加
@@ -44,7 +47,12 @@ class TestAddUser(BaseTest):
         assert user.disabled is False
         assert user.authority == request_body["authority"]
 
-    def test_add_duplicate(self, client: TestClient, db_session: SessionForTest):
+    def test_add_duplicate(
+        self,
+        client: TestClient,
+        db_session: SessionForTest,
+        mock_get_current_active_user: None,
+    ):
         """
         異常系:
         ユーザー重複追加
@@ -62,7 +70,12 @@ class TestAddUser(BaseTest):
         response = client.post("/users", json=request_body)
         assert response.status_code == 409
 
-    def test_add_invalid_name(self, client: TestClient, db_session: SessionForTest):
+    def test_add_invalid_name(
+        self,
+        client: TestClient,
+        db_session: SessionForTest,
+        mock_get_current_active_user: None,
+    ):
         """
         異常系:
         ユーザー名不正
@@ -102,7 +115,12 @@ class TestAddUser(BaseTest):
         response = client.post("/users", json=request_body)
         assert response.status_code == 422
 
-    def test_add_invalid_password(self, client: TestClient, db_session: SessionForTest):
+    def test_add_invalid_password(
+        self,
+        client: TestClient,
+        db_session: SessionForTest,
+        mock_get_current_active_user: None,
+    ):
         """
         異常系:
         パスワード不正
@@ -133,7 +151,12 @@ class TestAddUser(BaseTest):
         response = client.post("/users", json=request_body)
         assert response.status_code == 422
 
-    def test_add_invalid_authority(self, client: TestClient, db_session: SessionForTest):
+    def test_add_invalid_authority(
+        self,
+        client: TestClient,
+        db_session: SessionForTest,
+        mock_get_current_active_user: None,
+    ):
         """
         異常系:
         権限不正
@@ -155,24 +178,16 @@ class TestAddUser(BaseTest):
         response = client.post("/users", json=request_body)
         assert response.status_code == 422
 
-    def test_add_by_not_admin_user(self, client: TestClient, db_session: SessionForTest):
+    def test_add_by_not_admin_user(
+        self,
+        client: TestClient,
+        db_session: SessionForTest,
+        mock_get_current_active_not_admin_user: None,
+    ):
         """
         異常系:
         権限がないユーザーがユーザー追加
         """
-
-        def get_current_active_user_for_not_admin_testing():
-            return UserEntity(
-                name="test_user",
-                hashed_password="****",
-                authority=AuthorityEnum.READWRITE,
-                disabled=False,
-            )
-
-        app.dependency_overrides[get_current_active_user] = (
-            get_current_active_user_for_not_admin_testing
-        )
-
         request_body = {
             "name": "test",
             "password": "password",

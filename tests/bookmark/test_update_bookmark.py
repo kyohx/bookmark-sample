@@ -14,7 +14,12 @@ class TestUpdateBookmark(BaseTest):
     ブックマーク更新テストクラス
     """
 
-    def test_update_normal(self, client: TestClient, db_session: SessionForTest):
+    def test_update_normal(
+        self,
+        client: TestClient,
+        db_session: SessionForTest,
+        mock_get_current_active_user: None,
+    ):
         """
         正常系:
         ブックマークを1件更新
@@ -65,7 +70,12 @@ class TestUpdateBookmark(BaseTest):
             [updated_db_bookmark.id]
         )
 
-    def test_update_same_tags(self, client: TestClient, db_session: SessionForTest):
+    def test_update_same_tags(
+        self,
+        client: TestClient,
+        db_session: SessionForTest,
+        mock_get_current_active_user: None,
+    ):
         """
         正常系:
         他のURLと同じタグ名に更新
@@ -90,7 +100,12 @@ class TestUpdateBookmark(BaseTest):
         assert updated_bookmark["created_at"] == datetime_to_str(bookmark1.created_at)
         assert updated_bookmark["updated_at"] is not None
 
-    def test_update_memo_only(self, client: TestClient, db_session: SessionForTest):
+    def test_update_memo_only(
+        self,
+        client: TestClient,
+        db_session: SessionForTest,
+        mock_get_current_active_user: None,
+    ):
         """
         正常系:
         メモのみ更新
@@ -140,7 +155,12 @@ class TestUpdateBookmark(BaseTest):
             [updated_db_bookmark.id]
         )
 
-    def test_update_tags_only(self, client: TestClient, db_session: SessionForTest):
+    def test_update_tags_only(
+        self,
+        client: TestClient,
+        db_session: SessionForTest,
+        mock_get_current_active_user: None,
+    ):
         """
         正常系:
         タグのみ更新
@@ -193,7 +213,12 @@ class TestUpdateBookmark(BaseTest):
             [updated_db_bookmark.id]
         )
 
-    def test_update_notfound(self, client: TestClient, db_session: SessionForTest):
+    def test_update_notfound(
+        self,
+        client: TestClient,
+        db_session: SessionForTest,
+        mock_get_current_active_user: None,
+    ):
         """ "
         異常系:
         ハッシュIDが存在しないブックマークを更新
@@ -209,7 +234,12 @@ class TestUpdateBookmark(BaseTest):
         # レスポンスの検証
         assert response.status_code == 404
 
-    def test_update_invalid_hashed_id(self, client: TestClient, db_session: SessionForTest):
+    def test_update_invalid_hashed_id(
+        self,
+        client: TestClient,
+        db_session: SessionForTest,
+        mock_get_current_active_user: None,
+    ):
         """
         異常系:
         ハッシュID不正
@@ -226,7 +256,12 @@ class TestUpdateBookmark(BaseTest):
         response = client.patch(f"/bookmarks/{hashed_id}", json=request_body)
         assert response.status_code == 422
 
-    def test_update_invalid_tags(self, client: TestClient, db_session: SessionForTest):
+    def test_update_invalid_tags(
+        self,
+        client: TestClient,
+        db_session: SessionForTest,
+        mock_get_current_active_user: None,
+    ):
         """
         異常系:
         タグ名指定不正
@@ -258,7 +293,12 @@ class TestUpdateBookmark(BaseTest):
         response = client.patch(f"/bookmarks/{bookmark.hashed_id}", json=request_body)
         assert response.status_code == 422
 
-    def test_update_invalid_memo(self, client: TestClient, db_session: SessionForTest):
+    def test_update_invalid_memo(
+        self,
+        client: TestClient,
+        db_session: SessionForTest,
+        mock_get_current_active_user: None,
+    ):
         """
         異常系:
         メモ指定不正

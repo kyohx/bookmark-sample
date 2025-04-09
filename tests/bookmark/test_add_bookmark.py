@@ -13,7 +13,12 @@ class TestAddBookmark(BaseTest):
     ブックマーク追加のテストクラス
     """
 
-    def test_add_normal(self, client: TestClient, db_session: SessionForTest):
+    def test_add_normal(
+        self,
+        client: TestClient,
+        db_session: SessionForTest,
+        mock_get_current_active_user: None,
+    ):
         """
         正常系:
         ブックマークを1つ追加
@@ -58,7 +63,12 @@ class TestAddBookmark(BaseTest):
             [bookmark.id]
         )
 
-    def test_add_duplicate(self, client: TestClient, db_session: SessionForTest):
+    def test_add_duplicate(
+        self,
+        client: TestClient,
+        db_session: SessionForTest,
+        mock_get_current_active_user: None,
+    ):
         """
         異常系:
         ブックマーク重複追加
@@ -76,7 +86,12 @@ class TestAddBookmark(BaseTest):
         response = client.post("/bookmarks", json=request_body)
         assert response.status_code == 409
 
-    def test_add_invalid_url(self, client: TestClient, db_session: SessionForTest):
+    def test_add_invalid_url(
+        self,
+        client: TestClient,
+        db_session: SessionForTest,
+        mock_get_current_active_user: None,
+    ):
         """
         異常系:
         ブックマークURL不正
@@ -110,7 +125,12 @@ class TestAddBookmark(BaseTest):
         response = client.post("/bookmarks", json=request_body)
         assert response.status_code == 422
 
-    def test_add_invalid_memo(self, client: TestClient, db_session: SessionForTest):
+    def test_add_invalid_memo(
+        self,
+        client: TestClient,
+        db_session: SessionForTest,
+        mock_get_current_active_user: None,
+    ):
         """
         異常系:
         ブックマークメモ不正
@@ -132,7 +152,12 @@ class TestAddBookmark(BaseTest):
         response = client.post("/bookmarks", json=request_body)
         assert response.status_code == 422
 
-    def test_add_invalid_tags(self, client: TestClient, db_session: SessionForTest):
+    def test_add_invalid_tags(
+        self,
+        client: TestClient,
+        db_session: SessionForTest,
+        mock_get_current_active_user: None,
+    ):
         """
         異常系:
         ブックマークタグ不正

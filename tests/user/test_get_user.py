@@ -15,7 +15,12 @@ class TestGetUser(BaseTest):
     ユーザー取得テストクラス
     """
 
-    def test_get_one_normal(self, client: TestClient, db_session: SessionForTest):
+    def test_get_one_normal(
+        self,
+        client: TestClient,
+        db_session: SessionForTest,
+        mock_get_current_active_user: None,
+    ):
         """
         正常系:
         ユーザーを1つ取得
@@ -34,7 +39,12 @@ class TestGetUser(BaseTest):
         assert res_user["disabled"] == db_user.disabled
         assert res_user["authority"] == db_user.authority
 
-    def test_get_list_normal(self, client: TestClient, db_session: SessionForTest):
+    def test_get_list_normal(
+        self,
+        client: TestClient,
+        db_session: SessionForTest,
+        mock_get_current_active_user: None,
+    ):
         """
         通常系:
         ユーザーリスト全件取得
@@ -60,7 +70,12 @@ class TestGetUser(BaseTest):
             assert res_user["disabled"] == db_user.disabled
             assert res_user["authority"] == db_user.authority
 
-    def test_get_one_notfound(self, client: TestClient, db_session: SessionForTest):
+    def test_get_one_notfound(
+        self,
+        client: TestClient,
+        db_session: SessionForTest,
+        mock_get_current_active_user: None,
+    ):
         """
         異常系:
         ユーザー名が存在しないユーザー取得
@@ -74,7 +89,12 @@ class TestGetUser(BaseTest):
         # レスポンスの検証
         assert response.status_code == 404
 
-    def test_get_invalid_name(self, client: TestClient, db_session: SessionForTest):
+    def test_get_invalid_name(
+        self,
+        client: TestClient,
+        db_session: SessionForTest,
+        mock_get_current_active_user: None,
+    ):
         """
         異常系:
         ユーザー名不正
@@ -89,7 +109,12 @@ class TestGetUser(BaseTest):
         response = client.get(f"/users/{name}")
         assert response.status_code == 422
 
-    def test_get_one_by_not_admin_user(self, client: TestClient, db_session: SessionForTest):
+    def test_get_one_by_not_admin_user(
+        self,
+        client: TestClient,
+        db_session: SessionForTest,
+        mock_get_current_active_user: None,
+    ):
         """
         異常系:
         権限がないユーザーがユーザー情報を1つ取得
@@ -115,24 +140,16 @@ class TestGetUser(BaseTest):
         # レスポンスの検証
         assert response.status_code == 403
 
-    def test_get_list_by_not_admin_user(self, client: TestClient, db_session: SessionForTest):
+    def test_get_list_by_not_admin_user(
+        self,
+        client: TestClient,
+        db_session: SessionForTest,
+        mock_get_current_active_not_admin_user: None,
+    ):
         """
         異常系:
         権限がないユーザーがユーザー情報リストを取得
         """
-
-        def get_current_active_user_for_not_admin_testing():
-            return UserEntity(
-                name="test_user",
-                hashed_password="****",
-                authority=AuthorityEnum.READWRITE,
-                disabled=False,
-            )
-
-        app.dependency_overrides[get_current_active_user] = (
-            get_current_active_user_for_not_admin_testing
-        )
-
         self.create_user(db_session, "test")
 
         # リクエストの送信
