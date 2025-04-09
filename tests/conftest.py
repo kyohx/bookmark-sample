@@ -121,10 +121,10 @@ def scope_funtion_test():
     def get_session_for_testing():
         yield session
 
+    # テスト用依存処理をリセット
+    app.dependency_overrides = {}
     # セッション依存処理をテスト用に置き換え
     app.dependency_overrides[get_session] = get_session_for_testing
-    # ユーザー依存処理をリセット
-    app.dependency_overrides[get_current_active_user] = get_current_active_user
 
     yield  # テスト関数実行
 
