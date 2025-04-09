@@ -4,7 +4,6 @@ from ..dao.operators.bookmark_tag import BookmarkTagDaoOperator
 from ..dao.operators.tag import TagDaoOperator
 from ..entities.bookmark import BookmarkEntity
 from .base import BaseRepository
-from .error_handler import error_handler
 
 
 class BookmarkRepository(BaseRepository):
@@ -19,7 +18,6 @@ class BookmarkRepository(BaseRepository):
         self.bookmark_tag_operator = BookmarkTagDaoOperator(self.session)
         self.loaded_bookmark_dao: BookmarkDao | None = None
 
-    @error_handler
     def find_one(self, /, hashed_id: str) -> BookmarkEntity:
         """
         ブックマーク1つを取得する
@@ -38,7 +36,6 @@ class BookmarkRepository(BaseRepository):
 
         return BookmarkEntity(**params)
 
-    @error_handler
     def find_all(self) -> list[BookmarkEntity]:
         """
         全ブックマークのリストを取得する
@@ -48,7 +45,6 @@ class BookmarkRepository(BaseRepository):
             for bookmark_dao in self.bookmark_operator.find_all()
         ]
 
-    @error_handler
     def find_by_tags(self, tag_names: list[str]) -> list[BookmarkEntity]:
         """
         タグ名でブックマークのリストを取得する
@@ -58,7 +54,6 @@ class BookmarkRepository(BaseRepository):
             for bookmark_dao in self.bookmark_operator.find_by_tags(tag_names)
         ]
 
-    @error_handler
     def add_one(self, bookmark: BookmarkEntity) -> None:
         """
         ブックマーク情報を1件新規追加
@@ -68,7 +63,6 @@ class BookmarkRepository(BaseRepository):
         self.bookmark_operator.save(bookmark_dao)
         self._save_tags(bookmark.tags, bookmark_dao.id)
 
-    @error_handler
     def update_one(self, bookmark: BookmarkEntity) -> None:
         """
         ブックマーク情報を1件更新
@@ -97,7 +91,6 @@ class BookmarkRepository(BaseRepository):
         new_tags = self.tag_operator.find_by_names(tags)
         self.bookmark_tag_operator.save_by_tags(bookmark_dao_id, new_tags)
 
-    @error_handler
     def delete_one(self, /, hashed_id: str) -> None:
         """
         ブックマーク情報を削除

@@ -1,6 +1,8 @@
 from src.dao.models.bookmark import BookmarkDao
 from src.dao.models.bookmark_tag import BookmarkTagDao
 from src.dao.models.tag import TagDao
+from src.dao.models.user import UserDao
+from src.libs.enum import AuthorityEnum
 from tests.conftest import TEST_TAG_NAME, TEST_URL, SessionForTest
 
 from .factory import DataFactory
@@ -34,3 +36,22 @@ class BaseTest:
         )
         tag_id_list = [bookmark_tag.tag_id for bookmark_tag in bookmark_tag_list]
         return db_session.query(TagDao).filter(TagDao.id.in_(tag_id_list)).all()
+
+    def create_user(
+        self,
+        db_session: SessionForTest,
+        name: str,
+        password: str = "***",
+        disabled: bool = False,
+        authority: AuthorityEnum = AuthorityEnum.READWRITE,
+    ) -> UserDao:
+        """
+        テスト用ユーザーを作成する
+        """
+        factory = DataFactory(db_session)
+        return factory.create_user(
+            name=name,
+            password=password,
+            disabled=disabled,
+            authority=authority,
+        )

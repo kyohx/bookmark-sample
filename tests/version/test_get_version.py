@@ -3,7 +3,7 @@ from fastapi.testclient import TestClient
 from src.libs.version import APP_VERSION
 from tests.conftest import SessionForTest
 
-from .base import BaseTest
+from ..base import BaseTest
 
 
 class TestGetVersion(BaseTest):

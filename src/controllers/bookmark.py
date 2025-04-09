@@ -27,11 +27,13 @@ def add_bookmark(
     """
     ブックマーク追加
     """
-    return BookmarkUsecase(
+    res = BookmarkUsecase(
         session=session,
         user=user,
         required_authority=AuthorityEnum.READWRITE,
     ).add(req)
+
+    return ResponseForAddBookmark(**res)
 
 
 @router.patch(
@@ -48,11 +50,13 @@ def update_bookmark(
     """
     ブックマーク更新
     """
-    return BookmarkUsecase(
+    res = BookmarkUsecase(
         session=session,
         user=user,
         required_authority=AuthorityEnum.READWRITE,
     ).update(req, hashed_id)
+
+    return ResponseForUpdateBookmark(**res)
 
 
 @router.delete(
@@ -68,11 +72,13 @@ def delete_bookmark(
     """
     ブックマーク削除
     """
-    return BookmarkUsecase(
+    res = BookmarkUsecase(
         session=session,
         user=user,
         required_authority=AuthorityEnum.READWRITE,
     ).delete(hashed_id)
+
+    return ResponseForDeleteBookmark(**res)
 
 
 @router.get(
@@ -88,11 +94,13 @@ def get_bookmark(
     """
     ブックマーク取得
     """
-    return BookmarkUsecase(
+    res = BookmarkUsecase(
         session=session,
         user=user,
         required_authority=AuthorityEnum.READ,
     ).get_one(hashed_id)
+
+    return ResponseForGetBookmark(**res)
 
 
 @router.get(
@@ -108,8 +116,10 @@ def get_bookmarks(
     """
     ブックマークリスト取得
     """
-    return BookmarkUsecase(
+    res = BookmarkUsecase(
         session=session,
         user=user,
         required_authority=AuthorityEnum.READ,
     ).get_list(tag_names=tag)
+
+    return ResponseForGetBookmarkList(**res)

@@ -33,6 +33,6 @@ def login(
 )
 def me(user: UserDepends) -> ResponseForGetCurrentUser:
     """
-    現在のユーザ情報を取得する
+    ログインユーザ情報を取得する
     """
     return ResponseForGetCurrentUser(name=user.name, authority=user.authority)
