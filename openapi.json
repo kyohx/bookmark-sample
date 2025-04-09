@@ -3,7 +3,7 @@
   "info": {
     "title": "Bookmark API",
     "description": "API for bookmarking web page URL",
-    "version": "0.2.1.250405"
+    "version": "0.3.0.250409"
   },
   "paths": {
     "/token": {
@@ -1048,7 +1048,7 @@
         "title": "ResponseForGetVersion",
         "examples": [
           {
-            "version": "0.2.1.250405"
+            "version": "0.3.0.250409"
           }
         ]
       },
