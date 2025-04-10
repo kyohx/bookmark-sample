@@ -41,7 +41,7 @@ class AuthorizeService(ServiceBase):
     """
 
     ALGORITHM = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES = 30
+    ACCESS_TOKEN_EXPIRE_MINUTES = 20
 
     pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -81,15 +81,12 @@ class AuthorizeService(ServiceBase):
             return None
         return user
 
-    def create_access_token(self, data: dict, expires_delta: timedelta | None = None) -> str:
+    def create_access_token(self, data: dict, expires_delta: timedelta) -> str:
         """
         アクセストークンを作成する
         """
         to_encode = data.copy()
-        if expires_delta:
-            expire = datetime.now(timezone.utc) + expires_delta
-        else:
-            expire = datetime.now(timezone.utc) + timedelta(minutes=15)
+        expire = datetime.now(timezone.utc) + expires_delta
         to_encode.update({"exp": expire})
         encoded_jwt = jwt.encode(to_encode, self.jwt_secret_key, algorithm=self.ALGORITHM)
         return encoded_jwt
