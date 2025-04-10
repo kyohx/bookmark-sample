@@ -41,7 +41,7 @@ class AuthorizeService(ServiceBase):
     """
 
     ALGORITHM = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES = 15
+    ACCESS_TOKEN_EXPIRE_MINUTES = 20
 
     pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
