@@ -27,6 +27,12 @@ FIELD_URL = Annotated[HttpUrl, UrlConstraints(max_length=400)]
 FIELD_HASHED_ID = Annotated[
     str, StringConstraints(min_length=64, max_length=64, pattern="[0-9a-f]+")
 ]
+FIELD_STRING_DATETIME = Annotated[
+    str,
+    StringConstraints(
+        min_length=19, max_length=19, pattern=r"^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$"
+    ),
+]
 PATH_HASHED_ID = Annotated[str, Path(min_length=64, max_length=64, pattern="[0-9a-f]+")]
 QUERY_TAGS = Annotated[
     Annotated[

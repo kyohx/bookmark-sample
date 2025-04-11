@@ -2,6 +2,12 @@ from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, field_validator
 
+from ...libs.constraints import (
+    FIELD_HASHED_ID,
+    FIELD_STRING_DATETIME,
+    FIELD_STRING_MAX400,
+    FIELD_URL,
+)
 from ...libs.util import datetime_to_str
 
 #### 取得レスポンス
@@ -9,11 +15,11 @@ from ...libs.util import datetime_to_str
 
 # 概要
 class BookmarkDigest(BaseModel):
-    hashed_id: str
-    url: str
-    memo: str
-    created_at: str
-    updated_at: str
+    hashed_id: FIELD_HASHED_ID
+    url: FIELD_URL
+    memo: FIELD_STRING_MAX400
+    created_at: FIELD_STRING_DATETIME
+    updated_at: FIELD_STRING_DATETIME
 
     @field_validator("created_at", mode="before")
     @classmethod
