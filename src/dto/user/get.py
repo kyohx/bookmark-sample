@@ -1,10 +1,11 @@
 from pydantic import BaseModel, ConfigDict
 
+from ...libs.constraints import FIELD_STRING_USERNAME
 from ...libs.enum import AuthorityEnum
 
 
 class UserDetail(BaseModel):
-    name: str
+    name: FIELD_STRING_USERNAME
     authority: AuthorityEnum
     disabled: bool
 

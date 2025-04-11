@@ -3,7 +3,7 @@
   "info": {
     "title": "Bookmark API",
     "description": "API for bookmarking web page URL",
-    "version": "0.3.0.250409"
+    "version": "0.3.1.250411"
   },
   "paths": {
     "/token": {
@@ -618,29 +618,46 @@
         "properties": {
           "hashed_id": {
             "type": "string",
+            "maxLength": 64,
+            "minLength": 64,
+            "pattern": "[0-9a-f]+",
             "title": "Hashed Id"
           },
           "url": {
             "type": "string",
+            "maxLength": 400,
+            "minLength": 1,
+            "format": "uri",
             "title": "Url"
           },
           "memo": {
             "type": "string",
+            "maxLength": 400,
             "title": "Memo"
           },
           "created_at": {
             "type": "string",
+            "maxLength": 19,
+            "minLength": 19,
+            "pattern": "^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$",
             "title": "Created At"
           },
           "updated_at": {
             "type": "string",
+            "maxLength": 19,
+            "minLength": 19,
+            "pattern": "^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$",
             "title": "Updated At"
           },
           "tags": {
             "items": {
-              "type": "string"
+              "type": "string",
+              "maxLength": 100,
+              "minLength": 1
             },
             "type": "array",
+            "maxItems": 10,
+            "minItems": 1,
             "title": "Tags"
           }
         },
@@ -659,22 +676,35 @@
         "properties": {
           "hashed_id": {
             "type": "string",
+            "maxLength": 64,
+            "minLength": 64,
+            "pattern": "[0-9a-f]+",
             "title": "Hashed Id"
           },
           "url": {
             "type": "string",
+            "maxLength": 400,
+            "minLength": 1,
+            "format": "uri",
             "title": "Url"
           },
           "memo": {
             "type": "string",
+            "maxLength": 400,
             "title": "Memo"
           },
           "created_at": {
             "type": "string",
+            "maxLength": 19,
+            "minLength": 19,
+            "pattern": "^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$",
             "title": "Created At"
           },
           "updated_at": {
             "type": "string",
+            "maxLength": 19,
+            "minLength": 19,
+            "pattern": "^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$",
             "title": "Updated At"
           }
         },
@@ -894,6 +924,9 @@
         "properties": {
           "hashed_id": {
             "type": "string",
+            "maxLength": 64,
+            "minLength": 64,
+            "pattern": "[0-9a-f]+",
             "title": "Hashed Id"
           }
         },
@@ -901,7 +934,12 @@
         "required": [
           "hashed_id"
         ],
-        "title": "ResponseForAddBookmark"
+        "title": "ResponseForAddBookmark",
+        "examples": [
+          {
+            "hashed_id": "123456789012345678901234567890123456789012345678901234567890abcd"
+          }
+        ]
       },
       "ResponseForAddUser": {
         "properties": {},
@@ -1048,7 +1086,7 @@
         "title": "ResponseForGetVersion",
         "examples": [
           {
-            "version": "0.3.0.250409"
+            "version": "0.3.1.250411"
           }
         ]
       },
@@ -1122,6 +1160,9 @@
         "properties": {
           "name": {
             "type": "string",
+            "maxLength": 32,
+            "minLength": 1,
+            "pattern": "^[a-zA-Z0-9_]+$",
             "title": "Name"
           },
           "authority": {

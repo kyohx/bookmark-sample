@@ -1,11 +1,12 @@
 from pydantic import BaseModel, ConfigDict
 
+from ...libs.constraints import FIELD_TAGS
 from .get_list import BookmarkDigest
 
 
 # 詳細
 class BookmarkDetail(BookmarkDigest):
-    tags: list[str]
+    tags: FIELD_TAGS
 
 
 #### 詳細取得レスポンス

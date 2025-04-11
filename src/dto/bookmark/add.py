@@ -1,6 +1,6 @@
 from pydantic import BaseModel, ConfigDict, field_serializer
 
-from ...libs.constraints import FIELD_STRING_MAX400, FIELD_TAGS, FIELD_URL
+from ...libs.constraints import FIELD_HASHED_ID, FIELD_STRING_MAX400, FIELD_TAGS, FIELD_URL
 
 
 #### 追加リクエスト
@@ -31,4 +31,14 @@ class RequestForAddBookmark(BaseModel):
 
 #### 追加レスポンス
 class ResponseForAddBookmark(BaseModel):
-    hashed_id: str
+    hashed_id: FIELD_HASHED_ID
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "examples": [
+                {
+                    "hashed_id": "123456789012345678901234567890123456789012345678901234567890abcd",
+                }
+            ]
+        }
+    )
