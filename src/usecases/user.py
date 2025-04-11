@@ -1,7 +1,7 @@
 from ..dto.user.add import RequestForAddUser
 from ..dto.user.update import RequestForUpdateUser
 from ..entities.user import UserEntity
-from ..libs.authority import check_authority_for_update_user
+from ..libs.enum import AuthorityEnum
 from ..repositories.user import UserRepository
 from ..services.auth import AuthorizeService
 from .base import UsecaseBase
@@ -15,6 +15,17 @@ class UserUsecase(UsecaseBase):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.user_repository = UserRepository(self.session)
+
+    def _check_authority_for_update_user(self, target_user_name: str) -> None:
+        """
+        ユーザー更新の権限チェック
+        """
+        if self.user.authority is AuthorityEnum.ADMIN:
+            return
+
+        if self.user.name != target_user_name:
+            # 管理者以外は自分以外のユーザーを更新できない
+            raise self.AuthorityError("You don't have permission to access")
 
     def add(self, request_body: RequestForAddUser) -> dict:
         """
@@ -36,7 +47,7 @@ class UserUsecase(UsecaseBase):
         """
         更新
         """
-        check_authority_for_update_user(self.user, name)
+        self._check_authority_for_update_user(name)
 
         user = self.user_repository.find_one(name=name)
 
@@ -49,7 +60,7 @@ class UserUsecase(UsecaseBase):
                 )
             elif self.user.name == name and k in ("name", "disabled", "authority"):
                 # 自分自身のname,disabled,authorityは変更できない
-                raise self.Error(f"You can not change your own {k} value.")
+                raise self.OperationError(f"You can not change your own {k} value.")
             else:
                 setattr(user, k, v)
 

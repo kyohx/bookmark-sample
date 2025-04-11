@@ -1,7 +1,6 @@
 from sqlalchemy.orm.session import Session
 
 from ..entities.user import UserEntity
-from ..libs.authority import check_authority
 from ..libs.enum import AuthorityEnum
 
 
@@ -17,6 +16,12 @@ class UsecaseBase:
     class Error(UsecaseError):
         pass
 
+    class AuthorityError(UsecaseError):
+        pass
+
+    class OperationError(UsecaseError):
+        pass
+
     def __init__(
         self, session: Session, user: UserEntity, required_authority: AuthorityEnum
     ) -> None:
@@ -27,4 +32,11 @@ class UsecaseBase:
         """
         self.session = session
         self.user = user
-        check_authority(user, required_authority)
+        self._check_authority(required_authority)
+
+    def _check_authority(self, required_authority: AuthorityEnum) -> None:
+        """
+        権限チェック
+        """
+        if self.user.authority.value < required_authority.value:
+            raise self.AuthorityError("You don't have permission to access")
