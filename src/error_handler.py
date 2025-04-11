@@ -5,7 +5,7 @@ from sqlalchemy.exc import IntegrityError, OperationalError
 
 from .libs.log import get_logger
 from .repositories.base import BaseRepository
-from .usecases.user import UserUsecase
+from .usecases.base import UsecaseBase
 
 logger = get_logger()
 
@@ -15,8 +15,15 @@ def add_error_handlers(app):
     エラーハンドラ追加
     """
 
-    @app.exception_handler(UserUsecase.Error)
-    async def user_usecase_error_handler(request: Request, exc: UserUsecase.Error):
+    @app.exception_handler(UsecaseBase.AuthorityError)
+    async def authority_error_handler(request: Request, exc: UsecaseBase.AuthorityError):
+        return ORJSONResponse(
+            status_code=status.HTTP_403_FORBIDDEN,
+            content={"detail": str(exc)},
+        )
+
+    @app.exception_handler(UsecaseBase.OperationError)
+    async def operation_error_handler(request: Request, exc: UsecaseBase.OperationError):
         return ORJSONResponse(
             status_code=status.HTTP_400_BAD_REQUEST,
             content={"detail": str(exc)},
