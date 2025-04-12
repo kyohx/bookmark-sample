@@ -1,7 +1,7 @@
 ## Dockerfile for local
 
 ## ----- Stage for building python packages base
-FROM python:3.13 AS builder
+FROM python:3.13-slim AS builder
 
 # uv(Pythonパッケージマネージャ)インストール
 RUN pip3 install uv
@@ -18,15 +18,6 @@ FROM python:3.13-slim AS app
 # ポート指定
 EXPOSE 8000
 
-# ubuntuパッケージインストール
-RUN apt-get update &&\
-    apt-get upgrade -y &&\
-    apt-get install -y\
-        default-libmysqlclient-dev\
-    &&\
-    apt-get clean &&\
-    rm -rf /var/lib/apt/lists/*
-
 # Webアプリのパス指定
 ARG APP_HOME=/opt/app
 # Webアプリをマウントするディレクトリ作成
@@ -35,10 +26,18 @@ RUN mkdir -p ${APP_HOME} &&\
 WORKDIR ${APP_HOME}
 # 実行ユーザー名指定
 ARG USER=app
-
 # app ユーザー/グループの作成
 RUN groupadd -o -g 1000 ${USER} &&\
     useradd --create-home -u 1000 -g ${USER} ${USER}
+
+# ubuntuパッケージインストール
+RUN apt-get update &&\
+    apt-get upgrade -y &&\
+    apt-get install -y\
+        default-libmysqlclient-dev\
+    &&\
+    apt-get clean &&\
+    rm -rf /var/lib/apt/lists/*
 
 # ビルド済みのpythonモジュールをコピー
 COPY --from=builder /usr/local/lib/python3.13/site-packages /usr/local/lib/python3.13/site-packages
