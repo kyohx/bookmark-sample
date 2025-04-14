@@ -32,7 +32,8 @@ Web URL ブックマーク管理API (サンプルコード)
 - `src/` : Web API ソースコード
 - `tests/` : テストコード
 - `compose.yaml` : ローカル環境向け docker compose 設定ファイル
-- `Dockerfile` : Heroku環境向け Dockerfile
+- `Dockerfile.heroku` : Heroku環境向け Dockerfile
+- `heroku.yml` : Heroku環境向けマニフェストファイル
 - `openapi.json` : OpenAPI(API仕様)ファイル
 - `pyproject.toml` : プロジェクト設定ファイル
 - `uv.lock` : パッケージ依存関係ロックファイル
