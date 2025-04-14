@@ -22,7 +22,17 @@ class Token(BaseModel):
     access_token: str
     token_type: str
 
-    model_config = ConfigDict(frozen=True)
+    model_config = ConfigDict(
+        frozen=True,
+        json_schema_extra={
+            "examples": [
+                {
+                    "access_token": "XXXXXXXXXXXXXXX.XXXXXXXXXXXXXXXXXXXXX.XXXXXXXXXXXXXXXX",
+                    "token_type": "bearer",
+                }
+            ]
+        },
+    )
 
 
 class TokenData(BaseModel):
