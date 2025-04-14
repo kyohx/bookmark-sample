@@ -31,9 +31,8 @@ class Token(BaseModel):
                     "token_type": "bearer",
                 }
             ]
-        }
+        },
     )
- 
 
 
 class TokenData(BaseModel):
