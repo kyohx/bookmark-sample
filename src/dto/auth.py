@@ -1,8 +1,8 @@
 from pydantic import BaseModel, ConfigDict
 
+from ..libs.constraints import FIELD_STRING_USERNAME
 from ..libs.enum import AuthorityEnum
 from ..services.auth import Token
-from ..libs.constraints import FIELD_STRING_USERNAME
 
 
 ## ログインレスポンス
