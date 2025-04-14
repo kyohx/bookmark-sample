@@ -3,7 +3,7 @@
   "info": {
     "title": "Bookmark API",
     "description": "API for bookmarking web page URL",
-    "version": "0.3.1.250411"
+    "version": "0.3.2.250414"
   },
   "paths": {
     "/token": {
@@ -1011,6 +1011,9 @@
         "properties": {
           "name": {
             "type": "string",
+            "maxLength": 32,
+            "minLength": 1,
+            "pattern": "^[a-zA-Z0-9_]+$",
             "title": "Name"
           },
           "authority": {
@@ -1022,7 +1025,13 @@
           "name",
           "authority"
         ],
-        "title": "ResponseForGetCurrentUser"
+        "title": "ResponseForGetCurrentUser",
+        "examples": [
+          {
+            "authority": 2,
+            "name": "test_user"
+          }
+        ]
       },
       "ResponseForGetUser": {
         "properties": {
@@ -1086,7 +1095,7 @@
         "title": "ResponseForGetVersion",
         "examples": [
           {
-            "version": "0.3.1.250411"
+            "version": "0.3.2.250414"
           }
         ]
       },
@@ -1106,7 +1115,13 @@
           "access_token",
           "token_type"
         ],
-        "title": "ResponseForLogin"
+        "title": "ResponseForLogin",
+        "examples": [
+          {
+            "access_token": "XXXXXXXXXXXXXXX.XXXXXXXXXXXXXXXXXXXXX.XXXXXXXXXXXXXXXX",
+            "token_type": "bearer"
+          }
+        ]
       },
       "ResponseForUpdateBookmark": {
         "properties": {
