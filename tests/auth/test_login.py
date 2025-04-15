@@ -1,7 +1,7 @@
 from fastapi.testclient import TestClient
 
 from src.libs.enum import AuthorityEnum
-from tests.conftest import SessionForTest
+from tests.conftest import TEST_PASSWORD, SessionForTest
 
 from ..base import BaseTest
 
@@ -20,14 +20,13 @@ class TestLogin(BaseTest):
         self.create_user(
             db_session,
             name="test_user",
-            password="test_password",
             authority=AuthorityEnum.READWRITE,
         )
 
         # リクエストボディの作成
         request_body = {
             "username": "test_user",
-            "password": "test_password",
+            "password": TEST_PASSWORD,
         }
 
         # リクエストの送信
@@ -53,7 +52,7 @@ class TestLogin(BaseTest):
         # リクエストボディの作成
         request_body = {
             "username": "test_user",
-            "password": "test_password",
+            "password": TEST_PASSWORD,
         }
 
         # リクエストの送信
@@ -75,7 +74,6 @@ class TestLogin(BaseTest):
         self.create_user(
             db_session,
             name="test_user",
-            password="test_password",
             authority=AuthorityEnum.READWRITE,
         )
 

@@ -10,13 +10,15 @@ from src.entities.user import UserEntity
 from src.libs.config import get_config
 from src.libs.enum import AuthorityEnum
 from src.main import app
-from src.services.auth import get_current_active_user
+from src.services.auth import AuthorizeService, get_current_active_user
 
 _config = get_config()
 
 TEST_URL = "https://exsample.com/test"
 TEST_TAG_NAME = "test_tag"
 TEST_TAGS = ["test_tag1", "test_tag2"]
+TEST_PASSWORD = "test_password"
+TEST_HASHED_PASSWORD = AuthorizeService.get_hashed_password(TEST_PASSWORD)
 
 
 class SessionForTest(Session):

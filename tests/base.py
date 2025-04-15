@@ -41,7 +41,6 @@ class BaseTest:
         self,
         db_session: SessionForTest,
         name: str,
-        password: str = "***",
         disabled: bool = False,
         authority: AuthorityEnum = AuthorityEnum.READWRITE,
     ) -> UserDao:
@@ -51,7 +50,6 @@ class BaseTest:
         factory = DataFactory(db_session)
         return factory.create_user(
             name=name,
-            password=password,
             disabled=disabled,
             authority=authority,
         )
