@@ -6,7 +6,8 @@ from src.dao.models.tag import TagDao
 from src.dao.models.user import UserDao
 from src.libs.enum import AuthorityEnum
 from src.libs.util import get_hashed_id
-from src.services.auth import AuthorizeService
+
+from .conftest import TEST_HASHED_PASSWORD
 
 
 class DataFactory:
@@ -39,13 +40,12 @@ class DataFactory:
     def create_user(
         self,
         name: str,
-        password: str = "***",
         disabled: bool = False,
         authority: AuthorityEnum = AuthorityEnum.READWRITE,
     ) -> UserDao:
         user = UserDao(
             name=name,
-            hashed_password=AuthorizeService.get_hashed_password(password),
+            hashed_password=TEST_HASHED_PASSWORD,
             disabled=disabled,
             authority=authority.value,
         )
