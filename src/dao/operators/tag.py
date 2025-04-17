@@ -14,7 +14,13 @@ class TagDaoOperator(BaseDaoOperator):
 
     def find_by_bookmark_id(self, bookmark_id: int) -> list[TagDao]:
         """
-        ブックマークIDからタグリストを取得
+        ブックマークIDから関連付けられたタグDAOリストを取得する。
+
+        Args:
+            bookmark_id: 検索対象のブックマークDAO ID
+
+        Returns:
+            該当するタグDAOのリスト
         """
         statement = (
             select(TagDao)
@@ -26,14 +32,23 @@ class TagDaoOperator(BaseDaoOperator):
 
     def find_by_names(self, names: list[str]) -> list[TagDao]:
         """
-        タグ名リストからタグリストを取得
+        タグ名リストからタグDAOリストを取得する。
+
+        Args:
+            names: 検索対象のタグ名のリスト
+
+        Returns:
+            該当するタグDAOのリスト
         """
         statement = select(TagDao).where(TagDao.name.in_(names))
         return list(self.session.scalars(statement).all())
 
     def save_by_names(self, names: list[str]) -> None:
         """
-        タグ名リストからタグリストを保存
+        タグ名リストを元にタグDAOを保存する。
+
+        Args:
+            names: 保存対象のタグ名のリスト
         """
         already_exsist_tag_names = [tag.name for tag in self.find_by_names(names)]
         new_tag_names = set(names) - set(already_exsist_tag_names)

@@ -13,13 +13,18 @@ class ServiceBase:
     """
 
     class Error(ServiceError):
+        """
+        サービスエラー
+        """
+
         pass
 
     def __init__(self, session: Session) -> None:
         """
-        初期化
+        サービスクラスの初期化
 
-        :param session: セッション
+        Args:
+            session: データベースセッション
         """
         self.session = session
         self.config = get_config()

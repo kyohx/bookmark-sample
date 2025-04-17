@@ -16,7 +16,16 @@ class UserRepository(BaseRepository):
 
     def find_one(self, /, name: str) -> UserEntity:
         """
-        ユーザー1つを取得する
+        指定されたユーザー名に対応するユーザーを1件取得する。
+
+        Args:
+            name: ユーザー名
+
+        Returns:
+            取得したユーザーエンティティ
+
+        Raises:
+            NotFoundError: 指定されたユーザー名に対応するデータが見つからない
         """
         user_dao = self.user_operator.find_one_by_name(name)
         if not user_dao:
@@ -28,13 +37,19 @@ class UserRepository(BaseRepository):
 
     def find_all(self) -> list[UserEntity]:
         """
-        全ユーザーのリストを取得する
+        全てのユーザーを取得する。
+
+        Returns:
+            ユーザーエンティティのリスト
         """
         return [UserEntity(**user_dao.to_dict()) for user_dao in self.user_operator.find_all()]
 
     def add_one(self, user: UserEntity) -> None:
         """
-        ユーザー情報を1件新規追加
+        新しいユーザーを追加する。
+
+        Args:
+            user: 追加するユーザーエンティティ
         """
         user_dao = UserDao(**user.model_dump())
 
@@ -42,9 +57,15 @@ class UserRepository(BaseRepository):
 
     def update_one(self, user: UserEntity) -> None:
         """
-        ユーザー情報を1件更新
+        既存のユーザー情報を更新する。
 
-        事前に更新対象を find_one() で取得しておくこと
+        事前に `find_one()` を使用して更新対象のユーザーを取得しておく必要がある。
+
+        Args:
+            user: 更新するユーザーエンティティ
+
+        Raises:
+            Error: 更新対象のユーザーを取得(`find_one()`)していない
         """
         if self.loaded_user_dao is None:
             raise self.Error("Not loaded user")

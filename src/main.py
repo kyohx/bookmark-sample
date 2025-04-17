@@ -4,6 +4,7 @@ from fastapi.responses import ORJSONResponse
 
 from .controllers import auth, bookmark, user, version
 from .error_handler import add_error_handlers
+from .libs.openapi_tags import OPENAPI_TAGS
 from .libs.version import APP_VERSION
 
 
@@ -14,24 +15,7 @@ def create_app() -> FastAPI:
     app = FastAPI(
         title="Bookmark API",
         description="API for bookmarking web page URL",
-        openapi_tags=[
-            {
-                "name": "auth",
-                "description": "Authentication operations",
-            },
-            {
-                "name": "bookmark",
-                "description": "Bookmark operations",
-            },
-            {
-                "name": "user",
-                "description": "User operations",
-            },
-            {
-                "name": "version",
-                "description": "API version",
-            },
-        ],
+        openapi_tags=OPENAPI_TAGS,
         version=APP_VERSION,
         default_response_class=ORJSONResponse,
     )
@@ -40,14 +24,10 @@ def create_app() -> FastAPI:
     app.add_middleware(GZipMiddleware, minimum_size=1000)
 
     # ルーティング設定
-    for router in (
-        auth.router,
-        bookmark.router,
-        user.router,
-        version.router,
-    ):
-        app.include_router(router)
+    for controller in (auth, bookmark, user, version):
+        app.include_router(controller.router, tags=[controller.tagname])
 
+    # エラーハンドラ追加
     add_error_handlers(app)
 
     return app

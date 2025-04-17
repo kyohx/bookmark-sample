@@ -15,57 +15,64 @@ class BaseDaoOperator:
 
     def __init__(self, session: Session) -> None:
         """
-        初期化
+        初期化処理
 
-        :param session: セッション
+        Args:
+            session: データベースセッション
         """
         self.session = session
 
     def find_one_by_id(self, id_value, id_column: str = "id"):
         """
-        IDを指定して1レコード取得する。
-        見つからない場合はNoneを返す。
+        指定されたIDで1レコードを取得する。
 
-        :param id_value: ID値
-        :param id_column: IDカラム名
-        :return: DAO or None
+        Args:
+            id_value: 検索対象のID値
+            id_column: 検索対象のIDカラム名。デフォルトは "id"
+
+        Returns:
+            取得したDAO、または見つからない場合はNone
         """
         statement = select(self.MAIN_DAO).where(getattr(self.MAIN_DAO, id_column) == id_value)
         return self.session.execute(statement).scalars().one_or_none()
 
     def find_one_by_pkey(self, value):
         """
-        主キーをを指定して1レコード取得する。
-        見つからない場合はNoneを返す。
+        主キーを指定して1レコードを取得する。
 
-        :param value: 値
-        :return: DAO or None
+        Args:
+            value: 主キーの値
+
+        Returns:
+            取得したDAO、または見つからない場合はNone
         """
         # id以外の主キーの場合は継承先のクラスでオーバーライドする
         return self.find_one_by_id(value)
 
     def find_all(self) -> list[BaseDao]:
         """
-        全件取得する
+        全件のレコードを取得する。
 
-        :return: DAOのリスト
+        Returns:
+            取得したDAOのリスト
         """
         statement = select(self.MAIN_DAO)
         return list(self.session.execute(statement).scalars().all())
 
     def save(self, d: BaseDao | Sequence[BaseDao]) -> None:
         """
-        指定されたDAOを保存する
+        指定されたDAOを保存する。
 
-        :param d: DAO or DAOのリスト・タプル
-        :param session: セッション
+        Args:
+            d: 保存対象のDAO、またはDAOのリスト・タプル
         """
 
         def preprocess_insert_or_update(dao: BaseDao) -> None:
             """
             挿入や更新の前処理
 
-            :param dao: DAO
+            Args:
+                dao: 対象のDAO
             """
             if hasattr(dao, "created_at") and dao.created_at is None:
                 # 新規レコードをINSERT対象にする
@@ -84,10 +91,10 @@ class BaseDaoOperator:
 
     def delete(self, d: BaseDao | Sequence[BaseDao]) -> None:
         """
-        指定されたDAOを削除する
+        指定されたDAOを削除する。
 
-        :param d: DAO or DAOのリスト・タプル
-        :param session: セッション
+        Args:
+            d: 削除対象のDAO、またはDAOのリスト・タプル
         """
 
         if isinstance(d, Sequence):

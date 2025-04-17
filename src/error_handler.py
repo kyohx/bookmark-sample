@@ -1,19 +1,28 @@
 import pymysql.constants.ER as errcode
-from fastapi import Request, status
+from fastapi import FastAPI, Request, status
 from fastapi.responses import ORJSONResponse
 from sqlalchemy.exc import IntegrityError, OperationalError
 
 from .libs.log import get_logger
 from .repositories.base import BaseRepository
+from .services.auth import AuthorizeService
 from .usecases.base import UsecaseBase
 
 logger = get_logger()
 
 
-def add_error_handlers(app):
+def add_error_handlers(app: FastAPI) -> None:
     """
     エラーハンドラ追加
     """
+
+    @app.exception_handler(AuthorizeService.Error)
+    async def auth_error_handler(request: Request, exc: AuthorizeService.Error):
+        return ORJSONResponse(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            content={"detail": str(exc)},
+            headers={"WWW-Authenticate": "Bearer"},
+        )
 
     @app.exception_handler(UsecaseBase.AuthorityError)
     async def authority_error_handler(request: Request, exc: UsecaseBase.AuthorityError):

@@ -2,7 +2,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Annotated
 
 import jwt
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jwt.exceptions import InvalidTokenError
 from passlib.context import CryptContext
@@ -62,26 +62,52 @@ class AuthorizeService(ServiceBase):
     @classmethod
     def verify_password(cls, plain_password: str, hashed_password: str) -> bool:
         """
-        パスワードを検証する
+        パスワードを検証する。
+
+        Args:
+            plain_password: 平文のパスワード
+            hashed_password: ハッシュ化されたパスワード
+
+        Returns:
+            パスワードが一致する場合はTrue、それ以外はFalse
         """
         return cls.pwd_context.verify(plain_password, hashed_password)
 
     @classmethod
     def get_hashed_password(cls, password: str) -> str:
         """
-        パスワードをハッシュ化する
+        パスワードをハッシュ化する。
+
+        Args:
+            password: ハッシュ化するパスワード
+
+        Returns:
+            ハッシュ化されたパスワード
         """
         return cls.pwd_context.hash(password)
 
     def get_user(self, name: str) -> UserEntity:
         """
-        ユーザを取得する
+        ユーザー名を指定してユーザーを取得する。
+
+        Args:
+            name: 検索対象のユーザー名
+
+        Returns:
+            取得したユーザーエンティティ
         """
         return UserRepository(self.session).find_one(name)
 
     def authenticate_user(self, name: str, password: str) -> UserEntity | None:
         """
-        ユーザ認証処理
+        ユーザー名とパスワードを使用してユーザーを認証する
+
+        Args:
+            name: ユーザー名
+            password: パスワード
+
+        Returns:
+            認証に成功したユーザーエンティティ、認証に失敗した場合はNone
         """
         try:
             user = self.get_user(name)
@@ -93,7 +119,14 @@ class AuthorizeService(ServiceBase):
 
     def create_access_token(self, data: dict, expires_delta: timedelta) -> str:
         """
-        アクセストークンを作成する
+        アクセストークンを作成する。
+
+        Args:
+            data: トークンに含めるデータ
+            expires_delta: トークンの有効期限
+
+        Returns:
+            作成されたアクセストークン
         """
         to_encode = data.copy()
         expire = datetime.now(timezone.utc) + expires_delta
@@ -101,23 +134,19 @@ class AuthorizeService(ServiceBase):
         encoded_jwt = jwt.encode(to_encode, self.jwt_secret_key, algorithm=self.ALGORITHM)
         return encoded_jwt
 
-    def get_exception(self, detail: str) -> HTTPException:
-        """
-        認証エラーを作成する
-        """
-        return HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=detail,
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-
     def login(self, form_data: OAuth2PasswordRequestForm) -> Token:
         """
-        ログイン処理からアクセストークンを取得する
+        ログイン処理を行い、アクセストークンを取得する。
+
+        Args:
+            form_data: ログインリクエストフォームデータ
+
+        Returns:
+            Token: 作成されたアクセストークン
         """
         user = self.authenticate_user(form_data.username, form_data.password)
         if not user:
-            raise self.get_exception(detail="Incorrect username or password")
+            raise self.Error("Incorrect username or password")
         access_token_expires = timedelta(minutes=self.ACCESS_TOKEN_EXPIRE_MINUTES)
         access_token = self.create_access_token(
             data={"sub": user.name}, expires_delta=access_token_expires
@@ -126,14 +155,23 @@ class AuthorizeService(ServiceBase):
 
     def get_current_user_from_token(self, token: str) -> UserEntity:
         """
-        トークンからユーザを取得する
+        トークンをデコードしてユーザーを取得する。
+
+        Args:
+            token: デコード対象のトークン
+
+        Returns:
+            トークンに対応するユーザーエンティティ
+
+        Raises:
+            HTTPException: トークン内容が無効または期限切れ
         """
         try:
             payload = jwt.decode(token, self.jwt_secret_key, algorithms=[self.ALGORITHM])
             token_data = TokenData(username=payload.get("sub"))
             user = self.get_user(name=token_data.username)
         except (InvalidTokenError, ValidationError, UserRepository.NotFoundError):
-            raise self.get_exception(detail="Could not validate credentials")
+            raise self.Error("Could not validate credentials")
         return user
 
 
@@ -144,7 +182,14 @@ def get_current_user_from_token(
     token: Annotated[str, Depends(oauth2_scheme)], session: SessionDepend
 ) -> UserEntity:
     """
-    トークンからユーザを取得する
+    トークンを使用して現在のユーザーを取得する。
+
+    Args:
+        token: リクエストヘッダーから取得したトークン
+        session: データベースセッション
+
+    Returns:
+        トークンに対応するユーザーエンティティ
     """
     return AuthorizeService(session=session).get_current_user_from_token(token=token)
 
@@ -153,11 +198,20 @@ def get_current_active_user(
     current_user: Annotated[UserEntity, Depends(get_current_user_from_token)],
 ):
     """
-    現在ログイン中かつ有効なユーザを取得する
+    現在ログイン中かつ有効なユーザーを取得する。
+
+    Args:
+        current_user: 現在のユーザーエンティティ
+
+    Returns:
+        有効なユーザーエンティティ
+
+    Raises:
+        HTTPException: ユーザーが無効
     """
     # サーバ側からユーザログインを即時制御するためにdisabledフラグをチェックする
     if current_user.disabled:
-        raise HTTPException(status_code=401, detail="Inactive user")
+        raise AuthorizeService.Error("Inactive user")
     return current_user
 
 
