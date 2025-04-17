@@ -18,7 +18,13 @@ class UserUsecase(UsecaseBase):
 
     def _check_authority_for_update_user(self, target_user_name: str) -> None:
         """
-        ユーザー更新の権限チェック
+        ユーザー情報更新処理の場合の権限チェックを行う。
+
+        Args:
+            target_user_name: 更新対象のユーザー名
+
+        Raises:
+            AuthorityError: ユーザーが更新権限を持っていない
         """
         if self.user.authority is AuthorityEnum.ADMIN:
             return
@@ -29,7 +35,13 @@ class UserUsecase(UsecaseBase):
 
     def add(self, request_body: RequestForAddUser) -> dict:
         """
-        追加
+        新しいユーザーを追加する。
+
+        Args:
+            request_body: 追加するユーザーのリクエストデータ
+
+        Returns:
+            空の辞書(追加成功を示す)
         """
         user = UserEntity(
             name=request_body.name,
@@ -45,7 +57,18 @@ class UserUsecase(UsecaseBase):
 
     def update(self, request_body: RequestForUpdateUser, name: str) -> dict:
         """
-        更新
+        既存のユーザー情報を更新する。
+
+        Args:
+            request_body: 更新するユーザーのリクエストデータ
+            name: 更新対象のユーザー名
+
+        Returns:
+            レスポンスの辞書
+
+        Raises:
+            AuthorityError: ユーザーが更新権限を持っていない
+            OperationError: 自分自身の特定のフィールドを変更しようとした
         """
         self._check_authority_for_update_user(name)
 
@@ -70,7 +93,13 @@ class UserUsecase(UsecaseBase):
 
     def get_one(self, name: str) -> dict:
         """
-        取得
+        指定されたユーザーを取得する。
+
+        Args:
+            name: 取得対象のユーザー名
+
+        Returns:
+            レスポンスの辞書
         """
         user = self.user_repository.find_one(name=name)
 
@@ -78,7 +107,10 @@ class UserUsecase(UsecaseBase):
 
     def get_list(self) -> dict:
         """
-        リスト取得
+        全てのユーザーのリストを取得する。
+
+        Returns:
+            レスポンスの辞書
         """
         user_list = self.user_repository.find_all()
 

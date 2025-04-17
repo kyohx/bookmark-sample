@@ -5,15 +5,16 @@ from fastapi.security import OAuth2PasswordRequestForm
 
 from ..dao.session import SessionDepend
 from ..dto.auth import ResponseForGetCurrentUser, ResponseForLogin
+from ..libs.openapi_tags import TagNameEnum
 from ..services.auth import AuthorizeService, UserDepends
 
 router = APIRouter()
+tagname = TagNameEnum.AUTH.value
 
 
 @router.post(
     "/token",
     response_model=ResponseForLogin,
-    tags=["auth"],
 )
 def login(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
@@ -29,7 +30,6 @@ def login(
 @router.get(
     "/me",
     response_model=ResponseForGetCurrentUser,
-    tags=["auth"],
 )
 def me(user: UserDepends) -> ResponseForGetCurrentUser:
     """

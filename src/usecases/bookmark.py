@@ -17,7 +17,13 @@ class BookmarkUsecase(UsecaseBase):
 
     def add(self, request_body: RequestForAddBookmark) -> dict:
         """
-        追加
+        新しいブックマークを追加する。
+
+        Args:
+            request_body: 追加するブックマークのリクエストデータ
+
+        Returns:
+            レスポンスの辞書
         """
         bookmark = BookmarkEntity(**request_body.model_dump())
         bookmark.hashed_id = get_hashed_id(str(bookmark.url))
@@ -27,7 +33,14 @@ class BookmarkUsecase(UsecaseBase):
 
     def update(self, request_body: RequestForUpdateBookmark, hashed_id: str) -> dict:
         """
-        更新
+        既存のブックマークを更新する。
+
+        Args:
+            request_body: 更新するブックマークのリクエストデータ
+            hashed_id: 更新対象のブックマークのハッシュID
+
+        Returns:
+            レスポンスの辞書
         """
         bookmark = self.bookmark_repository.find_one(hashed_id=hashed_id)
 
@@ -40,7 +53,13 @@ class BookmarkUsecase(UsecaseBase):
 
     def delete(self, hashed_id: str) -> dict:
         """
-        削除
+        指定されたハッシュIDのブックマークを削除する。
+
+        Args:
+            hashed_id: 削除対象のブックマークのハッシュID
+
+        Returns:
+            空の辞書(削除成功を示す)
         """
         self.bookmark_repository.delete_one(hashed_id=hashed_id)
 
@@ -48,7 +67,13 @@ class BookmarkUsecase(UsecaseBase):
 
     def get_one(self, hashed_id: str) -> dict:
         """
-        取得
+        指定されたハッシュIDのブックマークを取得する。
+
+        Args:
+            hashed_id: 取得対象のブックマークのハッシュID
+
+        Returns:
+            レスポンスの辞書
         """
         bookmark = self.bookmark_repository.find_one(hashed_id=hashed_id)
 
@@ -56,7 +81,13 @@ class BookmarkUsecase(UsecaseBase):
 
     def get_list(self, tag_names: list[str] | None = None) -> dict:
         """
-        リスト取得
+        ブックマークのリストを取得する。
+
+        Args:
+            tag_names: フィルタリング対象のタグ名のリスト
+
+        Returns:
+            レスポンスの辞書
         """
         if tag_names:
             bookmark_list = self.bookmark_repository.find_by_tags(tag_names)

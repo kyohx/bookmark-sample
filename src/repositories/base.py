@@ -12,15 +12,24 @@ class BaseRepository:
     """
 
     class Error(RepositoryError):
+        """
+        レポジトリエラー
+        """
+
         pass
 
     class NotFoundError(RepositoryError):
+        """
+        データが見つからない
+        """
+
         pass
 
     def __init__(self, session: Session) -> None:
         """
-        初期化
+        初期化処理
 
-        :param session: セッション
+        Args:
+            session: データベースセッション
         """
         self.session = session

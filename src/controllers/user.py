@@ -7,16 +7,17 @@ from ..dto.user.get_list import ResponseForGetUserList
 from ..dto.user.update import RequestForUpdateUser, ResponseForUpdateUser
 from ..libs.constraints import FIELD_STRING_USERNAME
 from ..libs.enum import AuthorityEnum
+from ..libs.openapi_tags import TagNameEnum
 from ..services.auth import UserDepends
 from ..usecases.user import UserUsecase
 
 router = APIRouter()
+tagname = TagNameEnum.USER.value
 
 
 @router.post(
     "/users",
     response_model=ResponseForAddUser,
-    tags=["user"],
 )
 def add_user(
     req: RequestForAddUser,
@@ -38,7 +39,6 @@ def add_user(
 @router.patch(
     "/users/{name}",
     response_model=ResponseForUpdateUser,
-    tags=["user"],
 )
 def update_user(
     name: FIELD_STRING_USERNAME,
@@ -63,7 +63,6 @@ def update_user(
 @router.get(
     "/users/{name}",
     response_model=ResponseForGetUser,
-    tags=["user"],
 )
 def get_user(
     name: FIELD_STRING_USERNAME,
@@ -85,7 +84,6 @@ def get_user(
 @router.get(
     "/users",
     response_model=ResponseForGetUserList,
-    tags=["user"],
 )
 def get_users(
     session: SessionDepend,

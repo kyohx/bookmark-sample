@@ -12,10 +12,6 @@ class BaseTest:
     def create_bookmarks(self, db_session: SessionForTest, num: int = 1) -> list[BookmarkDao]:
         """
         テスト用ブックマークを作成する
-
-        :param db_session: DBセッション
-        :param num: 作成個数
-        :return: 作成したブックマークDAOのリスト
         """
         factory = DataFactory(db_session)
         return [
