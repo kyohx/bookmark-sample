@@ -6,9 +6,10 @@ from ..dto.bookmark.delete import ResponseForDeleteBookmark
 from ..dto.bookmark.get import ResponseForGetBookmark
 from ..dto.bookmark.get_list import ResponseForGetBookmarkList
 from ..dto.bookmark.update import RequestForUpdateBookmark, ResponseForUpdateBookmark
-from ..libs.constraints import PATH_HASHED_ID, QUERY_TAGS
+from ..libs.constraints import FIELD_PAGE_NUMBER, FIELD_PAGE_SIZE, PATH_HASHED_ID, QUERY_TAGS
 from ..libs.enum import AuthorityEnum
 from ..libs.openapi_tags import TagNameEnum
+from ..libs.page import Page
 from ..services.auth import UserDepends
 from ..usecases.bookmark import BookmarkUsecase
 
@@ -109,6 +110,8 @@ def get_bookmarks(
     session: SessionDepend,
     user: UserDepends,
     tag: QUERY_TAGS = None,
+    page: FIELD_PAGE_NUMBER = 1,
+    size: FIELD_PAGE_SIZE = 10,
 ) -> ResponseForGetBookmarkList:
     """
     ブックマークリスト取得
@@ -117,6 +120,7 @@ def get_bookmarks(
         session=session,
         user=user,
         required_authority=AuthorityEnum.READ,
+        page=Page(number=page, size=size),
     ).get_list(tag_names=tag)
 
     return ResponseForGetBookmarkList(**res)

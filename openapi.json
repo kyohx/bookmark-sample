@@ -3,7 +3,7 @@
   "info": {
     "title": "Bookmark API",
     "description": "API for bookmarking web page URL",
-    "version": "0.3.2.250414"
+    "version": "0.4.0.250423"
   },
   "paths": {
     "/token": {
@@ -153,6 +153,29 @@
                 }
               ],
               "title": "Tag"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1,
+              "title": "Page"
+            }
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 10,
+              "title": "Size"
             }
           }
         ],
@@ -340,31 +363,6 @@
       }
     },
     "/users": {
-      "get": {
-        "tags": [
-          "user"
-        ],
-        "summary": "Get Users",
-        "description": "ユーザーリスト取得",
-        "operationId": "get_users_users_get",
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ResponseForGetUserList"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ]
-      },
       "post": {
         "tags": [
           "user"
@@ -372,15 +370,20 @@
         "summary": "Add User",
         "description": "ユーザー追加",
         "operationId": "add_user_users_post",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
         "requestBody": {
+          "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/RequestForAddUser"
               }
             }
-          },
-          "required": true
+          }
         },
         "responses": {
           "200": {
@@ -403,12 +406,67 @@
               }
             }
           }
-        },
+        }
+      },
+      "get": {
+        "tags": [
+          "user"
+        ],
+        "summary": "Get Users",
+        "description": "ユーザーリスト取得",
+        "operationId": "get_users_users_get",
         "security": [
           {
             "OAuth2PasswordBearer": []
           }
-        ]
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1,
+              "title": "Page"
+            }
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 10,
+              "title": "Size"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseForGetUserList"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/users/{name}": {
@@ -1095,7 +1153,7 @@
         "title": "ResponseForGetVersion",
         "examples": [
           {
-            "version": "0.3.2.250414"
+            "version": "0.4.0.250423"
           }
         ]
       },

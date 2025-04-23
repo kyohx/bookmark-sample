@@ -42,4 +42,5 @@ class BookmarkDaoOperator(BaseDaoOperator):
             .where(TagDao.name.in_(tags))
             .distinct()
         )
+        statement = self.pagenation(statement)
         return list(self.session.scalars(statement).all())

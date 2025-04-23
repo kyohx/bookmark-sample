@@ -9,7 +9,12 @@ from .factory import DataFactory
 
 
 class BaseTest:
-    def create_bookmarks(self, db_session: SessionForTest, num: int = 1) -> list[BookmarkDao]:
+    def create_bookmarks(
+        self,
+        db_session: SessionForTest,
+        num: int = 1,
+        tag_names: list[str] | None = None,
+    ) -> list[BookmarkDao]:
         """
         テスト用ブックマークを作成する
         """
@@ -18,7 +23,9 @@ class BaseTest:
             factory.create_bookmark(
                 url=f"{TEST_URL}/{i}",
                 memo=f"Example{i}",
-                tagnames=[f"{TEST_TAG_NAME}_1_{i}", f"{TEST_TAG_NAME}_2_{i}"],
+                tagnames=tag_names
+                if tag_names
+                else [f"{TEST_TAG_NAME}_1_{i}", f"{TEST_TAG_NAME}_2_{i}"],
             )
             for i in range(1, num + 1)
         ]

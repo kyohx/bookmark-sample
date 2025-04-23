@@ -13,7 +13,7 @@ class BookmarkRepository(BaseRepository):
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
-        self.bookmark_operator = BookmarkDaoOperator(self.session)
+        self.bookmark_operator = BookmarkDaoOperator(self.session, page=self.page)
         self.tag_operator = TagDaoOperator(self.session)
         self.bookmark_tag_operator = BookmarkTagDaoOperator(self.session)
         self.loaded_bookmark_dao: BookmarkDao | None = None

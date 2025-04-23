@@ -1,8 +1,9 @@
 from typing import Sequence, Type
 
-from sqlalchemy import select
+from sqlalchemy import Select, select
 from sqlalchemy.orm.session import Session
 
+from ...libs.page import Page
 from ..models.base import BaseDao
 
 
@@ -13,14 +14,20 @@ class BaseDaoOperator:
 
     MAIN_DAO: Type[BaseDao] = BaseDao
 
-    def __init__(self, session: Session) -> None:
+    def __init__(
+        self,
+        session: Session,
+        page: Page | None = None,
+    ) -> None:
         """
         初期化処理
 
         Args:
             session: データベースセッション
+            page: ページ情報
         """
         self.session = session
+        self.page = page
 
     def find_one_by_id(self, id_value, id_column: str = "id"):
         """
@@ -57,7 +64,22 @@ class BaseDaoOperator:
             取得したDAOのリスト
         """
         statement = select(self.MAIN_DAO)
+        statement = self.pagenation(statement)
         return list(self.session.execute(statement).scalars().all())
+
+    def pagenation(self, statement: Select) -> Select:
+        """
+        ページネーションを適用する。
+
+        Args:
+            statement: SQLAlchemyのクエリステートメント
+
+        Returns:
+            ページネーションを適用したクエリステートメント
+        """
+        if self.page:
+            statement = statement.limit(self.page.size).offset(self.page.offset)
+        return statement
 
     def save(self, d: BaseDao | Sequence[BaseDao]) -> None:
         """
