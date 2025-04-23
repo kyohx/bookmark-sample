@@ -192,3 +192,100 @@ class TestGetBookmark(BaseTest):
         tagname = "x" * 101
         response = client.get(f"/bookmarks?tag={tagname}")
         assert response.status_code == 422
+
+    def test_get_list_pagenation(
+        self,
+        client: TestClient,
+        db_session: SessionForTest,
+        mock_get_current_active_user: None,
+    ):
+        """
+        正常系:
+        ページネーション
+        """
+        # テストデータ作成
+        self.create_bookmarks(db_session, num=20)
+
+        # リクエストの送信
+        response = client.get("/bookmarks?page=2&size=10")
+
+        # レスポンスの検証
+        assert response.status_code == 200
+        response_body = response.json()
+        assert "bookmarks" in response_body
+        assert len(response_body["bookmarks"]) == 10
+        for i, res_bookmark in enumerate(response_body["bookmarks"], start=11):
+            assert res_bookmark["memo"] == f"Example{i}"
+
+        # リクエストの送信 (ページ数が大きい)
+        response = client.get("/bookmarks?page=3&size=10")
+
+        # レスポンスの検証
+        assert response.status_code == 200
+        response_body = response.json()
+        assert "bookmarks" in response_body
+        assert len(response_body["bookmarks"]) == 0
+
+    def test_get_list_by_tagname_pagenation(
+        self,
+        client: TestClient,
+        db_session: SessionForTest,
+        mock_get_current_active_user: None,
+    ):
+        """
+        正常系:
+        タグ名指定でページネーション
+        """
+        # テストデータ作成
+        tags = ["test_tag1", "test_tag2"]
+        self.create_bookmarks(db_session, num=20, tag_names=tags)
+
+        # リクエストの送信
+        response = client.get(f"/bookmarks?tag={tags[0]}&tag={tags[1]}&page=2&size=10")
+
+        # レスポンスの検証
+        assert response.status_code == 200
+        response_body = response.json()
+        assert "bookmarks" in response_body
+        assert len(response_body["bookmarks"]) == 10
+        for i, res_bookmark in enumerate(response_body["bookmarks"], start=11):
+            assert res_bookmark["memo"] == f"Example{i}"
+
+        # リクエストの送信 (ページ数が大きい)
+        response = client.get(f"/bookmarks?tag={tags[0]}&tag={tags[1]}&page=3&size=10")
+
+        # レスポンスの検証
+        assert response.status_code == 200
+        response_body = response.json()
+        assert "bookmarks" in response_body
+        assert len(response_body["bookmarks"]) == 0
+
+    def test_get_list_pagenation_invalid(
+        self,
+        client: TestClient,
+        db_session: SessionForTest,
+        mock_get_current_active_user: None,
+    ):
+        """
+        異常系:
+        ページネーション指定不正
+        """
+        # ページ数が0
+        response = client.get("/bookmarks?page=0&size=10")
+        assert response.status_code == 422
+
+        # ページ数が負数
+        response = client.get("/bookmarks?page=-1&size=10")
+        assert response.status_code == 422
+
+        # サイズが0
+        response = client.get("/bookmarks?page=1&size=0")
+        assert response.status_code == 422
+
+        # サイズが負数
+        response = client.get("/bookmarks?page=1&size=-1")
+        assert response.status_code == 422
+
+        # サイズが100を超える
+        response = client.get("/bookmarks?page=1&size=101")
+        assert response.status_code == 422

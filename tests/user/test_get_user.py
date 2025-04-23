@@ -157,3 +157,67 @@ class TestGetUser(BaseTest):
 
         # レスポンスの検証
         assert response.status_code == 403
+
+    def test_get_list_pagenation(
+        self,
+        client: TestClient,
+        db_session: SessionForTest,
+        mock_get_current_active_user: None,
+    ):
+        """
+        正常系:
+        ページネーション
+        """
+        # テストデータ作成
+        for i in range(20):
+            self.create_user(db_session, f"test{i + 1}")
+
+        # リクエストの送信
+        response = client.get("/users?page=2&size=10")
+
+        # レスポンスの検証
+        assert response.status_code == 200
+        response_body = response.json()
+        assert "users" in response_body
+        assert len(response_body["users"]) == 10
+        for i, res_user in enumerate(response_body["users"], start=11):
+            assert res_user["name"] == f"test{i}"
+
+        # リクエストの送信 (ページ数が大きい)
+        response = client.get("/users?page=3&size=10")
+
+        # レスポンスの検証
+        assert response.status_code == 200
+        response_body = response.json()
+        assert "users" in response_body
+        assert len(response_body["users"]) == 0
+
+    def test_get_list_pagenation_invalid(
+        self,
+        client: TestClient,
+        db_session: SessionForTest,
+        mock_get_current_active_user: None,
+    ):
+        """
+        異常系:
+        ページネーション指定不正
+        """
+        # ページ数が0
+        response = client.get("/users?page=0&size=10")
+        assert response.status_code == 422
+
+        # ページ数が負数
+        response = client.get("/users?page=-1&size=10")
+        assert response.status_code == 422
+
+        # サイズが0
+        response = client.get("/users?page=1&size=0")
+        assert response.status_code == 422
+
+        # サイズが負数
+        response = client.get("/users?page=1&size=-1")
+        assert response.status_code == 422
+
+        # サイズが100を超える
+        response = client.get("/users?page=1&size=101")
+        assert response.status_code == 422

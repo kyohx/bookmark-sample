@@ -5,9 +5,10 @@ from ..dto.user.add import RequestForAddUser, ResponseForAddUser
 from ..dto.user.get import ResponseForGetUser
 from ..dto.user.get_list import ResponseForGetUserList
 from ..dto.user.update import RequestForUpdateUser, ResponseForUpdateUser
-from ..libs.constraints import FIELD_STRING_USERNAME
+from ..libs.constraints import FIELD_PAGE_NUMBER, FIELD_PAGE_SIZE, FIELD_STRING_USERNAME
 from ..libs.enum import AuthorityEnum
 from ..libs.openapi_tags import TagNameEnum
+from ..libs.page import Page
 from ..services.auth import UserDepends
 from ..usecases.user import UserUsecase
 
@@ -88,6 +89,8 @@ def get_user(
 def get_users(
     session: SessionDepend,
     user: UserDepends,
+    page: FIELD_PAGE_NUMBER = 1,
+    size: FIELD_PAGE_SIZE = 10,
 ) -> ResponseForGetUserList:
     """
     ユーザーリスト取得
@@ -96,6 +99,7 @@ def get_users(
         session=session,
         user=user,
         required_authority=AuthorityEnum.ADMIN,
+        page=Page(number=page, size=size),
     ).get_list()
 
     return ResponseForGetUserList(**res)

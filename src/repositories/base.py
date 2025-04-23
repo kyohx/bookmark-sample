@@ -1,5 +1,7 @@
 from sqlalchemy.orm.session import Session
 
+from ..libs.page import Page
+
 
 class RepositoryError(Exception):
     pass
@@ -25,11 +27,17 @@ class BaseRepository:
 
         pass
 
-    def __init__(self, session: Session) -> None:
+    def __init__(
+        self,
+        session: Session,
+        page: Page | None = None,
+    ) -> None:
         """
         初期化処理
 
         Args:
             session: データベースセッション
+            page: ページ情報
         """
         self.session = session
+        self.page = page

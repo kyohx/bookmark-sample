@@ -33,6 +33,8 @@ FIELD_STRING_DATETIME = Annotated[
         min_length=19, max_length=19, pattern=r"^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$"
     ),
 ]
+FIELD_PAGE_NUMBER = Annotated[int, Field(ge=1)]
+FIELD_PAGE_SIZE = Annotated[int, Field(ge=1, le=100)]
 PATH_HASHED_ID = Annotated[str, Path(min_length=64, max_length=64, pattern="[0-9a-f]+")]
 QUERY_TAGS = Annotated[
     Annotated[

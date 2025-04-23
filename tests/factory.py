@@ -27,9 +27,15 @@ class DataFactory:
         self.session.add(bookmark)
         self.session.flush()
 
-        tags = [TagDao(name=tag) for tag in tagnames]
-        self.session.add_all(tags)
-        self.session.flush()
+        already_exsist_tag_names = [
+            tag for tag in self.session.query(TagDao).filter(TagDao.name.in_(tagnames)).all()
+        ]
+        if already_exsist_tag_names:
+            tags = already_exsist_tag_names
+        else:
+            tags = [TagDao(name=tag) for tag in tagnames]
+            self.session.add_all(tags)
+            self.session.flush()
 
         for tag in tags:
             self.session.add(BookmarkTagDao(bookmark_id=bookmark.id, tag_id=tag.id))

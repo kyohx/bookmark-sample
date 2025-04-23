@@ -11,7 +11,7 @@ class UserRepository(BaseRepository):
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
-        self.user_operator = UserDaoOperator(self.session)
+        self.user_operator = UserDaoOperator(self.session, page=self.page)
         self.loaded_user_dao: UserDao | None = None
 
     def find_one(self, /, name: str) -> UserEntity:

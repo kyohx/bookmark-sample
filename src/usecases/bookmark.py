@@ -13,7 +13,7 @@ class BookmarkUsecase(UsecaseBase):
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
-        self.bookmark_repository = BookmarkRepository(self.session)
+        self.bookmark_repository = BookmarkRepository(self.session, page=self.page)
 
     def add(self, request_body: RequestForAddBookmark) -> dict:
         """

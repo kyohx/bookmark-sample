@@ -2,6 +2,7 @@ from sqlalchemy.orm.session import Session
 
 from ..entities.user import UserEntity
 from ..libs.enum import AuthorityEnum
+from ..libs.page import Page
 
 
 class UsecaseError(Exception):
@@ -23,7 +24,11 @@ class UsecaseBase:
         pass
 
     def __init__(
-        self, session: Session, user: UserEntity, required_authority: AuthorityEnum
+        self,
+        session: Session,
+        user: UserEntity,
+        required_authority: AuthorityEnum,
+        page: Page | None = None,
     ) -> None:
         """
         ユースケースクラスの初期化処理
@@ -32,6 +37,7 @@ class UsecaseBase:
             session: データベースセッション
             user: ユースケースの実行ユーザーエンティティ
             required_authority: 必要な権限レベル
+            page: ページ情報
 
         Raises:
             AuthorityError: ユーザーが必要な権限を持っていない
@@ -39,6 +45,7 @@ class UsecaseBase:
         self.session = session
         self.user = user
         self._check_authority(required_authority)
+        self.page = page
 
     def _check_authority(self, required_authority: AuthorityEnum) -> None:
         """

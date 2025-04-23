@@ -14,7 +14,7 @@ class UserUsecase(UsecaseBase):
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
-        self.user_repository = UserRepository(self.session)
+        self.user_repository = UserRepository(self.session, page=self.page)
 
     def _check_authority_for_update_user(self, target_user_name: str) -> None:
         """
