@@ -27,4 +27,6 @@ class ServiceBase:
             session: データベースセッション
         """
         self.session = session
+        "セッション"
         self.config = get_config()
+        "設定値"

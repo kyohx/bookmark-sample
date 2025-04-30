@@ -12,8 +12,13 @@ class UserDao(BaseDao, TimeStampColumnMixin):
 
     __tablename__ = "user"
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)  # ID
-    name: Mapped[str] = mapped_column(VARCHAR(32), unique=True)  # ユーザ名
-    hashed_password: Mapped[str] = mapped_column(VARCHAR(64))  # パスワードハッシュ
-    authority: Mapped[int] = mapped_column(SmallInteger, default=AuthorityEnum.READ.value)  # 権限
-    disabled: Mapped[bool] = mapped_column(default=False)  # 無効フラグ
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    "ID"
+    name: Mapped[str] = mapped_column(VARCHAR(32), unique=True)
+    "ユーザー名"
+    hashed_password: Mapped[str] = mapped_column(VARCHAR(64))
+    "パスワードハッシュ"
+    authority: Mapped[int] = mapped_column(SmallInteger, default=AuthorityEnum.READ.value)
+    "権限"
+    disabled: Mapped[bool] = mapped_column(default=False)
+    "無効フラグ"

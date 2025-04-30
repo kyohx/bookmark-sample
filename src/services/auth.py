@@ -20,7 +20,9 @@ class Token(BaseModel):
     """
 
     access_token: str
+    "アクセストークン"
     token_type: str
+    "トークンの種類"
 
     model_config = ConfigDict(
         frozen=True,
@@ -41,6 +43,7 @@ class TokenData(BaseModel):
     """
 
     username: str
+    "ユーザー名"
 
     model_config = ConfigDict(frozen=True)
 
@@ -196,7 +199,7 @@ def get_current_user_from_token(
 
 def get_current_active_user(
     current_user: Annotated[UserEntity, Depends(get_current_user_from_token)],
-):
+) -> UserEntity:
     """
     現在ログイン中かつ有効なユーザーを取得する。
 

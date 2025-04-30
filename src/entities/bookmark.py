@@ -14,11 +14,17 @@ class BookmarkEntity(BaseModel):
     """
 
     hashed_id: FIELD_HASHED_ID | None = None
+    "URLハッシュID"
     url: FIELD_URL
+    "URL"
     memo: FIELD_STRING_MAX400
+    "メモ"
     created_at: datetime | None = None
+    "作成日時"
     updated_at: datetime | None = None
+    "更新日時"
     tags: FIELD_TAGS | None = None
+    "タグ"
 
     @field_serializer("url")
     def serialize_url(self, value) -> str:

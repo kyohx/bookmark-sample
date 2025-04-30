@@ -9,7 +9,9 @@ class Page(BaseModel):
     """
 
     number: FIELD_PAGE_NUMBER
+    "ページ番号"
     size: FIELD_PAGE_SIZE
+    "ページサイズ"
 
     model_config = ConfigDict(frozen=True)
 
@@ -20,4 +22,5 @@ class Page(BaseModel):
 
     @property
     def offset(self) -> int:
+        "オフセット"
         return self._offset

@@ -11,5 +11,7 @@ class TagDao(BaseDao, TimeStampColumnMixin):
 
     __tablename__ = "tag"
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)  # ID
-    name: Mapped[str] = mapped_column(VARCHAR(100))  # タグ名
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    "ID"
+    name: Mapped[str] = mapped_column(VARCHAR(100))
+    "タグ名"

@@ -11,7 +11,11 @@ class BookmarkDao(BaseDao, TimeStampColumnMixin):
 
     __tablename__ = "bookmark"
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)  # ID
-    hashed_id: Mapped[str] = mapped_column(VARCHAR(64), unique=True)  # ハッシュID
-    url: Mapped[str] = mapped_column(VARCHAR(400))  # URL
-    memo: Mapped[str] = mapped_column(VARCHAR(400))  # メモ
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    "ID"
+    hashed_id: Mapped[str] = mapped_column(VARCHAR(64), unique=True)
+    "URLハッシュID"
+    url: Mapped[str] = mapped_column(VARCHAR(400))
+    "URL"
+    memo: Mapped[str] = mapped_column(VARCHAR(400))
+    "メモ"

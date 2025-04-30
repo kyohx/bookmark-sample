@@ -6,8 +6,11 @@ from ...libs.constraints import FIELD_HASHED_ID, FIELD_STRING_MAX400, FIELD_TAGS
 #### 追加リクエスト
 class RequestForAddBookmark(BaseModel):
     url: FIELD_URL
+    "URL"
     memo: FIELD_STRING_MAX400
+    "メモ"
     tags: FIELD_TAGS
+    "タグ"
 
     @field_serializer("url")
     def serialize_url(self, value) -> str:
@@ -32,6 +35,7 @@ class RequestForAddBookmark(BaseModel):
 #### 追加レスポンス
 class ResponseForAddBookmark(BaseModel):
     hashed_id: FIELD_HASHED_ID
+    "URLハッシュID"
 
     model_config = ConfigDict(
         json_schema_extra={

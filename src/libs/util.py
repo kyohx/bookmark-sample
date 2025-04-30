@@ -3,7 +3,6 @@ from hashlib import sha256
 
 from ..libs.config import get_config
 
-
 SALT = get_config().hash_salt
 
 

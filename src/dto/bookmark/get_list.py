@@ -16,10 +16,15 @@ from ...libs.util import datetime_to_str
 # 概要
 class BookmarkDigest(BaseModel):
     hashed_id: FIELD_HASHED_ID
+    "URLハッシュID"
     url: FIELD_URL
+    "URL"
     memo: FIELD_STRING_MAX400
+    "メモ"
     created_at: FIELD_STRING_DATETIME
+    "作成日時"
     updated_at: FIELD_STRING_DATETIME
+    "更新日時"
 
     @field_validator("created_at", mode="before")
     @classmethod
@@ -43,6 +48,7 @@ class BookmarkDigest(BaseModel):
 #### リスト取得レスポンス
 class ResponseForGetBookmarkList(BaseModel):
     bookmarks: list[BookmarkDigest]
+    "ブックマーク情報リスト"
 
     model_config = ConfigDict(
         json_schema_extra={

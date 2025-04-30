@@ -43,9 +43,14 @@ class UsecaseBase:
             AuthorityError: ユーザーが必要な権限を持っていない
         """
         self.session = session
+        "セッション"
         self.user = user
-        self._check_authority(required_authority)
+        "ユーザー情報"
         self.page = page
+        "ページ情報"
+
+        # 権限チェック
+        self._check_authority(required_authority)
 
     def _check_authority(self, required_authority: AuthorityEnum) -> None:
         """

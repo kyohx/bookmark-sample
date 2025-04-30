@@ -7,6 +7,7 @@ from .get import UserDetail
 #### 取得レスポンス
 class ResponseForGetUserList(BaseModel):
     users: list[UserDetail]
+    "ユーザー情報リスト"
 
     model_config = ConfigDict(
         json_schema_extra={
