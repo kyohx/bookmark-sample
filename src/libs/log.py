@@ -1,5 +1,5 @@
 import sys
-from logging import DEBUG, ERROR, INFO, Formatter, StreamHandler, getLogger
+from logging import DEBUG, ERROR, INFO, Formatter, Logger, StreamHandler, getLogger
 
 from ..libs.config import get_config
 
@@ -20,5 +20,11 @@ _logger.addHandler(_handler)
 _logger.setLevel(_LOGLEVEL_TABLE[_level])
 
 
-def get_logger():
+def get_logger() -> Logger:
+    """
+    ロガー取得
+
+    Returns:
+        ロガー
+    """
     return _logger

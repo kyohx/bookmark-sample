@@ -40,4 +40,6 @@ class BaseRepository:
             page: ページ情報
         """
         self.session = session
+        "セッション"
         self.page = page
+        "ページ情報"

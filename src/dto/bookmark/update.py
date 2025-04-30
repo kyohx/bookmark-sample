@@ -7,7 +7,9 @@ from .get import BookmarkDetail
 #### 更新リクエスト
 class RequestForUpdateBookmark(BaseModel):
     memo: FIELD_STRING_MAX400 | None = None
+    "メモ"
     tags: FIELD_TAGS | None = None
+    "タグ"
 
     model_config = ConfigDict(
         json_schema_extra={
@@ -27,6 +29,7 @@ class RequestForUpdateBookmark(BaseModel):
 #### 更新レスポンス
 class ResponseForUpdateBookmark(BaseModel):
     updated_bookmark: BookmarkDetail
+    "更新後のブックマーク情報"
 
     model_config = ConfigDict(
         json_schema_extra={

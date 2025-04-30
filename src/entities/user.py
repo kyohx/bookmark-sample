@@ -5,9 +5,13 @@ from ..libs.enum import AuthorityEnum
 
 class UserEntity(BaseModel):
     name: str
+    "ユーザー名"
     hashed_password: str
+    "ハッシュ化されたパスワード"
     disabled: bool
+    "無効フラグ"
     authority: AuthorityEnum
+    "権限レベル"
 
     @field_serializer("authority")
     def serialize_authority(self, value: AuthorityEnum) -> int:

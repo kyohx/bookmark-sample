@@ -13,7 +13,8 @@ class BaseDao(DeclarativeBase):
         """
         属性を辞書型に変換する
 
-        :return: 属性辞書
+        Returns:
+            属性辞書
         """
         return dict([(k, v) for k, v in self.__dict__.items() if not k.startswith("_")])
 
@@ -28,6 +29,8 @@ class TimeStampColumnMixin:
     """
 
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=text(CT))
+    "作成日時"
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=text(CT), onupdate=text(CT)
     )
+    "更新日時"

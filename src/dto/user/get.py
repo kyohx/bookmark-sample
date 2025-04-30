@@ -6,8 +6,11 @@ from ...libs.enum import AuthorityEnum
 
 class UserDetail(BaseModel):
     name: FIELD_STRING_USERNAME
+    "ユーザー名"
     authority: AuthorityEnum
+    "権限レベル"
     disabled: bool
+    "無効フラグ"
 
 
 #### 取得レスポンス

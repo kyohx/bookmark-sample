@@ -12,15 +12,25 @@ class Config(BaseModel):
     """
 
     database_host: str
+    "DBホスト名"
     database_port: int
+    "DBポート番号"
     database_user: str
+    "DBユーザ名"
     database_password: str
+    "DBパスワード"
     database_name: str
+    "DB名"
     database_debug: bool
+    "DBデバッグモード"
     test_database_host: str
+    "テスト用DBホスト名"
     jwt_secret_key: str
+    "JWTシークレットキー"
     log_level: str
+    "ログレベル"
     hash_salt: str
+    "URLハッシュ化用ソルト"
 
     model_config = ConfigDict(frozen=True)
 
@@ -46,5 +56,8 @@ _config = Config(
 def get_config() -> Config:
     """
     設定値取得
+
+    Returns:
+        設定値
     """
     return _config

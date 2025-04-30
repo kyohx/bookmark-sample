@@ -7,11 +7,13 @@ from .get_list import BookmarkDigest
 # 詳細
 class BookmarkDetail(BookmarkDigest):
     tags: FIELD_TAGS
+    "タグ"
 
 
 #### 詳細取得レスポンス
 class ResponseForGetBookmark(BaseModel):
     bookmark: BookmarkDetail
+    "ブックマーク情報"
 
     model_config = ConfigDict(
         json_schema_extra={
