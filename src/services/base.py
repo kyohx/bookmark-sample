@@ -1,5 +1,4 @@
 from ..libs.config import get_config
-from ..entities.user import UserEntity
 
 
 class ServiceError(Exception):

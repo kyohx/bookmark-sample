@@ -1,7 +1,6 @@
 from ..dto.user.add import RequestForAddUser
 from ..dto.user.update import RequestForUpdateUser
 from ..entities.user import UserEntity
-from ..libs.enum import AuthorityEnum
 from ..repositories.user import UserRepository
 from ..services.authorize import AuthorizeService
 from .base import UsecaseBase
