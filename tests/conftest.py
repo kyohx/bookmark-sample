@@ -10,7 +10,7 @@ from src.entities.user import UserEntity
 from src.libs.config import get_config
 from src.libs.enum import AuthorityEnum
 from src.main import app
-from src.services.auth import AuthorizeService, get_current_active_user
+from src.services.authorize import AuthorizeService, get_current_active_user
 
 _config = get_config()
 

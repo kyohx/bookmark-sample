@@ -5,7 +5,8 @@ from sqlalchemy.exc import IntegrityError, OperationalError
 
 from .libs.log import get_logger
 from .repositories.base import BaseRepository
-from .services.auth import AuthorizeService
+from .services.authorize import AuthorizeService
+from .services.authority import AuthorityService
 from .usecases.base import UsecaseBase
 
 logger = get_logger()
@@ -24,8 +25,8 @@ def add_error_handlers(app: FastAPI) -> None:
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    @app.exception_handler(UsecaseBase.AuthorityError)
-    async def authority_error_handler(request: Request, exc: UsecaseBase.AuthorityError):
+    @app.exception_handler(AuthorityService.Error)
+    async def authority_error_handler(request: Request, exc: AuthorityService.Error):
         return ORJSONResponse(
             status_code=status.HTTP_403_FORBIDDEN,
             content={"detail": str(exc)},

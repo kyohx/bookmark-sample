@@ -4,7 +4,7 @@ from src.dao.models.user import UserDao
 from src.entities.user import UserEntity
 from src.libs.enum import AuthorityEnum
 from src.main import app
-from src.services.auth import get_current_active_user
+from src.services.authorize import get_current_active_user
 from tests.conftest import SessionForTest
 
 from ..base import BaseTest

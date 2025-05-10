@@ -2,7 +2,7 @@ from fastapi.testclient import TestClient
 
 from src.dao.models.user import UserDao
 from src.libs.enum import AuthorityEnum
-from src.services.auth import AuthorizeService
+from src.services.authorize import AuthorizeService
 from tests.conftest import SessionForTest
 
 from ..base import BaseTest

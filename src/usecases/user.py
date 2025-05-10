@@ -1,9 +1,8 @@
 from ..dto.user.add import RequestForAddUser
 from ..dto.user.update import RequestForUpdateUser
 from ..entities.user import UserEntity
-from ..libs.enum import AuthorityEnum
 from ..repositories.user import UserRepository
-from ..services.auth import AuthorizeService
+from ..services.authorize import AuthorizeService
 from .base import UsecaseBase
 
 
@@ -15,23 +14,6 @@ class UserUsecase(UsecaseBase):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.user_repository = UserRepository(self.session, page=self.page)
-
-    def _check_authority_for_update_user(self, target_user_name: str) -> None:
-        """
-        ユーザー情報更新処理の場合の権限チェックを行う。
-
-        Args:
-            target_user_name: 更新対象のユーザー名
-
-        Raises:
-            AuthorityError: ユーザーが更新権限を持っていない
-        """
-        if self.user.authority is AuthorityEnum.ADMIN:
-            return
-
-        if self.user.name != target_user_name:
-            # 管理者以外は自分以外のユーザーを更新できない
-            raise self.AuthorityError("You don't have permission to access")
 
     def add(self, request_body: RequestForAddUser) -> dict:
         """
@@ -67,10 +49,10 @@ class UserUsecase(UsecaseBase):
             レスポンスの辞書
 
         Raises:
-            AuthorityError: ユーザーが更新権限を持っていない
+            AuthorityService.Error: ユーザーが更新権限を持っていない
             OperationError: 自分自身の特定のフィールドを変更しようとした
         """
-        self._check_authority_for_update_user(name)
+        self.authority_service.check_authority_for_update_user(name)
 
         user = self.user_repository.find_one(name=name)
 
