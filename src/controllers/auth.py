@@ -6,7 +6,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from ..dao.session import SessionDepend
 from ..dto.auth import ResponseForGetCurrentUser, ResponseForLogin
 from ..libs.openapi_tags import TagNameEnum
-from ..services.auth import AuthorizeService, UserDepends
+from ..services.authorize import AuthorizeService, UserDepends
 
 router = APIRouter()
 tagname = TagNameEnum.AUTH.value

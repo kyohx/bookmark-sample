@@ -3,6 +3,7 @@ from sqlalchemy.orm.session import Session
 from ..entities.user import UserEntity
 from ..libs.enum import AuthorityEnum
 from ..libs.page import Page
+from ..services.authority import AuthorityService
 
 
 class UsecaseError(Exception):
@@ -14,13 +15,11 @@ class UsecaseBase:
     ユースケース基底クラス
     """
 
-    class Error(UsecaseError):
-        pass
-
-    class AuthorityError(UsecaseError):
-        pass
-
     class OperationError(UsecaseError):
+        """
+        操作エラー
+        """
+
         pass
 
     def __init__(
@@ -48,19 +47,7 @@ class UsecaseBase:
         "ユーザー情報"
         self.page = page
         "ページ情報"
+        self.authority_service = AuthorityService(user)
+        "権限サービス"
 
-        # 権限チェック
-        self._check_authority(required_authority)
-
-    def _check_authority(self, required_authority: AuthorityEnum) -> None:
-        """
-        ユーザーの権限をチェックする。
-
-        Args:
-            required_authority: 必要な権限レベル
-
-        Raises:
-            AuthorityError: ユーザーが必要な権限を持っていない
-        """
-        if self.user.authority.value < required_authority.value:
-            raise self.AuthorityError("You don't have permission to access")
+        self.authority_service.check_authority(required_authority)

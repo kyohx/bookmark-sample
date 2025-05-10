@@ -7,11 +7,12 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jwt.exceptions import InvalidTokenError
 from passlib.context import CryptContext
 from pydantic import BaseModel, ConfigDict, ValidationError
+from sqlalchemy.orm.session import Session
 
 from ..dao.session import SessionDepend
 from ..entities.user import UserEntity
 from ..repositories.user import UserRepository
-from .base import ServiceBase
+from .base import ServiceBase, ServiceError
 
 
 class Token(BaseModel):
@@ -58,8 +59,15 @@ class AuthorizeService(ServiceBase):
 
     pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
+    class Error(ServiceError):
+        """
+        認証許可サービスエラー
+        """
+
+        pass
+
+    def __init__(self, session: Session) -> None:
+        self.session = session
         self.jwt_secret_key = self.config.jwt_secret_key
 
     @classmethod

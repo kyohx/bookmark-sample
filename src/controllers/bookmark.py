@@ -10,7 +10,7 @@ from ..libs.constraints import FIELD_PAGE_NUMBER, FIELD_PAGE_SIZE, PATH_HASHED_I
 from ..libs.enum import AuthorityEnum
 from ..libs.openapi_tags import TagNameEnum
 from ..libs.page import Page
-from ..services.auth import UserDepends
+from ..services.authorize import UserDepends
 from ..usecases.bookmark import BookmarkUsecase
 
 router = APIRouter()

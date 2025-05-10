@@ -18,6 +18,12 @@ class UserEntity(BaseModel):
         return value.value
 
     def to_response_dict(self) -> dict:
+        """
+        ユーザー情報をレスポンス用の辞書に変換する。
+
+        Returns:
+            レスポンス用の辞書
+        """
         return {
             "name": self.name,
             "authority": self.authority,
