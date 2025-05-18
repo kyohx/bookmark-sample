@@ -1,12 +1,20 @@
 from fastapi.testclient import TestClient
 
 from src.libs.enum import AuthorityEnum
+from src.main import app
 from tests.conftest import SessionForTest
 
 from ..base import BaseTest
 
 
 class TestMe(BaseTest):
+    """
+    ログインユーザ取得のテストクラス
+    """
+
+    def api_path(self) -> str:
+        return app.url_path_for("me")
+
     def test_get_login_user_normal(
         self,
         client: TestClient,
@@ -18,7 +26,7 @@ class TestMe(BaseTest):
         ログインユーザー取得
         """
         # リクエストの送信
-        response = client.get("/me")
+        response = client.get(self.api_path())
 
         # レスポンスの検証
         assert response.status_code == 200
@@ -36,7 +44,7 @@ class TestMe(BaseTest):
         認証されていない
         """
         # リクエストの送信
-        response = client.get("/me")
+        response = client.get(self.api_path())
 
         # レスポンスの検証
         print(response.json())

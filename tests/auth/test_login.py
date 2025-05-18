@@ -1,12 +1,20 @@
 from fastapi.testclient import TestClient
 
 from src.libs.enum import AuthorityEnum
+from src.main import app
 from tests.conftest import TEST_PASSWORD, SessionForTest
 
 from ..base import BaseTest
 
 
 class TestLogin(BaseTest):
+    """
+    ログイン機能のテストクラス
+    """
+
+    def api_path(self) -> str:
+        return app.url_path_for("login")
+
     def test_login_normal(
         self,
         client: TestClient,
@@ -30,7 +38,7 @@ class TestLogin(BaseTest):
         }
 
         # リクエストの送信
-        response = client.post("/token", data=request_body)
+        response = client.post(self.api_path(), data=request_body)
 
         # レスポンスの検証
         assert response.status_code == 200
@@ -56,7 +64,7 @@ class TestLogin(BaseTest):
         }
 
         # リクエストの送信
-        response = client.post("/token", data=request_body)
+        response = client.post(self.api_path(), data=request_body)
 
         # レスポンスの検証
         assert response.status_code == 401
@@ -84,7 +92,7 @@ class TestLogin(BaseTest):
         }
 
         # リクエストの送信
-        response = client.post("/token", data=request_body)
+        response = client.post(self.api_path(), data=request_body)
 
         # レスポンスの検証
         assert response.status_code == 401
