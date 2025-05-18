@@ -2,6 +2,7 @@ from fastapi.testclient import TestClient
 
 from src.dao.models.user import UserDao
 from src.libs.enum import AuthorityEnum
+from src.main import app
 from src.services.authorize import AuthorizeService
 from tests.conftest import SessionForTest
 
@@ -12,6 +13,9 @@ class TestUpdateUser(BaseTest):
     """
     ブックマーク更新テストクラス
     """
+
+    def api_path(self, name: str) -> str:
+        return app.url_path_for("update_user", name=name)
 
     def test_update_normal(
         self,
@@ -34,7 +38,7 @@ class TestUpdateUser(BaseTest):
             "authority": AuthorityEnum.READ.value,
         }
         # リクエストの送信
-        response = client.patch("/users/test1", json=request_body)
+        response = client.patch(self.api_path("test1"), json=request_body)
 
         # レスポンスの検証
         assert response.status_code == 200
@@ -60,7 +64,7 @@ class TestUpdateUser(BaseTest):
         self.create_user(db_session, "test")
 
         request_body = {"name": "Updated"}
-        response = client.patch("/users/test", json=request_body)
+        response = client.patch(self.api_path("test"), json=request_body)
 
         # レスポンスの検証
         assert response.status_code == 200
@@ -86,7 +90,7 @@ class TestUpdateUser(BaseTest):
         self.create_user(db_session, "test")
 
         request_body = {"password": "UpdatedPassword"}
-        response = client.patch("/users/test", json=request_body)
+        response = client.patch(self.api_path("test"), json=request_body)
 
         # レスポンスの検証
         assert response.status_code == 200
@@ -115,7 +119,7 @@ class TestUpdateUser(BaseTest):
         self.create_user(db_session, "test")
 
         request_body = {"disabled": True}
-        response = client.patch("/users/test", json=request_body)
+        response = client.patch(self.api_path("test"), json=request_body)
 
         # レスポンスの検証
         assert response.status_code == 200
@@ -141,7 +145,7 @@ class TestUpdateUser(BaseTest):
         self.create_user(db_session, "test")
 
         request_body = {"authority": AuthorityEnum.NONE.value}
-        response = client.patch("/users/test", json=request_body)
+        response = client.patch(self.api_path("test"), json=request_body)
 
         # レスポンスの検証
         assert response.status_code == 200
@@ -175,7 +179,7 @@ class TestUpdateUser(BaseTest):
             "authority": AuthorityEnum.READ.value,
         }
         # リクエストの送信
-        response = client.patch("/users/notfound", json=request_body)
+        response = client.patch(self.api_path("notfound"), json=request_body)
 
         # レスポンスの検証
         assert response.status_code == 404
@@ -196,21 +200,21 @@ class TestUpdateUser(BaseTest):
         request_body = {
             "name": "",
         }
-        response = client.patch("/users/test", json=request_body)
+        response = client.patch(self.api_path("test"), json=request_body)
         assert response.status_code == 422
 
         # ユーザー名の長さが32文字を超える
         request_body = {
             "name": "a" * 33,
         }
-        response = client.patch("/users/test", json=request_body)
+        response = client.patch(self.api_path("test"), json=request_body)
         assert response.status_code == 422
 
         # ユーザー名フォーマット不正
         request_body = {
             "name": "test@user",
         }
-        response = client.patch("/users/test", json=request_body)
+        response = client.patch(self.api_path("test"), json=request_body)
         assert response.status_code == 422
 
     def test_update_invalid_password(
@@ -229,14 +233,14 @@ class TestUpdateUser(BaseTest):
         request_body = {
             "password": "short",
         }
-        response = client.patch("/users/test", json=request_body)
+        response = client.patch(self.api_path("test"), json=request_body)
         assert response.status_code == 422
 
         # パスワードの長さが64文字を超える
         request_body = {
             "password": "a" * 65,
         }
-        response = client.patch("/users/test", json=request_body)
+        response = client.patch(self.api_path("test"), json=request_body)
         assert response.status_code == 422
 
     def test_update_invalid_disabled(
@@ -255,7 +259,7 @@ class TestUpdateUser(BaseTest):
         request_body = {
             "disabled": 100,
         }
-        response = client.patch("/users/test", json=request_body)
+        response = client.patch(self.api_path("test"), json=request_body)
         assert response.status_code == 422
 
     def test_update_invalid_authority(
@@ -274,7 +278,7 @@ class TestUpdateUser(BaseTest):
         request_body = {
             "authority": 1000,
         }
-        response = client.patch("/users/test", json=request_body)
+        response = client.patch(self.api_path("test"), json=request_body)
         assert response.status_code == 422
 
     def test_update_own_attribute(
@@ -293,28 +297,28 @@ class TestUpdateUser(BaseTest):
         request_body = {
             "name": "name_updated",
         }
-        response = client.patch("/users/test_user", json=request_body)
+        response = client.patch(self.api_path("test_user"), json=request_body)
         assert response.status_code == 400
 
         # ログインユーザーのパスワード更新
         request_body = {
             "password": "password_updated",
         }
-        response = client.patch("/users/test_user", json=request_body)
+        response = client.patch(self.api_path("test_user"), json=request_body)
         assert response.status_code == 200  # パスワード更新は成功する
 
         # ログインユーザーの無効フラグ更新
         request_body = {
             "disabled": True,
         }
-        response = client.patch("/users/test_user", json=request_body)
+        response = client.patch(self.api_path("test_user"), json=request_body)
         assert response.status_code == 400
 
         # ログインユーザーの権限更新
         request_body = {
             "authority": AuthorityEnum.READ.value,
         }
-        response = client.patch("/users/test_user", json=request_body)
+        response = client.patch(self.api_path("test_user"), json=request_body)
         assert response.status_code == 400
 
     def test_update_by_not_admin_user(
@@ -337,7 +341,7 @@ class TestUpdateUser(BaseTest):
             "authority": AuthorityEnum.READ.value,
         }
         # リクエストの送信
-        response = client.patch("/users/test", json=request_body)
+        response = client.patch(self.api_path("test"), json=request_body)
 
         # レスポンスの検証
         assert response.status_code == 403

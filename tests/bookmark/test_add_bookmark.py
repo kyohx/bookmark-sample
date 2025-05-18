@@ -3,6 +3,7 @@ from fastapi.testclient import TestClient
 from src.dao.models.bookmark import BookmarkDao
 from src.dao.models.bookmark_tag import BookmarkTagDao
 from src.dao.models.tag import TagDao
+from src.main import app
 from tests.conftest import TEST_TAGS, TEST_URL, SessionForTest
 
 from ..base import BaseTest
@@ -12,6 +13,9 @@ class TestAddBookmark(BaseTest):
     """
     ブックマーク追加のテストクラス
     """
+
+    def api_path(self) -> str:
+        return app.url_path_for("add_bookmark")
 
     def test_add_normal(
         self,
@@ -33,7 +37,7 @@ class TestAddBookmark(BaseTest):
         }
 
         # リクエストの送信
-        response = client.post("/bookmarks", json=request_body)
+        response = client.post(self.api_path(), json=request_body)
 
         # レスポンスの検証
         assert response.status_code == 200
@@ -79,11 +83,11 @@ class TestAddBookmark(BaseTest):
             "memo": "テストメモ",
             "tags": TEST_TAGS,
         }
-        response = client.post("/bookmarks", json=request_body)
+        response = client.post(self.api_path(), json=request_body)
         assert response.status_code == 200
 
         ## 同じブックマーク情報を追加
-        response = client.post("/bookmarks", json=request_body)
+        response = client.post(self.api_path(), json=request_body)
         assert response.status_code == 409
 
     def test_add_invalid_url(
@@ -101,7 +105,7 @@ class TestAddBookmark(BaseTest):
             "memo": "テストメモ",
             "tags": TEST_TAGS,
         }
-        response = client.post("/bookmarks", json=request_body)
+        response = client.post(self.api_path(), json=request_body)
         assert response.status_code == 422
 
         # 不正なURL
@@ -110,7 +114,7 @@ class TestAddBookmark(BaseTest):
             "memo": "テストメモ",
             "tags": TEST_TAGS,
         }
-        response = client.post("/bookmarks", json=request_body)
+        response = client.post(self.api_path(), json=request_body)
         assert response.status_code == 422
 
         # URLの長さが400文字を超える
@@ -122,7 +126,7 @@ class TestAddBookmark(BaseTest):
             "memo": "テストメモ",
             "tags": TEST_TAGS,
         }
-        response = client.post("/bookmarks", json=request_body)
+        response = client.post(self.api_path(), json=request_body)
         assert response.status_code == 422
 
     def test_add_invalid_memo(
@@ -140,7 +144,7 @@ class TestAddBookmark(BaseTest):
             "url": TEST_URL,
             "tags": TEST_TAGS,
         }
-        response = client.post("/bookmarks", json=request_body)
+        response = client.post(self.api_path(), json=request_body)
         assert response.status_code == 422
 
         # メモの長さが400文字を超える
@@ -149,7 +153,7 @@ class TestAddBookmark(BaseTest):
             "memo": "a" * 401,
             "tags": TEST_TAGS,
         }
-        response = client.post("/bookmarks", json=request_body)
+        response = client.post(self.api_path(), json=request_body)
         assert response.status_code == 422
 
     def test_add_invalid_tags(
@@ -167,7 +171,7 @@ class TestAddBookmark(BaseTest):
             "url": TEST_URL,
             "memo": "テストメモ",
         }
-        response = client.post("/bookmarks", json=request_body)
+        response = client.post(self.api_path(), json=request_body)
         assert response.status_code == 422
 
         # タグが空
@@ -176,7 +180,7 @@ class TestAddBookmark(BaseTest):
             "memo": "テストメモ",
             "tags": [],
         }
-        response = client.post("/bookmarks", json=request_body)
+        response = client.post(self.api_path(), json=request_body)
         assert response.status_code == 422
 
         # タグ名が空
@@ -185,7 +189,7 @@ class TestAddBookmark(BaseTest):
             "memo": "テストメモ",
             "tags": ["", "tag"],
         }
-        response = client.post("/bookmarks", json=request_body)
+        response = client.post(self.api_path(), json=request_body)
         assert response.status_code == 422
 
         # タグ名がユニークでない
@@ -194,7 +198,7 @@ class TestAddBookmark(BaseTest):
             "memo": "テストメモ",
             "tags": ["tag", "tag"],
         }
-        response = client.post("/bookmarks", json=request_body)
+        response = client.post(self.api_path(), json=request_body)
         assert response.status_code == 422
 
         # タグが10個を超える
@@ -203,5 +207,5 @@ class TestAddBookmark(BaseTest):
             "memo": "テストメモ",
             "tags": [str(i) for i in range(11)],
         }
-        response = client.post("/bookmarks", json=request_body)
+        response = client.post(self.api_path(), json=request_body)
         assert response.status_code == 422

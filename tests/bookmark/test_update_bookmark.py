@@ -4,6 +4,7 @@ from src.dao.models.bookmark import BookmarkDao
 from src.dao.models.bookmark_tag import BookmarkTagDao
 from src.dao.models.tag import TagDao
 from src.libs.util import datetime_to_str
+from src.main import app
 from tests.conftest import SessionForTest
 
 from ..base import BaseTest
@@ -13,6 +14,9 @@ class TestUpdateBookmark(BaseTest):
     """
     ブックマーク更新テストクラス
     """
+
+    def api_path(self, hashed_id: str) -> str:
+        return app.url_path_for("update_bookmark", hashed_id=hashed_id)
 
     def test_update_normal(
         self,
@@ -30,7 +34,7 @@ class TestUpdateBookmark(BaseTest):
         # リクエストボディの作成
         request_body = {"memo": "Updated", "tags": ["updated_tag_1", "updated_tag_2"]}
         # リクエストの送信
-        response = client.patch(f"/bookmarks/{bookmark1.hashed_id}", json=request_body)
+        response = client.patch(self.api_path(bookmark1.hashed_id), json=request_body)
 
         # レスポンスの検証
         assert response.status_code == 200
@@ -86,7 +90,7 @@ class TestUpdateBookmark(BaseTest):
         # リクエストボディの作成
         request_body = {"memo": "Updated", "tags": ["test_tag_2_1", "test_tag_2_2"]}
         # リクエストの送信
-        response = client.patch(f"/bookmarks/{bookmark1.hashed_id}", json=request_body)
+        response = client.patch(self.api_path(bookmark1.hashed_id), json=request_body)
 
         # レスポンスの検証
         assert response.status_code == 200
@@ -116,7 +120,7 @@ class TestUpdateBookmark(BaseTest):
         # リクエストボディの作成
         request_body = {"memo": "Updated"}
         # リクエストの送信
-        response = client.patch(f"/bookmarks/{bookmark.hashed_id}", json=request_body)
+        response = client.patch(self.api_path(bookmark.hashed_id), json=request_body)
 
         # レスポンスの検証
         assert response.status_code == 200
@@ -171,7 +175,7 @@ class TestUpdateBookmark(BaseTest):
         # リクエストボディの作成
         request_body = {"tags": ["updated_tag_1", "updated_tag_2"]}
         # リクエストの送信
-        response = client.patch(f"/bookmarks/{bookmark.hashed_id}", json=request_body)
+        response = client.patch(self.api_path(bookmark.hashed_id), json=request_body)
 
         # レスポンスの検証
         assert response.status_code == 200
@@ -229,7 +233,7 @@ class TestUpdateBookmark(BaseTest):
         # リクエストボディの作成
         request_body = {"memo": "Updated", "tags": ["updated_tag_1", "updated_tag_2"]}
         # リクエストの送信
-        response = client.patch(f"/bookmarks/{hashed_id}", json=request_body)
+        response = client.patch(self.api_path(hashed_id), json=request_body)
 
         # レスポンスの検証
         assert response.status_code == 404
@@ -248,12 +252,12 @@ class TestUpdateBookmark(BaseTest):
 
         # ハッシュIDの長さ不正
         hashed_id = "0" * 63
-        response = client.patch(f"/bookmarks/{hashed_id}", json=request_body)
+        response = client.patch(self.api_path(hashed_id), json=request_body)
         assert response.status_code == 422
 
         # ハッシュIDのフォーマット不正
         hashed_id = "x" * 64
-        response = client.patch(f"/bookmarks/{hashed_id}", json=request_body)
+        response = client.patch(self.api_path(hashed_id), json=request_body)
         assert response.status_code == 422
 
     def test_update_invalid_tags(
@@ -270,27 +274,27 @@ class TestUpdateBookmark(BaseTest):
 
         # タグ名が長い
         request_body = {"tags": ["a" * 101]}
-        response = client.patch(f"/bookmarks/{bookmark.hashed_id}", json=request_body)
+        response = client.patch(self.api_path(bookmark.hashed_id), json=request_body)
         assert response.status_code == 422
 
         # タグ名が空
         request_body = {"tags": [""]}
-        response = client.patch(f"/bookmarks/{bookmark.hashed_id}", json=request_body)
+        response = client.patch(self.api_path(bookmark.hashed_id), json=request_body)
         assert response.status_code == 422
 
         # タグ名の個数が多い
         request_body = {"tags": [f"tag_{i}" for i in range(1, 12)]}
-        response = client.patch(f"/bookmarks/{bookmark.hashed_id}", json=request_body)
+        response = client.patch(self.api_path(bookmark.hashed_id), json=request_body)
         assert response.status_code == 422
 
         # タグ名の個数が0
         request_body = {"tags": []}
-        response = client.patch(f"/bookmarks/{bookmark.hashed_id}", json=request_body)
+        response = client.patch(self.api_path(bookmark.hashed_id), json=request_body)
         assert response.status_code == 422
 
         # タグ名が重複
         request_body = {"tags": ["tag_1", "tag_1"]}
-        response = client.patch(f"/bookmarks/{bookmark.hashed_id}", json=request_body)
+        response = client.patch(self.api_path(bookmark.hashed_id), json=request_body)
         assert response.status_code == 422
 
     def test_update_invalid_memo(
@@ -307,5 +311,5 @@ class TestUpdateBookmark(BaseTest):
 
         # メモが長い
         request_body = {"memo": "a" * 401}
-        response = client.patch(f"/bookmarks/{bookmark.hashed_id}", json=request_body)
+        response = client.patch(self.api_path(bookmark.hashed_id), json=request_body)
         assert response.status_code == 422

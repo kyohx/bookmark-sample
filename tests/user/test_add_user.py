@@ -2,6 +2,7 @@ from fastapi.testclient import TestClient
 
 from src.dao.models.user import UserDao
 from src.libs.enum import AuthorityEnum
+from src.main import app
 from src.services.authorize import AuthorizeService
 from tests.conftest import SessionForTest
 
@@ -12,6 +13,9 @@ class TestAddUser(BaseTest):
     """
     ユーザー追加のテストクラス
     """
+
+    def api_path(self) -> str:
+        return app.url_path_for("add_user")
 
     def test_add_normal(
         self,
@@ -33,7 +37,7 @@ class TestAddUser(BaseTest):
         }
 
         # リクエストの送信
-        response = client.post("/users", json=request_body)
+        response = client.post(self.api_path(), json=request_body)
 
         # レスポンスの検証
         assert response.status_code == 200
@@ -63,11 +67,11 @@ class TestAddUser(BaseTest):
             "password": "password",
             "authority": AuthorityEnum.READWRITE.value,
         }
-        response = client.post("/users", json=request_body)
+        response = client.post(self.api_path(), json=request_body)
         assert response.status_code == 200
 
         ## 同じユーザー情報を追加
-        response = client.post("/users", json=request_body)
+        response = client.post(self.api_path(), json=request_body)
         assert response.status_code == 409
 
     def test_add_invalid_name(
@@ -85,7 +89,7 @@ class TestAddUser(BaseTest):
             "password": "password",
             "authority": AuthorityEnum.READWRITE.value,
         }
-        response = client.post("/users", json=request_body)
+        response = client.post(self.api_path(), json=request_body)
         assert response.status_code == 422
 
         # 不正なユーザー名
@@ -94,7 +98,7 @@ class TestAddUser(BaseTest):
             "password": "password",
             "authority": AuthorityEnum.READWRITE.value,
         }
-        response = client.post("/users", json=request_body)
+        response = client.post(self.api_path(), json=request_body)
         assert response.status_code == 422
 
         # ユーザー名の長さが32文字を超える
@@ -103,7 +107,7 @@ class TestAddUser(BaseTest):
             "password": "password",
             "authority": AuthorityEnum.READWRITE.value,
         }
-        response = client.post("/users", json=request_body)
+        response = client.post(self.api_path(), json=request_body)
         assert response.status_code == 422
 
         # ユーザー名が空
@@ -112,7 +116,7 @@ class TestAddUser(BaseTest):
             "password": "password",
             "authority": AuthorityEnum.READWRITE.value,
         }
-        response = client.post("/users", json=request_body)
+        response = client.post(self.api_path(), json=request_body)
         assert response.status_code == 422
 
     def test_add_invalid_password(
@@ -130,7 +134,7 @@ class TestAddUser(BaseTest):
             "name": "test",
             "authority": AuthorityEnum.READWRITE.value,
         }
-        response = client.post("/users", json=request_body)
+        response = client.post(self.api_path(), json=request_body)
         assert response.status_code == 422
 
         # パスワードの長さが64文字を超える
@@ -139,7 +143,7 @@ class TestAddUser(BaseTest):
             "password": "p" * 65,
             "authority": AuthorityEnum.READWRITE.value,
         }
-        response = client.post("/users", json=request_body)
+        response = client.post(self.api_path(), json=request_body)
         assert response.status_code == 422
 
         # パスワードの長さが8文字未満
@@ -148,7 +152,7 @@ class TestAddUser(BaseTest):
             "password": "p" * 7,
             "authority": AuthorityEnum.READWRITE.value,
         }
-        response = client.post("/users", json=request_body)
+        response = client.post(self.api_path(), json=request_body)
         assert response.status_code == 422
 
     def test_add_invalid_authority(
@@ -166,7 +170,7 @@ class TestAddUser(BaseTest):
             "name": "test",
             "password": "password",
         }
-        response = client.post("/users", json=request_body)
+        response = client.post(self.api_path(), json=request_body)
         assert response.status_code == 422
 
         # 権限の値が不正
@@ -175,7 +179,7 @@ class TestAddUser(BaseTest):
             "password": "password",
             "authority": 7,
         }
-        response = client.post("/users", json=request_body)
+        response = client.post(self.api_path(), json=request_body)
         assert response.status_code == 422
 
     def test_add_by_not_admin_user(
@@ -195,7 +199,7 @@ class TestAddUser(BaseTest):
         }
 
         # リクエストの送信
-        response = client.post("/users", json=request_body)
+        response = client.post(self.api_path(), json=request_body)
 
         # レスポンスの検証
         assert response.status_code == 403
