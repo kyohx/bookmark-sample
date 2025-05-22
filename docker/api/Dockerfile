@@ -1,7 +1,7 @@
 ## Dockerfile for local
 
 ## ----- Stage for building python packages base
-FROM python:3.13-slim AS builder
+FROM python:3.13.3-slim AS builder
 
 # uv(Pythonパッケージマネージャ)インストール
 RUN pip3 install uv
@@ -13,7 +13,7 @@ COPY pyproject.toml uv.lock ./
 RUN uv sync --frozen
 
 ## ----- Stage for web app base
-FROM python:3.13-slim AS app
+FROM python:3.13.3-slim AS app
 
 # ポート指定
 EXPOSE 8000
