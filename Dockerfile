@@ -1,7 +1,9 @@
 ## Dockerfile for Heroku
 
+ARG PYTHON_VERSION=3.13.4
+
 ## ----- Stage for building python packages base
-FROM python:3.13.3-slim AS builder
+FROM python:${PYTHON_VERSION}-slim AS builder
 
 # uv(Pythonパッケージマネージャ)インストール
 RUN pip3 install uv
@@ -13,7 +15,7 @@ COPY pyproject.toml uv.lock ./
 RUN uv sync --no-dev --frozen
 
 ## ----- Stage for web app base
-FROM python:3.13.3-slim AS app
+FROM python:${PYTHON_VERSION}-slim AS app
 
 # Webアプリのパス指定
 ARG APP_HOME=/opt/app
