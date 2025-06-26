@@ -28,7 +28,7 @@ class UserRepository(BaseRepository):
             NotFoundError: 指定されたユーザー名に対応するデータが見つからない
         """
         user_dao = self.user_operator.find_one_by_name(name)
-        if not user_dao:
+        if not user_dao or user_dao.disabled:
             raise self.NotFoundError("Not found specified data.")
 
         self.loaded_user_dao = user_dao

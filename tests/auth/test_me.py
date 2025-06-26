@@ -34,6 +34,22 @@ class TestMe(BaseTest):
         assert response_body["name"] == "test_user"
         assert response_body["authority"] == AuthorityEnum.ADMIN.value
 
+    def test_get_login_user_disabled(
+        self,
+        client: TestClient,
+        db_session: SessionForTest,
+        mock_get_disabled_user_from_token: None,
+    ):
+        """
+        異常系:
+        無効なユーザ
+        """
+        # リクエストの送信
+        response = client.get(self.api_path())
+
+        # レスポンスの検証
+        assert response.status_code == 401
+
     def test_not_authenticated(
         self,
         client: TestClient,

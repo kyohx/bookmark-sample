@@ -10,7 +10,11 @@ from src.entities.user import UserEntity
 from src.libs.config import get_config
 from src.libs.enum import AuthorityEnum
 from src.main import app
-from src.services.authorize import AuthorizeService, get_current_active_user
+from src.services.authorize import (
+    AuthorizeService,
+    get_current_active_user,
+    get_current_user_from_token,
+)
 
 _config = get_config()
 
@@ -111,6 +115,24 @@ def mock_get_current_active_not_admin_user() -> None:
         )
 
     app.dependency_overrides[get_current_active_user] = get_current_active_user_for_testing
+
+
+@pytest.fixture
+def mock_get_disabled_user_from_token() -> None:
+    """
+    トークンからのユーザー取得処理のモック化
+    (無効化されたユーザーを返す)
+    """
+
+    def get_user_from_token_for_testing():
+        return UserEntity(
+            name="test_user",
+            hashed_password="****",
+            authority=AuthorityEnum.READWRITE,
+            disabled=True,
+        )
+
+    app.dependency_overrides[get_current_user_from_token] = get_user_from_token_for_testing
 
 
 @pytest.fixture(scope="function", autouse=True)
