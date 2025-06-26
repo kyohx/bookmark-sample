@@ -158,6 +158,8 @@ class AuthorizeService(ServiceBase):
         user = self.authenticate_user(form_data.username, form_data.password)
         if not user:
             raise self.Error("Incorrect username or password")
+        if user.disabled:
+            raise self.Error("Inactive user")
         access_token_expires = timedelta(minutes=self.ACCESS_TOKEN_EXPIRE_MINUTES)
         access_token = self.create_access_token(
             data={"sub": user.name}, expires_delta=access_token_expires
