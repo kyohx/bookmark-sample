@@ -124,6 +124,8 @@ class AuthorizeService(ServiceBase):
             user = self.get_user(name)
         except UserRepository.NotFoundError:
             return None
+        if user.disabled:
+            return None
         if not self.verify_password(password, user.hashed_password):
             return None
         return user
