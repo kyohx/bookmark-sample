@@ -96,3 +96,74 @@ class TestLogin(BaseTest):
 
         # レスポンスの検証
         assert response.status_code == 401
+
+    def test_login_disabled_user(
+        self,
+        client: TestClient,
+        db_session: SessionForTest,
+    ):
+        """
+        異常系:
+        無効なユーザでログイン
+        """
+        # テスト用ユーザの作成
+        self.create_user(
+            db_session,
+            name="test_user",
+            authority=AuthorityEnum.READWRITE,
+            disabled=True,
+        )
+
+        # リクエストボディの作成
+        request_body = {
+            "username": "test_user",
+            "password": TEST_PASSWORD,
+        }
+
+        # リクエストの送信
+        response = client.post(self.api_path(), data=request_body)
+
+        # レスポンスの検証
+        assert response.status_code == 401
+
+    def test_login_empty_username(
+        self,
+        client: TestClient,
+        db_session: SessionForTest,
+    ):
+        """
+        異常系:
+        ユーザ名が空
+        """
+        # リクエストボディの作成
+        request_body = {
+            "username": "",
+            "password": TEST_PASSWORD,
+        }
+
+        # リクエストの送信
+        response = client.post(self.api_path(), data=request_body)
+
+        # レスポンスの検証
+        assert response.status_code == 401
+
+    def test_login_empty_password(
+        self,
+        client: TestClient,
+        db_session: SessionForTest,
+    ):
+        """
+        異常系:
+        パスワードが空
+        """
+        # リクエストボディの作成
+        request_body = {
+            "username": "test_user",
+            "password": "",
+        }
+
+        # リクエストの送信
+        response = client.post(self.api_path(), data=request_body)
+
+        # レスポンスの検証
+        assert response.status_code == 401
