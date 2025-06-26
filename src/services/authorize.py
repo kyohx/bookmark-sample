@@ -107,11 +107,7 @@ class AuthorizeService(ServiceBase):
         Returns:
             取得したユーザーエンティティ
         """
-        user = UserRepository(self.session).find_one(name)
-        if user.disabled:
-            # 無効化されたユーザーは取得できない
-            raise UserRepository.NotFoundError(f"User '{name}' is disabled.")
-        return user
+        return UserRepository(self.session).find_one(name)
 
     def authenticate_user(self, name: str, password: str) -> UserEntity | None:
         """
@@ -162,6 +158,8 @@ class AuthorizeService(ServiceBase):
         user = self.authenticate_user(form_data.username, form_data.password)
         if not user:
             raise self.Error("Incorrect username or password")
+        if user.disabled:
+            raise self.Error("Inactive user")
         access_token_expires = timedelta(minutes=self.ACCESS_TOKEN_EXPIRE_MINUTES)
         access_token = self.create_access_token(
             data={"sub": user.name}, expires_delta=access_token_expires
