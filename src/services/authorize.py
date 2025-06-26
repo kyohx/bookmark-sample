@@ -107,7 +107,11 @@ class AuthorizeService(ServiceBase):
         Returns:
             取得したユーザーエンティティ
         """
-        return UserRepository(self.session).find_one(name)
+        user = UserRepository(self.session).find_one(name)
+        if user.disabled:
+            # 無効化されたユーザーは取得できない
+            raise UserRepository.NotFoundError(f"User '{name}' is disabled.")
+        return user
 
     def authenticate_user(self, name: str, password: str) -> UserEntity | None:
         """
@@ -123,8 +127,6 @@ class AuthorizeService(ServiceBase):
         try:
             user = self.get_user(name)
         except UserRepository.NotFoundError:
-            return None
-        if user.disabled:
             return None
         if not self.verify_password(password, user.hashed_password):
             return None
