@@ -1,21 +1,21 @@
 ## Dockerfile for Heroku
 
-ARG PYTHON_VERSION=3.13.7
+ARG PYTHON_VER=3.13
 
-## ----- Stage for building python packages base
-FROM python:${PYTHON_VERSION}-slim AS builder
-
-# uv(Pythonパッケージマネージャ)インストール
-RUN pip3 install uv
-ENV UV_PROJECT_ENVIRONMENT="/usr/local/"
+## ----- Stage for building python packages
+FROM ghcr.io/astral-sh/uv:python${PYTHON_VER}-trixie-slim AS builder
+WORKDIR /app
 ENV UV_COMPILE_BYTECODE=1
+ENV UV_LINK_MODE=copy
+RUN --mount=type=cache,target=/root/.cache/uv \
+    --mount=type=bind,source=uv.lock,target=uv.lock \
+    --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
+    uv sync --no-dev --frozen
 
-# Pythonモジュールのインストール
-COPY pyproject.toml uv.lock ./
-RUN uv sync --no-dev --frozen
+## ----- Stage for web app
+FROM python:${PYTHON_VER}-slim AS app
 
-## ----- Stage for web app base
-FROM python:${PYTHON_VERSION}-slim AS app
+ARG PYTHON_VER
 
 # Webアプリのパス指定
 ARG APP_HOME=/opt/app
@@ -39,8 +39,7 @@ RUN apt-get update &&\
     rm -rf /var/lib/apt/lists/*
 
 # ビルド済みのpythonモジュールをコピー
-COPY --from=builder /usr/local/lib/python3.13/site-packages /usr/local/lib/python3.13/site-packages
-COPY --from=builder /usr/local/bin /usr/local/bin
+COPY --from=builder /usr/local/lib/python${PYTHON_VER}/site-packages /usr/local/lib/python${PYTHON_VER}/site-packages
 
 # 実行ユーザ指定
 USER ${USER}
@@ -52,4 +51,4 @@ ENV PYTHONDONTWRITEBYTECODE=1
 COPY . ${APP_HOME}
 
 # デフォルトの起動コマンド設定
-CMD uvicorn src.main:app --workers 2 --host 0.0.0.0 --port $PORT
+CMD python -m uvicorn src.main:app --workers 2 --host 0.0.0.0 --port $PORT
