@@ -5,8 +5,8 @@ from sqlalchemy.exc import IntegrityError, OperationalError
 
 from .libs.log import get_logger
 from .repositories.base import BaseRepository
-from .services.authorize import AuthorizeService
 from .services.authority import AuthorityService
+from .services.authorize import AuthorizeService
 from .usecases.base import UsecaseBase
 
 logger = get_logger()
@@ -61,7 +61,9 @@ def add_error_handlers(app: FastAPI) -> None:
                     status_code = status.HTTP_424_FAILED_DEPENDENCY
                     message = "Foreign key constraint error"
 
-        logger.exception(str(exc), exc_info=exc)
+        # 異常系エラーはログにスタックトレースを出す
+        if status_code == status.HTTP_500_INTERNAL_SERVER_ERROR:
+            logger.exception(str(exc), exc_info=exc)
         return ORJSONResponse(status_code=status_code, content={"detail": message})
 
     @app.exception_handler(OperationalError)
@@ -75,5 +77,7 @@ def add_error_handlers(app: FastAPI) -> None:
                     status_code = status.HTTP_409_CONFLICT
                     message = "Deadlock error"
 
-        logger.exception(str(exc), exc_info=exc)
+        # 異常系エラーはログにスタックトレースを出す
+        if status_code == status.HTTP_500_INTERNAL_SERVER_ERROR:
+            logger.exception(str(exc), exc_info=exc)
         return ORJSONResponse(status_code=status_code, content={"detail": message})
