@@ -56,7 +56,7 @@ python_version = "3.13"
 exclude = "^tests/"
 
 [tool.taskipy.tasks]
-test = "docker compose exec api pytest"
+test = "docker compose exec api python -m pytest"
 format = "ruff format ./"
 check = "mypy . ; bandit --quiet --recursive src"
 buildapp = "docker compose build api"
