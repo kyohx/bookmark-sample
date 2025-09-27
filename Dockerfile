@@ -1,6 +1,6 @@
 ## Dockerfile for Heroku
 
-ARG PYTHON_VERSION=3.13.4
+ARG PYTHON_VERSION=3.13.7
 
 ## ----- Stage for building python packages base
 FROM python:${PYTHON_VERSION}-slim AS builder
