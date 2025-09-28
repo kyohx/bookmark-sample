@@ -39,7 +39,7 @@ RUN apt-get update &&\
     rm -rf /var/lib/apt/lists/*
 
 # ビルド済みのpythonモジュールをコピー
-COPY --from=builder /usr/local/lib/python${PYTHON_VER}/site-packages /usr/local/lib/python${PYTHON_VER}/site-packages
+COPY --from=builder /app/.venv/lib/python${PYTHON_VER}/site-packages /usr/local/lib/python${PYTHON_VER}/site-packages
 
 # 実行ユーザ指定
 USER ${USER}
