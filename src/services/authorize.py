@@ -5,7 +5,8 @@ import jwt
 from fastapi import Depends
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jwt.exceptions import InvalidTokenError
-from passlib.context import CryptContext
+from pwdlib import PasswordHash
+from pwdlib.hashers.bcrypt import BcryptHasher
 from pydantic import BaseModel, ConfigDict, ValidationError
 from sqlalchemy.orm.session import Session
 
@@ -57,7 +58,7 @@ class AuthorizeService(ServiceBase):
     ALGORITHM = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES = 20
 
-    pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+    password_hasher = PasswordHash([BcryptHasher()])
 
     class Error(ServiceError):
         """
@@ -82,7 +83,7 @@ class AuthorizeService(ServiceBase):
         Returns:
             パスワードが一致する場合はTrue、それ以外はFalse
         """
-        return cls.pwd_context.verify(plain_password, hashed_password)
+        return cls.password_hasher.verify(plain_password, hashed_password)
 
     @classmethod
     def get_hashed_password(cls, password: str) -> str:
@@ -95,7 +96,7 @@ class AuthorizeService(ServiceBase):
         Returns:
             ハッシュ化されたパスワード
         """
-        return cls.pwd_context.hash(password)
+        return cls.password_hasher.hash(password)
 
     def get_user(self, name: str) -> UserEntity:
         """
