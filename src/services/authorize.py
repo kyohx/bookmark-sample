@@ -154,7 +154,7 @@ class AuthorizeService(ServiceBase):
             form_data: ログインリクエストフォームデータ
 
         Returns:
-            Token: 作成されたアクセストークン
+            作成されたアクセストークン
         """
         user = self.authenticate_user(form_data.username, form_data.password)
         if not user:
@@ -178,7 +178,7 @@ class AuthorizeService(ServiceBase):
             トークンに対応するユーザーエンティティ
 
         Raises:
-            HTTPException: トークン内容が無効または期限切れ
+            AuthorizeService.Error: トークン内容が無効または期限切れ
         """
         try:
             payload = jwt.decode(token, self.jwt_secret_key, algorithms=[self.ALGORITHM])
@@ -221,7 +221,7 @@ def get_current_active_user(
         有効なユーザーエンティティ
 
     Raises:
-        HTTPException: ユーザーが無効
+        AuthorizeService.Error: ユーザーが無効
     """
     # サーバ側からユーザログインを即時制御するためにdisabledフラグをチェックする
     if current_user.disabled:
