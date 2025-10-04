@@ -39,7 +39,7 @@ class UsecaseBase:
             page: ページ情報
 
         Raises:
-            AuthorityError: ユーザーが必要な権限を持っていない
+            AuthorityService.Error: ユーザーが必要な権限を持っていない
         """
         self.session = session
         "セッション"
