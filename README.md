@@ -144,5 +144,5 @@ task openapi
 #### Pythonパッケージ更新
 
 ```bash
-task packageupdate
+task updatepackages
 ```
