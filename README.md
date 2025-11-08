@@ -140,3 +140,9 @@ task test
 ```bash
 task openapi
 ```
+
+#### Pythonパッケージ更新
+
+```bash
+task packageupdate
+```
