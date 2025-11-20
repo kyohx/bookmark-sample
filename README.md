@@ -114,7 +114,7 @@ docker compose down -v
 #### APIコンテナのビルド
 
 ```bash
-task buildapp
+task build_app
 ```
 
 #### ソースコードのフォーマット
@@ -144,5 +144,5 @@ task openapi
 #### Pythonパッケージ更新
 
 ```bash
-task updatepackages
+task update_packages
 ```
