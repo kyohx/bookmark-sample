@@ -1,3 +1,5 @@
+from typing import cast
+
 from ..dao.models.bookmark import BookmarkDao
 from ..dao.operators.bookmark import BookmarkDaoOperator
 from ..dao.operators.bookmark_tag import BookmarkTagDaoOperator
@@ -52,10 +54,8 @@ class BookmarkRepository(BaseRepository):
         Returns:
             ブックマークエンティティのリスト
         """
-        return [
-            BookmarkEntity(**bookmark_dao.to_dict())
-            for bookmark_dao in self.bookmark_operator.find_all()
-        ]
+        bookmark_daos = cast(list[BookmarkDao], self.bookmark_operator.find_all())
+        return self._create_entities_with_tags(bookmark_daos)
 
     def find_by_tags(self, tag_names: list[str]) -> list[BookmarkEntity]:
         """
@@ -67,10 +67,36 @@ class BookmarkRepository(BaseRepository):
         Returns:
             list[BookmarkEntity]: 指定されたタグに関連付けられたブックマークエンティティのリスト
         """
-        return [
-            BookmarkEntity(**bookmark_dao.to_dict())
-            for bookmark_dao in self.bookmark_operator.find_by_tags(tag_names)
-        ]
+        bookmark_daos = self.bookmark_operator.find_by_tags(tag_names)
+        return self._create_entities_with_tags(bookmark_daos)
+
+    def _create_entities_with_tags(self, bookmark_daos: list[BookmarkDao]) -> list[BookmarkEntity]:
+        """
+        ブックマークDAOリストからタグ付きのエンティティを作成する。
+
+        Args:
+            bookmark_daos: ブックマークDAOのリスト
+
+        Returns:
+            タグ付きブックマークエンティティのリスト
+        """
+        if not bookmark_daos:
+            return []
+
+        bookmark_ids = [dao.id for dao in bookmark_daos]
+        tags_rows = self.tag_operator.find_by_bookmark_ids(bookmark_ids)
+
+        tags_map: dict[int, list[str]] = {dao_id: [] for dao_id in bookmark_ids}
+        for bookmark_id, tag in tags_rows:
+            tags_map[bookmark_id].append(tag.name)
+
+        entities = []
+        for dao in bookmark_daos:
+            params = dao.to_dict()
+            params["tags"] = tags_map.get(dao.id, [])
+            entities.append(BookmarkEntity(**params))
+
+        return entities
 
     def add_one(self, bookmark: BookmarkEntity) -> None:
         """

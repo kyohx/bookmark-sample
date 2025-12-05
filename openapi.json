@@ -3,7 +3,7 @@
   "info": {
     "title": "Bookmark API",
     "description": "API for bookmarking web page URL",
-    "version": "0.4.0.250423"
+    "version": "0.5.0.251205"
   },
   "paths": {
     "/token": {
@@ -766,6 +766,14 @@
             "minLength": 19,
             "pattern": "^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$",
             "title": "Updated At"
+          },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Tags",
+            "default": []
           }
         },
         "type": "object",
@@ -1155,7 +1163,7 @@
         "title": "ResponseForGetVersion",
         "examples": [
           {
-            "version": "0.4.0.250423"
+            "version": "0.5.0.251205"
           }
         ]
       },
