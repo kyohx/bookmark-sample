@@ -30,6 +30,24 @@ class TagDaoOperator(BaseDaoOperator):
         )
         return list(self.session.scalars(statement).all())
 
+    def find_by_bookmark_ids(self, bookmark_ids: list[int]) -> list[tuple[int, TagDao]]:
+        """
+        ブックマークIDのリストから関連付けられたタグDAOリストを取得する。
+
+        Args:
+            bookmark_ids: 検索対象のブックマークDAO IDのリスト
+
+        Returns:
+            (bookmark_id, TagDao) のタプルのリスト
+        """
+        statement = (
+            select(BookmarkTagDao.bookmark_id, TagDao)
+            .join(TagDao, BookmarkTagDao.tag_id == TagDao.id)
+            .where(BookmarkTagDao.bookmark_id.in_(bookmark_ids))
+            .order_by(BookmarkTagDao.bookmark_id, TagDao.id)
+        )
+        return list(self.session.execute(statement).all())
+
     def find_by_names(self, names: list[str]) -> list[TagDao]:
         """
         タグ名リストからタグDAOリストを取得する。

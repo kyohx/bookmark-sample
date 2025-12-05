@@ -44,7 +44,13 @@ class TestGetBookmarkList(BaseTest):
             assert res_bookmark["url"] == db_bookmark.url
             assert res_bookmark["memo"] == db_bookmark.memo
             assert res_bookmark["hashed_id"] == db_bookmark.hashed_id
-            assert "tags" not in res_bookmark
+            
+            # タグの検証
+            expected_tags = self.get_tags(db_session, db_bookmark)
+            assert "tags" in res_bookmark
+            assert isinstance(res_bookmark["tags"], list)
+            assert len(res_bookmark["tags"]) == len(expected_tags)
+            assert set(res_bookmark["tags"]) == set([tag.name for tag in expected_tags])
             assert res_bookmark["created_at"] == datetime_to_str(db_bookmark.created_at)
             assert res_bookmark["updated_at"] == datetime_to_str(db_bookmark.updated_at)
 
@@ -77,7 +83,13 @@ class TestGetBookmarkList(BaseTest):
         assert res_bookmark["url"] == db_bookmark.url
         assert res_bookmark["memo"] == db_bookmark.memo
         assert res_bookmark["hashed_id"] == db_bookmark.hashed_id
-        assert "tags" not in res_bookmark
+        # タグの検証
+        expected_tags = self.get_tags(db_session, db_bookmark)
+        assert "tags" in res_bookmark
+        assert isinstance(res_bookmark["tags"], list)
+        assert len(res_bookmark["tags"]) == len(expected_tags)
+        assert set(res_bookmark["tags"]) == set([tag.name for tag in expected_tags])
+        assert tagname in res_bookmark["tags"]
         assert res_bookmark["created_at"] == datetime_to_str(db_bookmark.created_at)
         assert res_bookmark["updated_at"] == datetime_to_str(db_bookmark.updated_at)
 
