@@ -46,7 +46,7 @@ class TagDaoOperator(BaseDaoOperator):
             .where(BookmarkTagDao.bookmark_id.in_(bookmark_ids))
             .order_by(BookmarkTagDao.bookmark_id, TagDao.id)
         )
-        return list(self.session.execute(statement).all())
+        return [(row[0], row[1]) for row in self.session.execute(statement).all()]
 
     def find_by_names(self, names: list[str]) -> list[TagDao]:
         """

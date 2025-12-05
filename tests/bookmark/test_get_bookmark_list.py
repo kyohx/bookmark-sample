@@ -44,7 +44,7 @@ class TestGetBookmarkList(BaseTest):
             assert res_bookmark["url"] == db_bookmark.url
             assert res_bookmark["memo"] == db_bookmark.memo
             assert res_bookmark["hashed_id"] == db_bookmark.hashed_id
-            
+
             # タグの検証
             expected_tags = self.get_tags(db_session, db_bookmark)
             assert "tags" in res_bookmark
