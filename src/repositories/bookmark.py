@@ -1,5 +1,3 @@
-from typing import cast
-
 from ..dao.models.bookmark import BookmarkDao
 from ..dao.operators.bookmark import BookmarkDaoOperator
 from ..dao.operators.bookmark_tag import BookmarkTagDaoOperator
@@ -54,7 +52,7 @@ class BookmarkRepository(BaseRepository):
         Returns:
             ブックマークエンティティのリスト
         """
-        bookmark_daos = cast(list[BookmarkDao], self.bookmark_operator.find_all())
+        bookmark_daos = self.bookmark_operator.find_all()
         return self._create_entities_with_tags(bookmark_daos)
 
     def find_by_tags(self, tag_names: list[str]) -> list[BookmarkEntity]:

@@ -6,7 +6,7 @@ from ..models.tag import TagDao
 from .base import BaseDaoOperator
 
 
-class BookmarkDaoOperator(BaseDaoOperator):
+class BookmarkDaoOperator(BaseDaoOperator[BookmarkDao]):
     """
     ブックマークDAO操作クラス
     """
