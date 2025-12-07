@@ -5,7 +5,7 @@ from ..models.tag import TagDao
 from .base import BaseDaoOperator
 
 
-class TagDaoOperator(BaseDaoOperator):
+class TagDaoOperator(BaseDaoOperator[TagDao]):
     """
     タグDAO操作クラス
     """

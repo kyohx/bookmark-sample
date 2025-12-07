@@ -6,7 +6,7 @@ from .base import BaseDaoOperator
 from .tag import TagDaoOperator
 
 
-class BookmarkTagDaoOperator(BaseDaoOperator):
+class BookmarkTagDaoOperator(BaseDaoOperator[BookmarkTagDao]):
     """
     ブックマークタグDAO操作クラス
     """

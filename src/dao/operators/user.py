@@ -2,7 +2,7 @@ from ..models.user import UserDao
 from .base import BaseDaoOperator
 
 
-class UserDaoOperator(BaseDaoOperator):
+class UserDaoOperator(BaseDaoOperator[UserDao]):
     """
     ユーザーDAO操作クラス
     """

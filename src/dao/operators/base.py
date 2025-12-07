@@ -1,4 +1,4 @@
-from typing import Sequence, Type
+from typing import Generic, Sequence, Type, TypeVar
 
 from sqlalchemy import Select, select
 from sqlalchemy.orm.session import Session
@@ -6,13 +6,15 @@ from sqlalchemy.orm.session import Session
 from ...libs.page import Page
 from ..models.base import BaseDao
 
+T = TypeVar("T", bound=BaseDao)  # BaseDao を継承した任意の型を表す型変数
 
-class BaseDaoOperator:
+
+class BaseDaoOperator(Generic[T]):
     """
     DAO操作クラス
     """
 
-    MAIN_DAO: Type[BaseDao] = BaseDao
+    MAIN_DAO: Type[T]  # サブクラスで具体的な DAO 型を指定すると、find_all() 等の戻り値型に反映される
 
     def __init__(
         self,
@@ -29,7 +31,7 @@ class BaseDaoOperator:
         self.session = session
         self.page = page
 
-    def find_one_by_id(self, id_value, id_column: str = "id"):
+    def find_one_by_id(self, id_value, id_column: str = "id") -> T | None:
         """
         指定されたIDで1レコードを取得する。
 
@@ -43,7 +45,7 @@ class BaseDaoOperator:
         statement = select(self.MAIN_DAO).where(getattr(self.MAIN_DAO, id_column) == id_value)
         return self.session.execute(statement).scalars().one_or_none()
 
-    def find_one_by_pkey(self, value):
+    def find_one_by_pkey(self, value) -> T | None:
         """
         主キーを指定して1レコードを取得する。
 
@@ -56,7 +58,7 @@ class BaseDaoOperator:
         # id以外の主キーの場合は継承先のクラスでオーバーライドする
         return self.find_one_by_id(value)
 
-    def find_all(self) -> list[BaseDao]:
+    def find_all(self) -> list[T]:
         """
         全件のレコードを取得する。
 
