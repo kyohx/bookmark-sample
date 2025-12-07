@@ -1,4 +1,4 @@
-from typing import Generic, Sequence, Type, TypeVar
+from typing import Any, Generic, Sequence, Type, TypeVar
 
 from sqlalchemy import Select, select
 from sqlalchemy.orm.session import Session
@@ -31,7 +31,7 @@ class BaseDaoOperator(Generic[T]):
         self.session = session
         self.page = page
 
-    def find_one_by_id(self, id_value, id_column: str = "id") -> T | None:
+    def find_one_by_id(self, id_value: Any, id_column: str = "id") -> T | None:
         """
         指定されたIDで1レコードを取得する。
 
@@ -45,7 +45,7 @@ class BaseDaoOperator(Generic[T]):
         statement = select(self.MAIN_DAO).where(getattr(self.MAIN_DAO, id_column) == id_value)
         return self.session.execute(statement).scalars().one_or_none()
 
-    def find_one_by_pkey(self, value) -> T | None:
+    def find_one_by_pkey(self, value: Any) -> T | None:
         """
         主キーを指定して1レコードを取得する。
 
