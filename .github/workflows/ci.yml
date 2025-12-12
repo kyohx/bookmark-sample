@@ -30,7 +30,7 @@ jobs:
       - name: Check format
         run: uv run ruff check ./
       - name: Check types
-        run: uv run mypy .
+        run: uv run pyrefly check
       - name: Check security issues in Python code
         run: uv run bandit --quiet --recursive src
       - name: Check update openapi.json
@@ -49,7 +49,7 @@ jobs:
           python-version-file: ".python-version"
       - name: Install python packages
         run: uv sync --all-extras
-      - name: Setup DB container 
+      - name: Setup DB container
         run: docker compose up -d --quiet-pull --wait db
       - name: Run tests
         run: uv run pytest

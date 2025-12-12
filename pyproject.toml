@@ -20,7 +20,7 @@ dependencies = [
 dev = [
     "bandit==1.8.*",
     "httpx==0.28.*",
-    "mypy==1.13.*",
+    "pyrefly==0.45.*",
     "pytest==8.3.*",
     "ruff==0.9.*",
     "taskipy==1.14.*",
@@ -51,15 +51,15 @@ docstring-code-line-length = "dynamic"
 combine-as-imports = true
 split-on-trailing-comma = true
 
-[tool.mypy]
-python_version = "3.13"
-exclude = "^tests/"
-
 [tool.taskipy.tasks]
 test = "docker compose exec api python -m pytest"
 format = "ruff format ./"
-check = "mypy . ; bandit --quiet --recursive src"
+check = "pyrefly check ; bandit --quiet --recursive src"
 build_app = "docker compose build api"
 login_app = "docker compose exec api bash"
 openapi = "python -m src.generate_openapi > openapi.json"
 update_packages = "uv lock --upgrade && uv sync"
+
+[tool.pyrefly]
+project-excludes = ["**/tests/"]
+python-version = "3.13.0"
