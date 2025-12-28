@@ -13,7 +13,7 @@ from ...libs.util import datetime_to_str
 #### 取得レスポンス
 
 
-# 概要
+# ブックマーク情報
 class Bookmark(BaseModel):
     hashed_id: FIELD_HASHED_ID
     "URLハッシュID"
@@ -61,6 +61,10 @@ class ResponseForGetBookmarkList(BaseModel):
                             "hashed_id": "123456789012345678901234567890123456789012345678901234567890abcd",
                             "url": "https://exsample.com",
                             "memo": "サンプル",
+                            "tags": [
+                                "private",
+                                "test",
+                            ],
                             "created_at": "2025-01-01 12:34:56",
                             "updated_at": "2025-01-01 12:34:56",
                         }
