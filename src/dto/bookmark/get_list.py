@@ -6,6 +6,7 @@ from ...libs.constraints import (
     FIELD_HASHED_ID,
     FIELD_STRING_DATETIME,
     FIELD_STRING_MAX400,
+    FIELD_TAGS,
     FIELD_URL,
 )
 from ...libs.util import datetime_to_str
@@ -13,8 +14,8 @@ from ...libs.util import datetime_to_str
 #### 取得レスポンス
 
 
-# 概要
-class BookmarkDigest(BaseModel):
+# ブックマーク情報
+class Bookmark(BaseModel):
     hashed_id: FIELD_HASHED_ID
     "URLハッシュID"
     url: FIELD_URL
@@ -25,7 +26,7 @@ class BookmarkDigest(BaseModel):
     "作成日時"
     updated_at: FIELD_STRING_DATETIME
     "更新日時"
-    tags: list[str] = []
+    tags: FIELD_TAGS
     "タグ"
 
     @field_validator("created_at", mode="before")
@@ -49,7 +50,7 @@ class BookmarkDigest(BaseModel):
 
 #### リスト取得レスポンス
 class ResponseForGetBookmarkList(BaseModel):
-    bookmarks: list[BookmarkDigest]
+    bookmarks: list[Bookmark]
     "ブックマーク情報リスト"
 
     model_config = ConfigDict(
@@ -59,8 +60,12 @@ class ResponseForGetBookmarkList(BaseModel):
                     "bookmarks": [
                         {
                             "hashed_id": "123456789012345678901234567890123456789012345678901234567890abcd",
-                            "url": "https://exsample.com",
+                            "url": "https://example.com",
                             "memo": "サンプル",
+                            "tags": [
+                                "private",
+                                "test",
+                            ],
                             "created_at": "2025-01-01 12:34:56",
                             "updated_at": "2025-01-01 12:34:56",
                         }

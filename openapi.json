@@ -3,7 +3,7 @@
   "info": {
     "title": "Bookmark API",
     "description": "API for bookmarking web page URL",
-    "version": "0.5.0.251205"
+    "version": "0.6.0.251228"
   },
   "paths": {
     "/token": {
@@ -674,7 +674,7 @@
         ],
         "title": "Body_login_token_post"
       },
-      "BookmarkDetail": {
+      "Bookmark": {
         "properties": {
           "hashed_id": {
             "type": "string",
@@ -730,61 +730,7 @@
           "updated_at",
           "tags"
         ],
-        "title": "BookmarkDetail"
-      },
-      "BookmarkDigest": {
-        "properties": {
-          "hashed_id": {
-            "type": "string",
-            "maxLength": 64,
-            "minLength": 64,
-            "pattern": "[0-9a-f]+",
-            "title": "Hashed Id"
-          },
-          "url": {
-            "type": "string",
-            "maxLength": 400,
-            "minLength": 1,
-            "format": "uri",
-            "title": "Url"
-          },
-          "memo": {
-            "type": "string",
-            "maxLength": 400,
-            "title": "Memo"
-          },
-          "created_at": {
-            "type": "string",
-            "maxLength": 19,
-            "minLength": 19,
-            "pattern": "^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$",
-            "title": "Created At"
-          },
-          "updated_at": {
-            "type": "string",
-            "maxLength": 19,
-            "minLength": 19,
-            "pattern": "^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$",
-            "title": "Updated At"
-          },
-          "tags": {
-            "items": {
-              "type": "string"
-            },
-            "type": "array",
-            "title": "Tags",
-            "default": []
-          }
-        },
-        "type": "object",
-        "required": [
-          "hashed_id",
-          "url",
-          "memo",
-          "created_at",
-          "updated_at"
-        ],
-        "title": "BookmarkDigest"
+        "title": "Bookmark"
       },
       "HTTPValidationError": {
         "properties": {
@@ -839,7 +785,7 @@
               "work",
               "test"
             ],
-            "url": "https://exsample.com"
+            "url": "https://example.com"
           }
         ]
       },
@@ -1022,7 +968,7 @@
       "ResponseForGetBookmark": {
         "properties": {
           "bookmark": {
-            "$ref": "#/components/schemas/BookmarkDetail"
+            "$ref": "#/components/schemas/Bookmark"
           }
         },
         "type": "object",
@@ -1041,7 +987,7 @@
                 "test"
               ],
               "updated_at": "2025-01-01 12:34:56",
-              "url": "https://exsample.com"
+              "url": "https://example.com"
             }
           }
         ]
@@ -1050,7 +996,7 @@
         "properties": {
           "bookmarks": {
             "items": {
-              "$ref": "#/components/schemas/BookmarkDigest"
+              "$ref": "#/components/schemas/Bookmark"
             },
             "type": "array",
             "title": "Bookmarks"
@@ -1068,8 +1014,12 @@
                 "created_at": "2025-01-01 12:34:56",
                 "hashed_id": "123456789012345678901234567890123456789012345678901234567890abcd",
                 "memo": "サンプル",
+                "tags": [
+                  "private",
+                  "test"
+                ],
                 "updated_at": "2025-01-01 12:34:56",
-                "url": "https://exsample.com"
+                "url": "https://example.com"
               }
             ]
           }
@@ -1163,7 +1113,7 @@
         "title": "ResponseForGetVersion",
         "examples": [
           {
-            "version": "0.5.0.251205"
+            "version": "0.6.0.251228"
           }
         ]
       },
@@ -1194,7 +1144,7 @@
       "ResponseForUpdateBookmark": {
         "properties": {
           "updated_bookmark": {
-            "$ref": "#/components/schemas/BookmarkDetail"
+            "$ref": "#/components/schemas/Bookmark"
           }
         },
         "type": "object",
@@ -1213,7 +1163,7 @@
                 "test"
               ],
               "updated_at": "2025-01-01 12:34:56",
-              "url": "https://exsample.com"
+              "url": "https://example.com"
             }
           }
         ]

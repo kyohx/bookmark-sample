@@ -20,7 +20,7 @@ class RequestForAddBookmark(BaseModel):
         json_schema_extra={
             "examples": [
                 {
-                    "url": "https://exsample.com",
+                    "url": "https://example.com",
                     "memo": "サンプル",
                     "tags": [
                         "work",
