@@ -711,11 +711,14 @@
           },
           "tags": {
             "items": {
-              "type": "string"
+              "type": "string",
+              "maxLength": 100,
+              "minLength": 1
             },
             "type": "array",
-            "title": "Tags",
-            "default": []
+            "maxItems": 10,
+            "minItems": 1,
+            "title": "Tags"
           }
         },
         "type": "object",
@@ -724,7 +727,8 @@
           "url",
           "memo",
           "created_at",
-          "updated_at"
+          "updated_at",
+          "tags"
         ],
         "title": "Bookmark"
       },

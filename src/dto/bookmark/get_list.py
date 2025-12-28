@@ -6,6 +6,7 @@ from ...libs.constraints import (
     FIELD_HASHED_ID,
     FIELD_STRING_DATETIME,
     FIELD_STRING_MAX400,
+    FIELD_TAGS,
     FIELD_URL,
 )
 from ...libs.util import datetime_to_str
@@ -25,7 +26,7 @@ class Bookmark(BaseModel):
     "作成日時"
     updated_at: FIELD_STRING_DATETIME
     "更新日時"
-    tags: list[str] = []
+    tags: FIELD_TAGS
     "タグ"
 
     @field_validator("created_at", mode="before")
