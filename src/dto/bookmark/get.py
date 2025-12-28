@@ -1,18 +1,11 @@
 from pydantic import BaseModel, ConfigDict
 
-from ...libs.constraints import FIELD_TAGS
-from .get_list import BookmarkDigest
-
-
-# 詳細
-class BookmarkDetail(BookmarkDigest):
-    tags: FIELD_TAGS
-    "タグ"
+from .get_list import Bookmark
 
 
 #### 詳細取得レスポンス
 class ResponseForGetBookmark(BaseModel):
-    bookmark: BookmarkDetail
+    bookmark: Bookmark
     "ブックマーク情報"
 
     model_config = ConfigDict(

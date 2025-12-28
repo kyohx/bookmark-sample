@@ -3,7 +3,7 @@
   "info": {
     "title": "Bookmark API",
     "description": "API for bookmarking web page URL",
-    "version": "0.5.0.251205"
+    "version": "0.5.1.251228"
   },
   "paths": {
     "/token": {
@@ -674,65 +674,7 @@
         ],
         "title": "Body_login_token_post"
       },
-      "BookmarkDetail": {
-        "properties": {
-          "hashed_id": {
-            "type": "string",
-            "maxLength": 64,
-            "minLength": 64,
-            "pattern": "[0-9a-f]+",
-            "title": "Hashed Id"
-          },
-          "url": {
-            "type": "string",
-            "maxLength": 400,
-            "minLength": 1,
-            "format": "uri",
-            "title": "Url"
-          },
-          "memo": {
-            "type": "string",
-            "maxLength": 400,
-            "title": "Memo"
-          },
-          "created_at": {
-            "type": "string",
-            "maxLength": 19,
-            "minLength": 19,
-            "pattern": "^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$",
-            "title": "Created At"
-          },
-          "updated_at": {
-            "type": "string",
-            "maxLength": 19,
-            "minLength": 19,
-            "pattern": "^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$",
-            "title": "Updated At"
-          },
-          "tags": {
-            "items": {
-              "type": "string",
-              "maxLength": 100,
-              "minLength": 1
-            },
-            "type": "array",
-            "maxItems": 10,
-            "minItems": 1,
-            "title": "Tags"
-          }
-        },
-        "type": "object",
-        "required": [
-          "hashed_id",
-          "url",
-          "memo",
-          "created_at",
-          "updated_at",
-          "tags"
-        ],
-        "title": "BookmarkDetail"
-      },
-      "BookmarkDigest": {
+      "Bookmark": {
         "properties": {
           "hashed_id": {
             "type": "string",
@@ -784,7 +726,7 @@
           "created_at",
           "updated_at"
         ],
-        "title": "BookmarkDigest"
+        "title": "Bookmark"
       },
       "HTTPValidationError": {
         "properties": {
@@ -1022,7 +964,7 @@
       "ResponseForGetBookmark": {
         "properties": {
           "bookmark": {
-            "$ref": "#/components/schemas/BookmarkDetail"
+            "$ref": "#/components/schemas/Bookmark"
           }
         },
         "type": "object",
@@ -1050,7 +992,7 @@
         "properties": {
           "bookmarks": {
             "items": {
-              "$ref": "#/components/schemas/BookmarkDigest"
+              "$ref": "#/components/schemas/Bookmark"
             },
             "type": "array",
             "title": "Bookmarks"
@@ -1163,7 +1105,7 @@
         "title": "ResponseForGetVersion",
         "examples": [
           {
-            "version": "0.5.0.251205"
+            "version": "0.5.1.251228"
           }
         ]
       },
@@ -1194,7 +1136,7 @@
       "ResponseForUpdateBookmark": {
         "properties": {
           "updated_bookmark": {
-            "$ref": "#/components/schemas/BookmarkDetail"
+            "$ref": "#/components/schemas/Bookmark"
           }
         },
         "type": "object",

@@ -1,7 +1,7 @@
 from pydantic import BaseModel, ConfigDict
 
 from ...libs.constraints import FIELD_STRING_MAX400, FIELD_TAGS
-from .get import BookmarkDetail
+from .get_list import Bookmark
 
 
 #### 更新リクエスト
@@ -28,7 +28,7 @@ class RequestForUpdateBookmark(BaseModel):
 
 #### 更新レスポンス
 class ResponseForUpdateBookmark(BaseModel):
-    updated_bookmark: BookmarkDetail
+    updated_bookmark: Bookmark
     "更新後のブックマーク情報"
 
     model_config = ConfigDict(

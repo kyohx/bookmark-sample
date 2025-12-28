@@ -14,7 +14,7 @@ from ...libs.util import datetime_to_str
 
 
 # 概要
-class BookmarkDigest(BaseModel):
+class Bookmark(BaseModel):
     hashed_id: FIELD_HASHED_ID
     "URLハッシュID"
     url: FIELD_URL
@@ -49,7 +49,7 @@ class BookmarkDigest(BaseModel):
 
 #### リスト取得レスポンス
 class ResponseForGetBookmarkList(BaseModel):
-    bookmarks: list[BookmarkDigest]
+    bookmarks: list[Bookmark]
     "ブックマーク情報リスト"
 
     model_config = ConfigDict(
