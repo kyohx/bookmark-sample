@@ -3,7 +3,7 @@
   "info": {
     "title": "Bookmark API",
     "description": "API for bookmarking web page URL",
-    "version": "0.5.1.251228"
+    "version": "0.6.0.251228"
   },
   "paths": {
     "/token": {
@@ -785,7 +785,7 @@
               "work",
               "test"
             ],
-            "url": "https://exsample.com"
+            "url": "https://example.com"
           }
         ]
       },
@@ -987,7 +987,7 @@
                 "test"
               ],
               "updated_at": "2025-01-01 12:34:56",
-              "url": "https://exsample.com"
+              "url": "https://example.com"
             }
           }
         ]
@@ -1019,7 +1019,7 @@
                   "test"
                 ],
                 "updated_at": "2025-01-01 12:34:56",
-                "url": "https://exsample.com"
+                "url": "https://example.com"
               }
             ]
           }
@@ -1113,7 +1113,7 @@
         "title": "ResponseForGetVersion",
         "examples": [
           {
-            "version": "0.5.1.251228"
+            "version": "0.6.0.251228"
           }
         ]
       },
@@ -1163,7 +1163,7 @@
                 "test"
               ],
               "updated_at": "2025-01-01 12:34:56",
-              "url": "https://exsample.com"
+              "url": "https://example.com"
             }
           }
         ]

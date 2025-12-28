@@ -60,7 +60,7 @@ class ResponseForGetBookmarkList(BaseModel):
                     "bookmarks": [
                         {
                             "hashed_id": "123456789012345678901234567890123456789012345678901234567890abcd",
-                            "url": "https://exsample.com",
+                            "url": "https://example.com",
                             "memo": "サンプル",
                             "tags": [
                                 "private",

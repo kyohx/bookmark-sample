@@ -18,7 +18,7 @@ from src.services.authorize import (
 
 _config = get_config()
 
-TEST_URL = "https://exsample.com/test"
+TEST_URL = "https://example.com/test"
 TEST_TAG_NAME = "test_tag"
 TEST_TAGS = ["test_tag1", "test_tag2"]
 TEST_PASSWORD = "test_password"
