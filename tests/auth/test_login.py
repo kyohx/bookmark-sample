@@ -145,7 +145,7 @@ class TestLogin(BaseTest):
         response = client.post(self.api_path(), data=request_body)
 
         # レスポンスの検証
-        assert response.status_code == 401
+        assert response.status_code == 422
 
     def test_login_empty_password(
         self,
@@ -166,4 +166,4 @@ class TestLogin(BaseTest):
         response = client.post(self.api_path(), data=request_body)
 
         # レスポンスの検証
-        assert response.status_code == 401
+        assert response.status_code == 422
