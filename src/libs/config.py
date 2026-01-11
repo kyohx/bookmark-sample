@@ -1,9 +1,10 @@
 import os
+from typing import Final
 
 from dotenv import load_dotenv
 from pydantic import BaseModel, ConfigDict
 
-_KEY_DEFAULT_VALUE = "28b9ecba33eb6059e3048532bf90d7bf6484ea8a3626ac2ad2fdbdc850dc89c1"
+_KEY_DEFAULT_VALUE: Final[str] = "28b9ecba33eb6059e3048532bf90d7bf6484ea8a3626ac2ad2fdbdc850dc89c1"
 
 
 class Config(BaseModel):

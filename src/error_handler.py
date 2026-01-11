@@ -1,3 +1,5 @@
+from typing import Final
+
 import pymysql.constants.ER as errcode
 from fastapi import FastAPI, Request, status
 from fastapi.responses import ORJSONResponse
@@ -9,7 +11,7 @@ from .services.authority import AuthorityService
 from .services.authorize import AuthorizeService
 from .usecases.base import UsecaseBase
 
-logger = get_logger()
+logger: Final = get_logger()
 
 
 def add_error_handlers(app: FastAPI) -> None:

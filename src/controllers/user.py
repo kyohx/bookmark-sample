@@ -1,3 +1,5 @@
+from typing import Final
+
 from fastapi import APIRouter
 
 from ..dao.session import SessionDepend
@@ -12,8 +14,8 @@ from ..libs.page import Page
 from ..services.authorize import UserDepends
 from ..usecases.user import UserUsecase
 
-router = APIRouter()
-tagname = TagNameEnum.USER.value
+router: Final[APIRouter] = APIRouter()
+tagname: Final[str] = TagNameEnum.USER.value
 
 
 @router.post(
