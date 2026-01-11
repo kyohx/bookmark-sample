@@ -1,3 +1,5 @@
+from typing import Final
+
 from fastapi import APIRouter
 
 from ..dao.session import SessionDepend
@@ -13,8 +15,8 @@ from ..libs.page import Page
 from ..services.authorize import UserDepends
 from ..usecases.bookmark import BookmarkUsecase
 
-router = APIRouter()
-tagname = TagNameEnum.BOOKMARK.value
+router: Final[APIRouter] = APIRouter()
+tagname: Final[str] = TagNameEnum.BOOKMARK.value
 
 
 @router.post(

@@ -1,4 +1,4 @@
-from typing import Annotated
+from typing import Annotated, Final
 
 from fastapi import APIRouter, Depends
 from fastapi.security import OAuth2PasswordRequestForm
@@ -8,8 +8,8 @@ from ..dto.auth import ResponseForGetCurrentUser, ResponseForLogin
 from ..libs.openapi_tags import TagNameEnum
 from ..services.authorize import AuthorizeService, UserDepends
 
-router = APIRouter()
-tagname = TagNameEnum.AUTH.value
+router: Final[APIRouter] = APIRouter()
+tagname: Final[str] = TagNameEnum.AUTH.value
 
 
 @router.post(

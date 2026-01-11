@@ -1,11 +1,12 @@
 import sys
 from logging import DEBUG, ERROR, INFO, Formatter, Logger, StreamHandler, getLogger
+from typing import Final
 
 from ..libs.config import get_config
 
 _config = get_config()
 
-_LOGLEVEL_TABLE = {
+_LOGLEVEL_TABLE: Final[dict[str, int]] = {
     "DEBUG": DEBUG,
     "INFO": INFO,
     "ERROR": ERROR,

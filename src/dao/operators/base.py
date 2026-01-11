@@ -14,7 +14,8 @@ class BaseDaoOperator(Generic[T]):
     DAO操作クラス
     """
 
-    MAIN_DAO: Type[T]  # サブクラスで具体的な DAO 型を指定すると、find_all() 等の戻り値型に反映される
+    # サブクラスで具体的な DAO 型を指定すると、find_all() 等の戻り値型に反映される
+    MAIN_DAO: Type[T]
 
     def __init__(
         self,

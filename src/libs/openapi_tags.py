@@ -1,5 +1,6 @@
 # OpenAPI 用タグ定義
 from enum import Enum
+from typing import Final
 
 
 class TagNameEnum(Enum):
@@ -13,7 +14,7 @@ class TagNameEnum(Enum):
     VERSION = "version"
 
 
-OPENAPI_TAGS = [
+OPENAPI_TAGS: Final[list[dict[str, str]]] = [
     {
         "name": TagNameEnum.AUTH.value,
         "description": "Authentication operations",

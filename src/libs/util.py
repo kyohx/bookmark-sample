@@ -1,9 +1,10 @@
 from datetime import datetime
 from hashlib import sha256
+from typing import Final
 
 from ..libs.config import get_config
 
-SALT = get_config().hash_salt
+SALT: Final[str] = get_config().hash_salt
 
 
 def get_hashed_id(value: str) -> str:
