@@ -3,7 +3,7 @@
   "info": {
     "title": "Bookmark API",
     "description": "API for bookmarking web page URL",
-    "version": "0.6.0.251228"
+    "version": "0.7.0.260207"
   },
   "paths": {
     "/token": {
@@ -31,6 +31,48 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ResponseForLogin"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/refresh": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Refresh Token",
+        "description": "リフレッシュトークンからアクセストークンを再発行する",
+        "operationId": "refresh_token_refresh_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RequestForRefreshToken"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseForRefreshToken"
                 }
               }
             }
@@ -825,6 +867,24 @@
           }
         ]
       },
+      "RequestForRefreshToken": {
+        "properties": {
+          "refresh_token": {
+            "type": "string",
+            "title": "Refresh Token"
+          }
+        },
+        "type": "object",
+        "required": [
+          "refresh_token"
+        ],
+        "title": "RequestForRefreshToken",
+        "examples": [
+          {
+            "refresh_token": "YYYYYYYYYYYYYYY.YYYYYYYYYYYYYYYYY.YYYYYYYYYYYYYYYYYYYY"
+          }
+        ]
+      },
       "RequestForUpdateBookmark": {
         "properties": {
           "memo": {
@@ -1113,7 +1173,7 @@
         "title": "ResponseForGetVersion",
         "examples": [
           {
-            "version": "0.6.0.251228"
+            "version": "0.7.0.260207"
           }
         ]
       },
@@ -1123,6 +1183,10 @@
             "type": "string",
             "title": "Access Token"
           },
+          "refresh_token": {
+            "type": "string",
+            "title": "Refresh Token"
+          },
           "token_type": {
             "type": "string",
             "title": "Token Type"
@@ -1131,12 +1195,44 @@
         "type": "object",
         "required": [
           "access_token",
+          "refresh_token",
           "token_type"
         ],
         "title": "ResponseForLogin",
         "examples": [
           {
             "access_token": "XXXXXXXXXXXXXXX.XXXXXXXXXXXXXXXXXXXXX.XXXXXXXXXXXXXXXX",
+            "refresh_token": "YYYYYYYYYYYYYYY.YYYYYYYYYYYYYYYYY.YYYYYYYYYYYYYYYYYYYY",
+            "token_type": "bearer"
+          }
+        ]
+      },
+      "ResponseForRefreshToken": {
+        "properties": {
+          "access_token": {
+            "type": "string",
+            "title": "Access Token"
+          },
+          "refresh_token": {
+            "type": "string",
+            "title": "Refresh Token"
+          },
+          "token_type": {
+            "type": "string",
+            "title": "Token Type"
+          }
+        },
+        "type": "object",
+        "required": [
+          "access_token",
+          "refresh_token",
+          "token_type"
+        ],
+        "title": "ResponseForRefreshToken",
+        "examples": [
+          {
+            "access_token": "XXXXXXXXXXXXXXX.XXXXXXXXXXXXXXXXXXXXX.XXXXXXXXXXXXXXXX",
+            "refresh_token": "YYYYYYYYYYYYYYY.YYYYYYYYYYYYYYYYY.YYYYYYYYYYYYYYYYYYYY",
             "token_type": "bearer"
           }
         ]

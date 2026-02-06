@@ -4,7 +4,12 @@ from fastapi import APIRouter, Depends
 from fastapi.security import OAuth2PasswordRequestForm
 
 from ..dao.session import SessionDepend
-from ..dto.auth import ResponseForGetCurrentUser, ResponseForLogin
+from ..dto.auth import (
+    RequestForRefreshToken,
+    ResponseForGetCurrentUser,
+    ResponseForLogin,
+    ResponseForRefreshToken,
+)
 from ..libs.openapi_tags import TagNameEnum
 from ..services.authorize import AuthorizeService, UserDepends
 
@@ -25,6 +30,21 @@ def login(
     """
     res = AuthorizeService(session=session).login(form_data)
     return ResponseForLogin(**res.model_dump())
+
+
+@router.post(
+    "/refresh",
+    response_model=ResponseForRefreshToken,
+)
+def refresh_token(
+    body: RequestForRefreshToken,
+    session: SessionDepend,
+) -> ResponseForRefreshToken:
+    """
+    リフレッシュトークンからアクセストークンを再発行する
+    """
+    res = AuthorizeService(session=session).refresh(body.refresh_token)
+    return ResponseForRefreshToken(**res.model_dump())
 
 
 @router.get(

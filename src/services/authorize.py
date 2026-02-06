@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta, timezone
+from enum import Enum
 from typing import Annotated
 
 import jwt
@@ -23,6 +24,8 @@ class Token(BaseModel):
 
     access_token: str
     "アクセストークン"
+    refresh_token: str
+    "リフレッシュトークン"
     token_type: str
     "トークンの種類"
 
@@ -32,6 +35,7 @@ class Token(BaseModel):
             "examples": [
                 {
                     "access_token": "XXXXXXXXXXXXXXX.XXXXXXXXXXXXXXXXXXXXX.XXXXXXXXXXXXXXXX",
+                    "refresh_token": "YYYYYYYYYYYYYYY.YYYYYYYYYYYYYYYYY.YYYYYYYYYYYYYYYYYYYY",
                     "token_type": "bearer",
                 }
             ]
@@ -50,13 +54,21 @@ class TokenData(BaseModel):
     model_config = ConfigDict(frozen=True)
 
 
+class TokenType(str, Enum):
+    """
+    トークン種別
+    """
+
+    ACCESS = "access"
+    REFRESH = "refresh"
+
+
 class AuthorizeService(ServiceBase):
     """
     認証許可サービス
     """
 
     ALGORITHM = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES = 20
 
     password_hasher = PasswordHash([BcryptHasher()])
 
@@ -70,6 +82,8 @@ class AuthorizeService(ServiceBase):
     def __init__(self, session: Session) -> None:
         self.session = session
         self.jwt_secret_key = self.config.jwt_secret_key
+        self.refresh_token_expire_days = self.config.refresh_token_expire_days
+        self.access_token_expire_minutes = self.config.access_token_expire_minutes
 
     @classmethod
     def verify_password(cls, plain_password: str, hashed_password: str) -> bool:
@@ -140,11 +154,68 @@ class AuthorizeService(ServiceBase):
         Returns:
             作成されたアクセストークン
         """
+        return self._create_token(
+            data=data,
+            expires_delta=expires_delta,
+            token_type=TokenType.ACCESS,
+        )
+
+    def create_refresh_token(self, data: dict, expires_delta: timedelta) -> str:
+        """
+        リフレッシュトークンを作成する。
+
+        Args:
+            data: トークンに含めるデータ
+            expires_delta: トークンの有効期限
+
+        Returns:
+            作成されたリフレッシュトークン
+        """
+        return self._create_token(
+            data=data,
+            expires_delta=expires_delta,
+            token_type=TokenType.REFRESH,
+        )
+
+    def _create_token(self, data: dict, expires_delta: timedelta, token_type: TokenType) -> str:
+        """
+        トークンを作成する。
+
+        Args:
+            data: トークンに含めるデータ
+            expires_delta: トークンの有効期限
+            token_type: トークン種別
+
+        Returns:
+            作成されたトークン
+        """
         to_encode = data.copy()
         expire = datetime.now(timezone.utc) + expires_delta
-        to_encode.update({"exp": expire})
+        to_encode.update({"exp": expire, "type": token_type.value})
         encoded_jwt = jwt.encode(to_encode, self.jwt_secret_key, algorithm=self.ALGORITHM)
         return encoded_jwt
+
+    def _decode_token(self, token: str, expected_type: TokenType) -> dict:
+        """
+        トークンをデコードする。
+
+        Args:
+            token: デコード対象のトークン
+            expected_type: 期待するトークン種別
+
+        Returns:
+            デコード済みのペイロード
+
+        Raises:
+            AuthorizeService.Error: トークン内容が無効または期限切れ
+        """
+        try:
+            payload = jwt.decode(token, self.jwt_secret_key, algorithms=[self.ALGORITHM])
+            if payload.get("type") != expected_type.value:
+                raise self.Error("Invalid token type")
+            return payload
+        except InvalidTokenError:
+            raise self.Error("Could not validate credentials")
 
     def login(self, form_data: OAuth2PasswordRequestForm) -> Token:
         """
@@ -161,11 +232,51 @@ class AuthorizeService(ServiceBase):
             raise self.Error("Incorrect username or password")
         if user.disabled:
             raise self.Error("Inactive user")
-        access_token_expires = timedelta(minutes=self.ACCESS_TOKEN_EXPIRE_MINUTES)
+        access_token_expires = timedelta(minutes=self.access_token_expire_minutes)
+        refresh_token_expires = timedelta(days=self.refresh_token_expire_days)
         access_token = self.create_access_token(
             data={"sub": user.name}, expires_delta=access_token_expires
         )
-        return Token(access_token=access_token, token_type="bearer")  # nosec
+        refresh_token = self.create_refresh_token(
+            data={"sub": user.name}, expires_delta=refresh_token_expires
+        )
+        return Token(
+            access_token=access_token,
+            refresh_token=refresh_token,
+            token_type="bearer",
+        )  # nosec
+
+    def refresh(self, refresh_token: str) -> Token:
+        """
+        リフレッシュトークンを使用してアクセストークンを更新する。
+
+        Args:
+            refresh_token: リフレッシュトークン
+
+        Returns:
+            新しいアクセストークンとリフレッシュトークン
+        """
+        payload = self._decode_token(refresh_token, expected_type=TokenType.REFRESH)
+        username = payload.get("sub")
+        if not username:
+            raise self.Error("Could not validate credentials")
+        user = self.get_user(name=username)
+        if user.disabled:
+            raise self.Error("Inactive user")
+
+        access_token_expires = timedelta(minutes=self.access_token_expire_minutes)
+        refresh_token_expires = timedelta(days=self.refresh_token_expire_days)
+        new_access_token = self.create_access_token(
+            data={"sub": user.name}, expires_delta=access_token_expires
+        )
+        new_refresh_token = self.create_refresh_token(
+            data={"sub": user.name}, expires_delta=refresh_token_expires
+        )
+        return Token(
+            access_token=new_access_token,
+            refresh_token=new_refresh_token,
+            token_type="bearer",
+        )  # nosec
 
     def get_current_user_from_token(self, token: str) -> UserEntity:
         """
@@ -181,10 +292,13 @@ class AuthorizeService(ServiceBase):
             AuthorizeService.Error: トークン内容が無効または期限切れ
         """
         try:
-            payload = jwt.decode(token, self.jwt_secret_key, algorithms=[self.ALGORITHM])
-            token_data = TokenData(username=payload.get("sub"))
+            payload = self._decode_token(token, expected_type=TokenType.ACCESS)
+            username = payload.get("sub")
+            if not username:
+                raise self.Error("Could not validate credentials")
+            token_data = TokenData(username=username)
             user = self.get_user(name=token_data.username)
-        except (InvalidTokenError, ValidationError, UserRepository.NotFoundError):
+        except (ValidationError, UserRepository.NotFoundError, self.Error):
             raise self.Error("Could not validate credentials")
         return user
 

@@ -10,6 +10,27 @@ class ResponseForLogin(Token):
     pass
 
 
+## リフレッシュトークンリクエスト
+class RequestForRefreshToken(BaseModel):
+    refresh_token: str
+    "リフレッシュトークン"
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "examples": [
+                {
+                    "refresh_token": "YYYYYYYYYYYYYYY.YYYYYYYYYYYYYYYYY.YYYYYYYYYYYYYYYYYYYY",
+                }
+            ]
+        }
+    )
+
+
+## リフレッシュレスポンス
+class ResponseForRefreshToken(ResponseForLogin):
+    pass
+
+
 ## 現在のユーザレスポンス
 class ResponseForGetCurrentUser(BaseModel):
     name: FIELD_STRING_USERNAME
