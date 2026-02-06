@@ -32,6 +32,10 @@ class Config(BaseModel):
     "ログレベル"
     hash_salt: str
     "URLハッシュ化用ソルト"
+    refresh_token_expire_days: int
+    "リフレッシュトークンの有効期限(日)"
+    access_token_expire_minutes: int
+    "アクセストークンの有効期限(分)"
 
     model_config = ConfigDict(frozen=True)
 
@@ -51,6 +55,8 @@ _config = Config(
     jwt_secret_key=env.get("JWT_SECRET_KEY", _KEY_DEFAULT_VALUE),
     log_level=env.get("LOG_LEVEL", "DEBUG"),
     hash_salt=env.get("SALT", "__SALTSALTSALT__"),
+    refresh_token_expire_days=int(env.get("REFRESH_TOKEN_EXPIRE_DAYS", 14)),
+    access_token_expire_minutes=int(env.get("ACCESS_TOKEN_EXPIRE_MINUTES", 20)),
 )
 
 

@@ -44,9 +44,11 @@ class TestLogin(BaseTest):
         assert response.status_code == 200
         response_body = response.json()
         assert "access_token" in response_body
+        assert "refresh_token" in response_body
         assert "token_type" in response_body
         assert response_body["token_type"] == "bearer"
         assert len(response_body["access_token"]) > 0
+        assert len(response_body["refresh_token"]) > 0
 
     def test_login_invalid_user(
         self,
