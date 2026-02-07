@@ -1,5 +1,6 @@
 import pytest
 from fastapi.testclient import TestClient
+from redis import Redis
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine.url import URL
 from sqlalchemy.orm import Session, scoped_session, sessionmaker
@@ -133,6 +134,33 @@ def mock_get_disabled_user_from_token() -> None:
         )
 
     app.dependency_overrides[get_current_user_from_token] = get_user_from_token_for_testing
+
+
+@pytest.fixture
+def redis_client():
+    """
+    テスト用Redisクライアント
+    """
+    if not _config.redis_url:
+        pytest.skip("Redis is not configured")
+    client = Redis.from_url(_config.redis_url, decode_responses=True)
+    client.flushdb()
+    yield client
+    client.flushdb()
+
+
+@pytest.fixture(scope="function", autouse=True)
+def clear_redis():
+    """
+    Redisのテストデータをクリアする
+    """
+    if not _config.redis_url:
+        yield
+        return
+    client = Redis.from_url(_config.redis_url, decode_responses=True)
+    client.flushdb()
+    yield
+    client.flushdb()
 
 
 @pytest.fixture(scope="function", autouse=True)

@@ -16,6 +16,9 @@ FIELD_STRING_USERNAME = Annotated[
 ]
 FIELD_STRING_PASSWORD = Annotated[SecretStr, Field(min_length=8, max_length=64)]
 FIELD_STRING_MAX400 = Annotated[str, StringConstraints(max_length=400)]
+FIELD_STRING_JTI = Annotated[str, StringConstraints(min_length=1, max_length=128)]
+FIELD_STRING_FAMILY = Annotated[str, StringConstraints(min_length=1, max_length=128)]
+FIELD_STRING_REASON = Annotated[str, StringConstraints(max_length=1000)]
 FIELD_TAGS = Annotated[
     Annotated[
         list[Annotated[str, StringConstraints(min_length=1, max_length=100)]],

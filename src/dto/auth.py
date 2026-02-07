@@ -1,6 +1,13 @@
-from pydantic import BaseModel, ConfigDict
+from typing import Annotated, Literal, Union
 
-from ..libs.constraints import FIELD_STRING_USERNAME
+from pydantic import BaseModel, ConfigDict, Field
+
+from ..libs.constraints import (
+    FIELD_STRING_FAMILY,
+    FIELD_STRING_JTI,
+    FIELD_STRING_REASON,
+    FIELD_STRING_USERNAME,
+)
 from ..libs.enum import AuthorityEnum
 from ..services.authorize import Token
 
@@ -29,6 +36,56 @@ class RequestForRefreshToken(BaseModel):
 ## リフレッシュレスポンス
 class ResponseForRefreshToken(ResponseForLogin):
     pass
+
+
+class RequestForBlacklistAddReason(BaseModel):
+    reason: FIELD_STRING_REASON | None = None
+
+
+class RequestForBlacklistAddJti(RequestForBlacklistAddReason):
+    mode: Literal["jti"]
+    jti: FIELD_STRING_JTI
+
+
+class RequestForBlacklistAddUserFamily(RequestForBlacklistAddReason):
+    mode: Literal["user_family"]
+    user: FIELD_STRING_USERNAME
+    family: FIELD_STRING_FAMILY
+
+
+RequestForBlacklistAdd = Annotated[
+    Union[RequestForBlacklistAddJti, RequestForBlacklistAddUserFamily],
+    Field(discriminator="mode"),
+]
+
+
+class RequestForBlacklistDeleteJti(BaseModel):
+    mode: Literal["jti"]
+    jti: FIELD_STRING_JTI
+
+
+class RequestForBlacklistDeleteUserFamily(BaseModel):
+    mode: Literal["user_family"]
+    user: FIELD_STRING_USERNAME
+    family: FIELD_STRING_FAMILY
+
+
+RequestForBlacklistDelete = Annotated[
+    Union[RequestForBlacklistDeleteJti, RequestForBlacklistDeleteUserFamily],
+    Field(discriminator="mode"),
+]
+
+
+class ResponseForBlacklistOperation(BaseModel):
+    detail: str
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "examples": [
+                {"detail": "ok"},
+            ]
+        }
+    )
 
 
 ## 現在のユーザレスポンス

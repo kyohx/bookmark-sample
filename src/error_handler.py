@@ -9,6 +9,7 @@ from .libs.log import get_logger
 from .repositories.base import BaseRepository
 from .services.authority import AuthorityService
 from .services.authorize import AuthorizeService
+from .services.token_blacklist import TokenBlacklistService
 from .usecases.base import UsecaseBase
 
 logger: Final = get_logger()
@@ -25,6 +26,13 @@ def add_error_handlers(app: FastAPI) -> None:
             status_code=status.HTTP_401_UNAUTHORIZED,
             content={"detail": str(exc)},
             headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    @app.exception_handler(TokenBlacklistService.Error)
+    async def blacklist_error_handler(request: Request, exc: TokenBlacklistService.Error):
+        return ORJSONResponse(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            content={"detail": str(exc)},
         )
 
     @app.exception_handler(AuthorityService.Error)

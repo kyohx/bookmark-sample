@@ -50,7 +50,7 @@ jobs:
       - name: Install python packages
         run: uv sync --all-extras
       - name: Setup DB container
-        run: docker compose up -d --quiet-pull --wait db
+        run: docker compose up -d --quiet-pull --wait db redis
       - name: Run tests
         run: uv run pytest
         env:
