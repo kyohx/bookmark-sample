@@ -50,8 +50,9 @@ jobs:
       - name: Install python packages
         run: uv sync --all-extras
       - name: Setup DB container
-        run: docker compose up -d --quiet-pull --wait db
+        run: docker compose up -d --quiet-pull --wait db redis
       - name: Run tests
         run: uv run pytest
         env:
           TEST_DB_HOST: localhost
+          REDIS_URL: redis://localhost:6379/0?decode_responses=True

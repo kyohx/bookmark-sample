@@ -1,5 +1,6 @@
 import pytest
 from fastapi.testclient import TestClient
+from redis import Redis
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine.url import URL
 from sqlalchemy.orm import Session, scoped_session, sessionmaker
@@ -23,6 +24,9 @@ TEST_TAG_NAME = "test_tag"
 TEST_TAGS = ["test_tag1", "test_tag2"]
 TEST_PASSWORD = "test_password"
 TEST_HASHED_PASSWORD = AuthorizeService.get_hashed_password(TEST_PASSWORD)
+
+if not _config.redis_url:
+    raise Exception("Redis is not configured")
 
 
 class SessionForTest(Session):
@@ -136,7 +140,7 @@ def mock_get_disabled_user_from_token() -> None:
 
 
 @pytest.fixture(scope="function", autouse=True)
-def scope_funtion_test():
+def scope_function_test():
     """
     テスト関数単位の事前事後処理
     """
@@ -149,6 +153,10 @@ def scope_funtion_test():
     app.dependency_overrides = {}
     # セッション依存処理をテスト用に置き換え
     app.dependency_overrides[get_session] = get_session_for_testing
+
+    # Redisのデータをリセット
+    client = Redis.from_url(_config.redis_url)
+    client.flushdb()
 
     yield  # テスト関数実行
 

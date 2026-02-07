@@ -3,7 +3,7 @@
   "info": {
     "title": "Bookmark API",
     "description": "API for bookmarking web page URL",
-    "version": "0.7.0.260207"
+    "version": "0.8.0.260207"
   },
   "paths": {
     "/token": {
@@ -88,6 +88,128 @@
             }
           }
         }
+      }
+    },
+    "/auth/blacklist": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Add Blacklist",
+        "description": "リフレッシュトークンブラックリストに追加する(管理者のみ)",
+        "operationId": "add_blacklist_auth_blacklist_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/RequestForBlacklistAddJti"
+                  },
+                  {
+                    "$ref": "#/components/schemas/RequestForBlacklistAddUserFamily"
+                  }
+                ],
+                "title": "Body",
+                "discriminator": {
+                  "propertyName": "mode",
+                  "mapping": {
+                    "jti": "#/components/schemas/RequestForBlacklistAddJti",
+                    "user_family": "#/components/schemas/RequestForBlacklistAddUserFamily"
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseForBlacklistOperation"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Delete Blacklist",
+        "description": "リフレッシュトークンブラックリストから削除する(管理者のみ)",
+        "operationId": "delete_blacklist_auth_blacklist_delete",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/RequestForBlacklistDeleteJti"
+                  },
+                  {
+                    "$ref": "#/components/schemas/RequestForBlacklistDeleteUserFamily"
+                  }
+                ],
+                "title": "Body",
+                "discriminator": {
+                  "propertyName": "mode",
+                  "mapping": {
+                    "jti": "#/components/schemas/RequestForBlacklistDeleteJti",
+                    "user_family": "#/components/schemas/RequestForBlacklistDeleteUserFamily"
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseForBlacklistOperation"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
       }
     },
     "/me": {
@@ -867,6 +989,130 @@
           }
         ]
       },
+      "RequestForBlacklistAddJti": {
+        "properties": {
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 1000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "mode": {
+            "type": "string",
+            "const": "jti",
+            "title": "Mode"
+          },
+          "jti": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Jti"
+          }
+        },
+        "type": "object",
+        "required": [
+          "mode",
+          "jti"
+        ],
+        "title": "RequestForBlacklistAddJti"
+      },
+      "RequestForBlacklistAddUserFamily": {
+        "properties": {
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 1000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "mode": {
+            "type": "string",
+            "const": "user_family",
+            "title": "Mode"
+          },
+          "user": {
+            "type": "string",
+            "maxLength": 32,
+            "minLength": 1,
+            "pattern": "^[a-zA-Z0-9_]+$",
+            "title": "User"
+          },
+          "family": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Family"
+          }
+        },
+        "type": "object",
+        "required": [
+          "mode",
+          "user",
+          "family"
+        ],
+        "title": "RequestForBlacklistAddUserFamily"
+      },
+      "RequestForBlacklistDeleteJti": {
+        "properties": {
+          "mode": {
+            "type": "string",
+            "const": "jti",
+            "title": "Mode"
+          },
+          "jti": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Jti"
+          }
+        },
+        "type": "object",
+        "required": [
+          "mode",
+          "jti"
+        ],
+        "title": "RequestForBlacklistDeleteJti"
+      },
+      "RequestForBlacklistDeleteUserFamily": {
+        "properties": {
+          "mode": {
+            "type": "string",
+            "const": "user_family",
+            "title": "Mode"
+          },
+          "user": {
+            "type": "string",
+            "maxLength": 32,
+            "minLength": 1,
+            "pattern": "^[a-zA-Z0-9_]+$",
+            "title": "User"
+          },
+          "family": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Family"
+          }
+        },
+        "type": "object",
+        "required": [
+          "mode",
+          "user",
+          "family"
+        ],
+        "title": "RequestForBlacklistDeleteUserFamily"
+      },
       "RequestForRefreshToken": {
         "properties": {
           "refresh_token": {
@@ -1019,6 +1265,24 @@
         "properties": {},
         "type": "object",
         "title": "ResponseForAddUser"
+      },
+      "ResponseForBlacklistOperation": {
+        "properties": {
+          "detail": {
+            "type": "string",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "required": [
+          "detail"
+        ],
+        "title": "ResponseForBlacklistOperation",
+        "examples": [
+          {
+            "detail": "ok"
+          }
+        ]
       },
       "ResponseForDeleteBookmark": {
         "properties": {},
@@ -1173,7 +1437,7 @@
         "title": "ResponseForGetVersion",
         "examples": [
           {
-            "version": "0.7.0.260207"
+            "version": "0.8.0.260207"
           }
         ]
       },

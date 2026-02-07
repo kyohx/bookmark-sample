@@ -13,6 +13,9 @@ services:
       DATABASE_PASSWORD: root
       DATABASE_NAME: app
       DATABASE_DEBUG: 1
+      REDIS_URL: redis://redis:6379/0?decode_responses=True
+      REDIS_FAIL_OPEN: 1
+      REDIS_BLACKLIST_DEFAULT_TTL_DAYS: 14
     tty: true
     volumes:
       - ./:/opt/app
@@ -20,6 +23,8 @@ services:
       - 8000:8000
     depends_on:
       db:
+        condition: service_healthy
+      redis:
         condition: service_healthy
   # DB (mysql)
   db:
@@ -42,6 +47,21 @@ services:
       interval: 60s
       timeout: 5s
       retries: 10
+
+  # Redis
+  redis:
+    image: redis:7.4-alpine
+    container_name: redis
+    hostname: redis
+    ports:
+      - 6379:6379
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      start_period: 60s
+      start_interval: 1s
+      interval: 60s
+      timeout: 5s
+      retries: 5
 
 volumes:
   db-store:

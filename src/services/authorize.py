@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Annotated
+from uuid import uuid4
 
 import jwt
 from fastapi import Depends
@@ -15,6 +16,7 @@ from ..dao.session import SessionDepend
 from ..entities.user import UserEntity
 from ..repositories.user import UserRepository
 from .base import ServiceBase, ServiceError
+from .token_blacklist import TokenBlacklistService
 
 
 class Token(BaseModel):
@@ -84,6 +86,12 @@ class AuthorizeService(ServiceBase):
         self.jwt_secret_key = self.config.jwt_secret_key
         self.refresh_token_expire_days = self.config.refresh_token_expire_days
         self.access_token_expire_minutes = self.config.access_token_expire_minutes
+        self.blacklist_service = TokenBlacklistService()
+
+    @staticmethod
+    def _get_ttl_seconds(expire_at: int) -> int:
+        now = int(datetime.now(timezone.utc).timestamp())
+        return max(expire_at - now, 0)
 
     @classmethod
     def verify_password(cls, plain_password: str, hashed_password: str) -> bool:
@@ -234,11 +242,20 @@ class AuthorizeService(ServiceBase):
             raise self.Error("Inactive user")
         access_token_expires = timedelta(minutes=self.access_token_expire_minutes)
         refresh_token_expires = timedelta(days=self.refresh_token_expire_days)
+        family = uuid4().hex
+        refresh_jti = uuid4().hex
         access_token = self.create_access_token(
             data={"sub": user.name}, expires_delta=access_token_expires
         )
         refresh_token = self.create_refresh_token(
-            data={"sub": user.name}, expires_delta=refresh_token_expires
+            data={"sub": user.name, "jti": refresh_jti, "fam": family},
+            expires_delta=refresh_token_expires,
+        )
+        self.blacklist_service.set_current_jti(
+            user.name,
+            family,
+            refresh_jti,
+            int(refresh_token_expires.total_seconds()),
         )
         return Token(
             access_token=access_token,
@@ -258,7 +275,25 @@ class AuthorizeService(ServiceBase):
         """
         payload = self._decode_token(refresh_token, expected_type=TokenType.REFRESH)
         username = payload.get("sub")
-        if not username:
+        refresh_jti = payload.get("jti")
+        family = payload.get("fam")
+        exp = payload.get("exp")
+        if not username or not refresh_jti or not family or not exp:
+            raise self.Error("Could not validate credentials")
+
+        if self.blacklist_service.is_jti_denied(refresh_jti):
+            raise self.Error("Could not validate credentials")
+
+        if self.blacklist_service.is_family_denied(username, family):
+            raise self.Error("Could not validate credentials")
+
+        current_jti = self.blacklist_service.get_current_jti(username, family)
+        if current_jti and current_jti != refresh_jti:
+            ttl_seconds = self._get_ttl_seconds(exp)
+            self.blacklist_service.deny_family(
+                username, family, ttl_seconds, reason="reuse detected"
+            )
+            self.blacklist_service.deny_jti(refresh_jti, ttl_seconds, reason="reuse detected")
             raise self.Error("Could not validate credentials")
         user = self.get_user(name=username)
         if user.disabled:
@@ -266,12 +301,18 @@ class AuthorizeService(ServiceBase):
 
         access_token_expires = timedelta(minutes=self.access_token_expire_minutes)
         refresh_token_expires = timedelta(days=self.refresh_token_expire_days)
+        new_refresh_jti = uuid4().hex
         new_access_token = self.create_access_token(
             data={"sub": user.name}, expires_delta=access_token_expires
         )
         new_refresh_token = self.create_refresh_token(
-            data={"sub": user.name}, expires_delta=refresh_token_expires
+            data={"sub": user.name, "jti": new_refresh_jti, "fam": family},
+            expires_delta=refresh_token_expires,
         )
+        ttl_seconds_old = self._get_ttl_seconds(exp)
+        ttl_seconds_new = int(refresh_token_expires.total_seconds())
+        self.blacklist_service.deny_jti(refresh_jti, ttl_seconds_old, reason="rotated")
+        self.blacklist_service.set_current_jti(user.name, family, new_refresh_jti, ttl_seconds_new)
         return Token(
             access_token=new_access_token,
             refresh_token=new_refresh_token,
