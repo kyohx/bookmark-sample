@@ -25,6 +25,9 @@ TEST_TAGS = ["test_tag1", "test_tag2"]
 TEST_PASSWORD = "test_password"
 TEST_HASHED_PASSWORD = AuthorizeService.get_hashed_password(TEST_PASSWORD)
 
+if not _config.redis_url:
+    raise Exception("Redis is not configured")
+
 
 class SessionForTest(Session):
     """
@@ -136,35 +139,8 @@ def mock_get_disabled_user_from_token() -> None:
     app.dependency_overrides[get_current_user_from_token] = get_user_from_token_for_testing
 
 
-@pytest.fixture
-def redis_client():
-    """
-    テスト用Redisクライアント
-    """
-    if not _config.redis_url:
-        pytest.skip("Redis is not configured")
-    client = Redis.from_url(_config.redis_url, decode_responses=True)
-    client.flushdb()
-    yield client
-    client.flushdb()
-
-
 @pytest.fixture(scope="function", autouse=True)
-def clear_redis():
-    """
-    Redisのテストデータをクリアする
-    """
-    if not _config.redis_url:
-        yield
-        return
-    client = Redis.from_url(_config.redis_url, decode_responses=True)
-    client.flushdb()
-    yield
-    client.flushdb()
-
-
-@pytest.fixture(scope="function", autouse=True)
-def scope_funtion_test():
+def scope_function_test():
     """
     テスト関数単位の事前事後処理
     """
@@ -177,6 +153,10 @@ def scope_funtion_test():
     app.dependency_overrides = {}
     # セッション依存処理をテスト用に置き換え
     app.dependency_overrides[get_session] = get_session_for_testing
+
+    # Redisのデータをリセット
+    client = Redis.from_url(_config.redis_url)
+    client.flushdb()
 
     yield  # テスト関数実行
 

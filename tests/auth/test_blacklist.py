@@ -27,7 +27,6 @@ class TestBlacklist(BaseTest):
         self,
         client: TestClient,
         db_session: SessionForTest,
-        redis_client,
         mock_get_current_active_user: None,
     ):
         """
@@ -64,7 +63,6 @@ class TestBlacklist(BaseTest):
         self,
         client: TestClient,
         db_session: SessionForTest,
-        redis_client,
         mock_get_current_active_user: None,
     ):
         """
@@ -106,7 +104,6 @@ class TestBlacklist(BaseTest):
         self,
         client: TestClient,
         db_session: SessionForTest,
-        redis_client,
         mock_get_current_active_user: None,
     ):
         """
@@ -149,7 +146,6 @@ class TestBlacklist(BaseTest):
         self,
         client: TestClient,
         db_session: SessionForTest,
-        redis_client,
         mock_get_current_active_user: None,
     ):
         """
@@ -201,7 +197,6 @@ class TestBlacklist(BaseTest):
         self,
         client: TestClient,
         db_session: SessionForTest,
-        redis_client,
         mock_get_current_active_not_admin_user: None,
     ):
         """
