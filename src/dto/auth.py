@@ -1,6 +1,4 @@
-from typing import Annotated, Literal, Union
-
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict
 
 from ..libs.constraints import (
     FIELD_STRING_FAMILY,
@@ -43,49 +41,12 @@ class RequestForBlacklistAddReason(BaseModel):
 
 
 class RequestForBlacklistAddJti(RequestForBlacklistAddReason):
-    mode: Literal["jti"]
     jti: FIELD_STRING_JTI
 
 
-class RequestForBlacklistAddUserFamily(RequestForBlacklistAddReason):
-    mode: Literal["user_family"]
+class RequestForBlacklistAddFamily(RequestForBlacklistAddReason):
     user: FIELD_STRING_USERNAME
     family: FIELD_STRING_FAMILY
-
-
-RequestForBlacklistAdd = Annotated[
-    Union[RequestForBlacklistAddJti, RequestForBlacklistAddUserFamily],
-    Field(discriminator="mode"),
-]
-
-
-class RequestForBlacklistDeleteJti(BaseModel):
-    mode: Literal["jti"]
-    jti: FIELD_STRING_JTI
-
-
-class RequestForBlacklistDeleteUserFamily(BaseModel):
-    mode: Literal["user_family"]
-    user: FIELD_STRING_USERNAME
-    family: FIELD_STRING_FAMILY
-
-
-RequestForBlacklistDelete = Annotated[
-    Union[RequestForBlacklistDeleteJti, RequestForBlacklistDeleteUserFamily],
-    Field(discriminator="mode"),
-]
-
-
-class ResponseForBlacklistOperation(BaseModel):
-    detail: str
-
-    model_config = ConfigDict(
-        json_schema_extra={
-            "examples": [
-                {"detail": "ok"},
-            ]
-        }
-    )
 
 
 ## 現在のユーザレスポンス

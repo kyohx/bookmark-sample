@@ -1,23 +1,22 @@
 from typing import Annotated, Final
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Response, status
 from fastapi.security import OAuth2PasswordRequestForm
 
 from ..dao.session import SessionDepend
 from ..dto.auth import (
-    RequestForBlacklistAdd,
-    RequestForBlacklistDelete,
+    RequestForBlacklistAddFamily,
+    RequestForBlacklistAddJti,
     RequestForRefreshToken,
-    ResponseForBlacklistOperation,
     ResponseForGetCurrentUser,
     ResponseForLogin,
     ResponseForRefreshToken,
 )
+from ..libs.constraints import FIELD_STRING_FAMILY, FIELD_STRING_JTI, FIELD_STRING_USERNAME
 from ..libs.enum import AuthorityEnum
 from ..libs.openapi_tags import TagNameEnum
-from ..services.authority import AuthorityService
 from ..services.authorize import AuthorizeService, UserDepends
-from ..services.token_blacklist import TokenBlacklistService
+from ..usecases.blacklist import BlacklistUsecase
 
 router: Final[APIRouter] = APIRouter()
 tagname: Final[str] = TagNameEnum.AUTH.value
@@ -43,54 +42,95 @@ def login(
     response_model=ResponseForRefreshToken,
 )
 def refresh_token(
-    body: RequestForRefreshToken,
+    req: RequestForRefreshToken,
     session: SessionDepend,
 ) -> ResponseForRefreshToken:
     """
     リフレッシュトークンからアクセストークンを再発行する
     """
-    res = AuthorizeService(session=session).refresh(body.refresh_token)
+    res = AuthorizeService(session=session).refresh(req.refresh_token)
     return ResponseForRefreshToken(**res.model_dump())
 
 
 @router.post(
-    "/auth/blacklist",
-    response_model=ResponseForBlacklistOperation,
+    "/auth/blacklist/jti",
+    status_code=status.HTTP_204_NO_CONTENT,
 )
-def add_blacklist(
-    body: RequestForBlacklistAdd,
+def add_blacklist_jti(
+    req: RequestForBlacklistAddJti,
+    session: SessionDepend,
     user: UserDepends,
-) -> ResponseForBlacklistOperation:
+) -> Response:
     """
-    リフレッシュトークンブラックリストに追加する(管理者のみ)
+    jtiをリフレッシュトークンブラックリストに追加する(管理者のみ)
     """
-    AuthorityService(user).check_authority(AuthorityEnum.ADMIN)
-    service = TokenBlacklistService()
-    if body.mode == "jti":
-        service.deny_jti(body.jti, None, body.reason)
-    else:
-        service.deny_family(body.user, body.family, None, body.reason)
-    return ResponseForBlacklistOperation(detail="ok")
+    BlacklistUsecase(
+        session=session,
+        user=user,
+        required_authority=AuthorityEnum.ADMIN,
+    ).add_jti(req)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.post(
+    "/auth/blacklist/family",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+def add_blacklist_family(
+    req: RequestForBlacklistAddFamily,
+    session: SessionDepend,
+    user: UserDepends,
+) -> Response:
+    """
+    user+familyをリフレッシュトークンブラックリストに追加する(管理者のみ)
+    """
+    BlacklistUsecase(
+        session=session,
+        user=user,
+        required_authority=AuthorityEnum.ADMIN,
+    ).add_family(req)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 @router.delete(
-    "/auth/blacklist",
-    response_model=ResponseForBlacklistOperation,
+    "/auth/blacklist/jti/{jti}",
+    status_code=status.HTTP_204_NO_CONTENT,
 )
-def delete_blacklist(
-    body: RequestForBlacklistDelete,
+def delete_blacklist_jti(
+    jti: FIELD_STRING_JTI,
+    session: SessionDepend,
     user: UserDepends,
-) -> ResponseForBlacklistOperation:
+) -> Response:
     """
-    リフレッシュトークンブラックリストから削除する(管理者のみ)
+    jtiのリフレッシュトークンブラックリストを削除する(管理者のみ)
     """
-    AuthorityService(user).check_authority(AuthorityEnum.ADMIN)
-    service = TokenBlacklistService()
-    if body.mode == "jti":
-        service.remove_jti(body.jti)
-    else:
-        service.remove_family(body.user, body.family)
-    return ResponseForBlacklistOperation(detail="ok")
+    BlacklistUsecase(
+        session=session,
+        user=user,
+        required_authority=AuthorityEnum.ADMIN,
+    ).delete_jti(jti)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.delete(
+    "/auth/blacklist/family/{user}/{family}",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+def delete_blacklist_family(
+    user: FIELD_STRING_USERNAME,
+    family: FIELD_STRING_FAMILY,
+    session: SessionDepend,
+    current_user: UserDepends,
+) -> Response:
+    """
+    user+familyのリフレッシュトークンブラックリストを削除する(管理者のみ)
+    """
+    BlacklistUsecase(
+        session=session,
+        user=current_user,
+        required_authority=AuthorityEnum.ADMIN,
+    ).delete_family(user, family)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 @router.get(
