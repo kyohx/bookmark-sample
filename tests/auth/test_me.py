@@ -63,5 +63,4 @@ class TestMe(BaseTest):
         response = client.get(self.api_path())
 
         # レスポンスの検証
-        print(response.json())
         assert response.status_code == 401

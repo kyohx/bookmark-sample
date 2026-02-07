@@ -39,7 +39,6 @@ def get_redis_client() -> Redis | None:
     if _redis_client is None:
         try:
             redis_url = _merge_redis_url_query(_config.redis_url)
-            print(f"Connecting to Redis at {redis_url}")
             _redis_client = Redis.from_url(redis_url)
         except RedisError as exc:
             _logger.warning("Redis connection failed: %s", exc)
