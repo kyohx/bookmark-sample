@@ -19,7 +19,7 @@ Web URL ブックマーク管理API (サンプルコード)
 
 - Web API: FastAPI + uvicorn
 - DB: MySQL 8.4
-- KVS: Redis 7.4
+- KVS: Redis 8.6
 
 ## ディレクトリ/ファイル構成
 
