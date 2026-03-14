@@ -135,6 +135,30 @@ class TestRefreshToken(BaseTest):
         response = client.post(self.api_path(), json={})
         assert response.status_code == 422
 
+    def test_refresh_token_too_long(
+        self,
+        client: TestClient,
+        db_session: SessionForTest,
+    ):
+        """
+        異常系:
+        リフレッシュトークンが最大長を超過
+        """
+        response = client.post(self.api_path(), json={"refresh_token": "a" * 2049})
+        assert response.status_code == 422
+
+    def test_refresh_token_empty_string(
+        self,
+        client: TestClient,
+        db_session: SessionForTest,
+    ):
+        """
+        異常系:
+        リフレッシュトークンが空文字
+        """
+        response = client.post(self.api_path(), json={"refresh_token": ""})
+        assert response.status_code == 422
+
     def test_refresh_expired_token(
         self,
         client: TestClient,

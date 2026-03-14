@@ -19,6 +19,7 @@ FIELD_STRING_MAX400 = Annotated[str, StringConstraints(max_length=400)]
 FIELD_STRING_JTI = Annotated[str, StringConstraints(min_length=1, max_length=128)]
 FIELD_STRING_FAMILY = Annotated[str, StringConstraints(min_length=1, max_length=128)]
 FIELD_STRING_REASON = Annotated[str, StringConstraints(max_length=1000)]
+FIELD_STRING_REFRESH_TOKEN = Annotated[str, StringConstraints(min_length=1, max_length=2048)]
 FIELD_TAGS = Annotated[
     Annotated[
         list[Annotated[str, StringConstraints(min_length=1, max_length=100)]],
