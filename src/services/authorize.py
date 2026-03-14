@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta, timezone
 from enum import Enum
-from typing import Annotated
+from typing import Annotated, Final
 from uuid import uuid4
 
 import jwt
@@ -146,6 +146,9 @@ class AuthorizeService(ServiceBase):
         try:
             user = self.get_user(name)
         except UserRepository.NotFoundError:
+            # ユーザーが存在しない場合もダミーのハッシュ検証を行い、
+            # 応答時間からユーザー名の存在有無を推測されないようにする。
+            self.verify_password(password, _DUMMY_HASHED_PASSWORD)
             return None
         if not self.verify_password(password, user.hashed_password):
             return None
@@ -349,6 +352,9 @@ class AuthorizeService(ServiceBase):
         except (ValidationError, UserRepository.NotFoundError, self.Error):
             raise self.Error("Could not validate credentials")
         return user
+
+
+_DUMMY_HASHED_PASSWORD: Final[str] = AuthorizeService.get_hashed_password("dummy")
 
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
