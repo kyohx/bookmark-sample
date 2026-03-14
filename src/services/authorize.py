@@ -235,6 +235,13 @@ class AuthorizeService(ServiceBase):
         Returns:
             作成されたアクセストークン
         """
+        from ..dto.auth import RequestForLogin
+
+        try:
+            RequestForLogin(username=form_data.username, password=form_data.password)
+        except ValidationError:
+            raise self.Error("Incorrect username or password")
+
         user = self.authenticate_user(form_data.username, form_data.password)
         if not user:
             raise self.Error("Incorrect username or password")

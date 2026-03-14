@@ -169,3 +169,45 @@ class TestLogin(BaseTest):
 
         # レスポンスの検証
         assert response.status_code == 422
+
+    def test_login_username_too_long(
+        self,
+        client: TestClient,
+        db_session: SessionForTest,
+    ):
+        """
+        異常系:
+        ユーザ名が最大長を超過
+        """
+        # リクエストボディの作成
+        request_body = {
+            "username": "a" * 33,
+            "password": TEST_PASSWORD,
+        }
+
+        # リクエストの送信
+        response = client.post(self.api_path(), data=request_body)
+
+        # レスポンスの検証
+        assert response.status_code == 401
+
+    def test_login_password_too_long(
+        self,
+        client: TestClient,
+        db_session: SessionForTest,
+    ):
+        """
+        異常系:
+        パスワードが最大長を超過
+        """
+        # リクエストボディの作成
+        request_body = {
+            "username": "test_user",
+            "password": "a" * 65,
+        }
+
+        # リクエストの送信
+        response = client.post(self.api_path(), data=request_body)
+
+        # レスポンスの検証
+        assert response.status_code == 401

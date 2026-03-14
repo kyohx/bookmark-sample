@@ -3,11 +3,21 @@ from pydantic import BaseModel, ConfigDict
 from ..libs.constraints import (
     FIELD_STRING_FAMILY,
     FIELD_STRING_JTI,
+    FIELD_STRING_PASSWORD,
     FIELD_STRING_REASON,
+    FIELD_STRING_REFRESH_TOKEN,
     FIELD_STRING_USERNAME,
 )
 from ..libs.enum import AuthorityEnum
 from ..services.authorize import Token
+
+
+## ログイン入力バリデーション
+class RequestForLogin(BaseModel):
+    username: FIELD_STRING_USERNAME
+    "ユーザー名"
+    password: FIELD_STRING_PASSWORD
+    "パスワード"
 
 
 ## ログインレスポンス
@@ -17,7 +27,7 @@ class ResponseForLogin(Token):
 
 ## リフレッシュトークンリクエスト
 class RequestForRefreshToken(BaseModel):
-    refresh_token: str
+    refresh_token: FIELD_STRING_REFRESH_TOKEN
     "リフレッシュトークン"
 
     model_config = ConfigDict(

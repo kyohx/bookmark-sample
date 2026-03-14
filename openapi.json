@@ -3,7 +3,7 @@
   "info": {
     "title": "Bookmark API",
     "description": "API for bookmarking web page URL",
-    "version": "0.9.0.260207"
+    "version": "0.10.0.260314"
   },
   "paths": {
     "/token": {
@@ -1111,6 +1111,8 @@
         "properties": {
           "refresh_token": {
             "type": "string",
+            "maxLength": 2048,
+            "minLength": 1,
             "title": "Refresh Token"
           }
         },
@@ -1413,7 +1415,7 @@
         "title": "ResponseForGetVersion",
         "examples": [
           {
-            "version": "0.9.0.260207"
+            "version": "0.10.0.260314"
           }
         ]
       },
