@@ -9,7 +9,32 @@ from ..libs.constraints import (
     FIELD_STRING_USERNAME,
 )
 from ..libs.enum import AuthorityEnum
-from ..services.authorize import Token
+
+
+class Token(BaseModel):
+    """
+    アクセストークン
+    """
+
+    access_token: str
+    "アクセストークン"
+    refresh_token: str
+    "リフレッシュトークン"
+    token_type: str
+    "トークンの種類"
+
+    model_config = ConfigDict(
+        frozen=True,
+        json_schema_extra={
+            "examples": [
+                {
+                    "access_token": "XXXXXXXXXXXXXXX.XXXXXXXXXXXXXXXXXXXXX.XXXXXXXXXXXXXXXX",
+                    "refresh_token": "YYYYYYYYYYYYYYY.YYYYYYYYYYYYYYYYY.YYYYYYYYYYYYYYYYYYYY",
+                    "token_type": "bearer",
+                }
+            ]
+        },
+    )
 
 
 ## ログイン入力バリデーション

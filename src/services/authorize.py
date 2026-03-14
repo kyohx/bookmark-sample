@@ -13,36 +13,11 @@ from pydantic import BaseModel, ConfigDict, ValidationError
 from sqlalchemy.orm.session import Session
 
 from ..dao.session import SessionDepend
+from ..dto.auth import RequestForLogin, Token
 from ..entities.user import UserEntity
 from ..repositories.user import UserRepository
 from .base import ServiceBase, ServiceError
 from .token_blacklist import TokenBlacklistService
-
-
-class Token(BaseModel):
-    """
-    アクセストークン
-    """
-
-    access_token: str
-    "アクセストークン"
-    refresh_token: str
-    "リフレッシュトークン"
-    token_type: str
-    "トークンの種類"
-
-    model_config = ConfigDict(
-        frozen=True,
-        json_schema_extra={
-            "examples": [
-                {
-                    "access_token": "XXXXXXXXXXXXXXX.XXXXXXXXXXXXXXXXXXXXX.XXXXXXXXXXXXXXXX",
-                    "refresh_token": "YYYYYYYYYYYYYYY.YYYYYYYYYYYYYYYYY.YYYYYYYYYYYYYYYYYYYY",
-                    "token_type": "bearer",
-                }
-            ]
-        },
-    )
 
 
 class TokenData(BaseModel):
@@ -238,8 +213,6 @@ class AuthorizeService(ServiceBase):
         Returns:
             作成されたアクセストークン
         """
-        from ..dto.auth import RequestForLogin
-
         try:
             RequestForLogin(username=form_data.username, password=form_data.password)
         except ValidationError:
