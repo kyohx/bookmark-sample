@@ -18,8 +18,16 @@ def _merge_redis_url_query(redis_url: str) -> str:
 
     if "decode_responses" not in existing_keys:
         query_params.append(("decode_responses", "True"))
-    if parts.scheme == "rediss" and "ssl_cert_reqs" not in existing_keys:
-        query_params.append(("ssl_cert_reqs", "none"))
+    if parts.scheme == "rediss":
+        if "ssl_cert_reqs" not in existing_keys:
+            ssl_cert_reqs = "required" if _config.redis_ssl_verify_cert else "none"
+            query_params.append(("ssl_cert_reqs", ssl_cert_reqs))
+        if _config.redis_ssl_ca_certs and "ssl_ca_certs" not in existing_keys:
+            query_params.append(("ssl_ca_certs", _config.redis_ssl_ca_certs))
+        if _config.redis_ssl_certfile and "ssl_certfile" not in existing_keys:
+            query_params.append(("ssl_certfile", _config.redis_ssl_certfile))
+        if _config.redis_ssl_keyfile and "ssl_keyfile" not in existing_keys:
+            query_params.append(("ssl_keyfile", _config.redis_ssl_keyfile))
 
     new_query = urlencode(query_params, doseq=True)
     return urlunsplit((parts.scheme, parts.netloc, parts.path, new_query, parts.fragment))

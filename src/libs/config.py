@@ -38,6 +38,14 @@ class Config(BaseModel):
     "アクセストークンの有効期限(分)"
     redis_url: str
     "Redis接続URL"
+    redis_ssl_verify_cert: bool
+    "rediss:// 使用時にSSL証明書を検証するか"
+    redis_ssl_ca_certs: str
+    "CA証明書ファイルパス"
+    redis_ssl_certfile: str
+    "クライアント証明書ファイルパス (mTLS用)"
+    redis_ssl_keyfile: str
+    "クライアント秘密鍵ファイルパス (mTLS用)"
     redis_fail_open: bool
     "Redis障害時のフェイルオープン設定"
     redis_blacklist_default_ttl_days: int
@@ -67,6 +75,10 @@ _config = Config(
     refresh_token_expire_days=_refresh_days,
     access_token_expire_minutes=int(env.get("ACCESS_TOKEN_EXPIRE_MINUTES", 20)),
     redis_url=env.get("REDIS_URL", ""),
+    redis_ssl_verify_cert=bool(int(env.get("REDIS_SSL_VERIFY_CERT", 0))),
+    redis_ssl_ca_certs=env.get("REDIS_SSL_CA_CERTS", ""),
+    redis_ssl_certfile=env.get("REDIS_SSL_CERTFILE", ""),
+    redis_ssl_keyfile=env.get("REDIS_SSL_KEYFILE", ""),
     redis_fail_open=bool(int(env.get("REDIS_FAIL_OPEN", 1))),
     redis_blacklist_default_ttl_days=_blacklist_default_ttl_days,
 )
