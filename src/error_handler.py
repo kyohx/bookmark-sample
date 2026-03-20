@@ -2,7 +2,7 @@ from typing import Final
 
 import pymysql.constants.ER as errcode
 from fastapi import FastAPI, Request, status
-from fastapi.responses import ORJSONResponse
+from fastapi.responses import JSONResponse
 from sqlalchemy.exc import IntegrityError, OperationalError
 
 from .libs.log import get_logger
@@ -22,7 +22,7 @@ def add_error_handlers(app: FastAPI) -> None:
 
     @app.exception_handler(AuthorizeService.Error)
     async def auth_error_handler(request: Request, exc: AuthorizeService.Error):
-        return ORJSONResponse(
+        return JSONResponse(
             status_code=status.HTTP_401_UNAUTHORIZED,
             content={"detail": str(exc)},
             headers={"WWW-Authenticate": "Bearer"},
@@ -30,28 +30,28 @@ def add_error_handlers(app: FastAPI) -> None:
 
     @app.exception_handler(TokenBlacklistService.Error)
     async def blacklist_error_handler(request: Request, exc: TokenBlacklistService.Error):
-        return ORJSONResponse(
+        return JSONResponse(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             content={"detail": str(exc)},
         )
 
     @app.exception_handler(AuthorityService.Error)
     async def authority_error_handler(request: Request, exc: AuthorityService.Error):
-        return ORJSONResponse(
+        return JSONResponse(
             status_code=status.HTTP_403_FORBIDDEN,
             content={"detail": str(exc)},
         )
 
     @app.exception_handler(UsecaseBase.OperationError)
     async def operation_error_handler(request: Request, exc: UsecaseBase.OperationError):
-        return ORJSONResponse(
+        return JSONResponse(
             status_code=status.HTTP_400_BAD_REQUEST,
             content={"detail": str(exc)},
         )
 
     @app.exception_handler(BaseRepository.NotFoundError)
     async def not_found_handler(request: Request, exc: BaseRepository.NotFoundError):
-        return ORJSONResponse(
+        return JSONResponse(
             status_code=status.HTTP_404_NOT_FOUND,
             content={"detail": str(exc)},
         )
@@ -74,7 +74,7 @@ def add_error_handlers(app: FastAPI) -> None:
         # 異常系エラーはログにスタックトレースを出す
         if status_code == status.HTTP_500_INTERNAL_SERVER_ERROR:
             logger.exception(str(exc), exc_info=exc)
-        return ORJSONResponse(status_code=status_code, content={"detail": message})
+        return JSONResponse(status_code=status_code, content={"detail": message})
 
     @app.exception_handler(OperationalError)
     async def operational_error_handler(request: Request, exc: OperationalError):
@@ -90,4 +90,4 @@ def add_error_handlers(app: FastAPI) -> None:
         # 異常系エラーはログにスタックトレースを出す
         if status_code == status.HTTP_500_INTERNAL_SERVER_ERROR:
             logger.exception(str(exc), exc_info=exc)
-        return ORJSONResponse(status_code=status_code, content={"detail": message})
+        return JSONResponse(status_code=status_code, content={"detail": message})

@@ -1,4 +1,5 @@
-import orjson
+import json
+
 from fastapi import FastAPI
 
 from .main import app
@@ -6,7 +7,7 @@ from .main import app
 
 def generate_openapi_json(app: FastAPI) -> None:
     # OpenAPI JSON を標準出力へ出力
-    print(orjson.dumps(app.openapi(), option=orjson.OPT_INDENT_2).decode("utf-8"))
+    print(json.dumps(app.openapi(), indent=2, ensure_ascii=False))
 
 
 generate_openapi_json(app)
