@@ -1,7 +1,5 @@
 from fastapi import FastAPI
 from fastapi.middleware.gzip import GZipMiddleware
-from fastapi.responses import ORJSONResponse
-
 from .controllers import auth, bookmark, user, version
 from .error_handler import add_error_handlers
 from .libs.openapi_tags import OPENAPI_TAGS
@@ -17,7 +15,6 @@ def create_app() -> FastAPI:
         description="API for bookmarking web page URL",
         openapi_tags=OPENAPI_TAGS,
         version=APP_VERSION,
-        default_response_class=ORJSONResponse,
     )
 
     # gzip圧縮
