@@ -7,7 +7,7 @@ from src.dao.models.user import UserDao
 from src.libs.enum import AuthorityEnum
 from src.libs.util import get_hashed_id
 
-from .conftest import TEST_HASHED_PASSWORD
+from .support import TEST_HASHED_PASSWORD
 
 
 class DataFactory:

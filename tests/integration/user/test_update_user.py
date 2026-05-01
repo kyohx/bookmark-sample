@@ -4,9 +4,9 @@ from src.dao.models.user import UserDao
 from src.libs.enum import AuthorityEnum
 from src.main import app
 from src.services.authorize import AuthorizeService
-from tests.conftest import SessionForTest
 
 from ..base import BaseTest
+from ..support import SessionForTest
 
 
 class TestUpdateUser(BaseTest):
