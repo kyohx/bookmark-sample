@@ -6,9 +6,9 @@ from fastapi.testclient import TestClient
 from src.libs.enum import AuthorityEnum
 from src.main import app
 from src.services.authorize import AuthorizeService
-from tests.conftest import TEST_PASSWORD, SessionForTest
 
 from ..base import BaseTest
+from ..support import TEST_PASSWORD, SessionForTest
 
 
 class TestRefreshToken(BaseTest):

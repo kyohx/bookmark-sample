@@ -4,9 +4,9 @@ from src.entities.user import UserEntity
 from src.libs.enum import AuthorityEnum
 from src.main import app
 from src.services.authorize import get_current_active_user
-from tests.conftest import SessionForTest
 
 from ..base import BaseTest
+from ..support import SessionForTest
 
 
 class TestGetUser(BaseTest):

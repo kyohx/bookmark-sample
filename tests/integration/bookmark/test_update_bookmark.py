@@ -5,9 +5,9 @@ from src.dao.models.bookmark_tag import BookmarkTagDao
 from src.dao.models.tag import TagDao
 from src.libs.util import datetime_to_str
 from src.main import app
-from tests.conftest import SessionForTest
 
 from ..base import BaseTest
+from ..support import SessionForTest
 
 
 class TestUpdateBookmark(BaseTest):

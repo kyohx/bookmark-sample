@@ -3,9 +3,9 @@ from src.dao.models.bookmark_tag import BookmarkTagDao
 from src.dao.models.tag import TagDao
 from src.dao.models.user import UserDao
 from src.libs.enum import AuthorityEnum
-from tests.conftest import TEST_TAG_NAME, TEST_URL, SessionForTest
 
 from .factory import DataFactory
+from .support import TEST_TAG_NAME, TEST_URL, SessionForTest
 
 
 class BaseTest:

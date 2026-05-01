@@ -1,8 +1,14 @@
+from __future__ import annotations
+
+from functools import lru_cache
+from collections.abc import Iterator
+
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, text
+from sqlalchemy.engine import Engine
 from sqlalchemy.engine.url import URL
-from sqlalchemy.orm import Session, scoped_session, sessionmaker
+from sqlalchemy.orm import scoped_session, sessionmaker
 
 from src.dao.models.base import BaseDao
 from src.dao.session import get_session
@@ -10,33 +16,15 @@ from src.entities.user import UserEntity
 from src.libs.config import get_config
 from src.libs.enum import AuthorityEnum
 from src.main import app
-from src.services.authorize import (
-    AuthorizeService,
-    get_current_active_user,
-    get_current_user_from_token,
-)
+from src.services.authorize import get_current_active_user, get_current_user_from_token
+
+from .support import SessionForTest
 
 _config = get_config()
 
-TEST_URL = "https://example.com/test"
-TEST_TAG_NAME = "test_tag"
-TEST_TAGS = ["test_tag1", "test_tag2"]
-TEST_PASSWORD = "test_password"
-TEST_HASHED_PASSWORD = AuthorizeService.get_hashed_password(TEST_PASSWORD)
 
-
-class SessionForTest(Session):
-    """
-    テスト用セッション
-    """
-
-    def commit(self):
-        # 実際にコミットしないようにする
-        self.flush()
-        self.expire_all()
-
-
-def db_engine():
+@lru_cache
+def db_engine() -> Engine:
     """
     テスト用DBエンジン
     """
@@ -48,22 +36,20 @@ def db_engine():
         password="root",
         database="test_db",
     )
-
-    engine = create_engine(db_config, echo=True)
-    return engine
+    return create_engine(db_config, echo=True)
 
 
-engine = db_engine()
-
-get_test_session = scoped_session(
-    sessionmaker(
-        autocommit=False,
-        autoflush=False,
-        bind=engine,
-        class_=SessionForTest,
-        expire_on_commit=False,
+@lru_cache
+def get_test_session_factory() -> scoped_session[SessionForTest]:
+    return scoped_session(
+        sessionmaker(
+            autocommit=False,
+            autoflush=False,
+            bind=db_engine(),
+            class_=SessionForTest,
+            expire_on_commit=False,
+        )
     )
-)
 
 
 @pytest.fixture
@@ -71,11 +57,11 @@ def db_session() -> SessionForTest:
     """
     テスト用DBセッションメーカー
     """
-    return get_test_session()
+    return get_test_session_factory()()
 
 
 @pytest.fixture
-def client():
+def client() -> TestClient:
     """
     テスト用クライアント
     """
@@ -88,7 +74,7 @@ def mock_get_current_active_user() -> None:
     ログインユーザー依存処理のモック化
     """
 
-    def get_current_active_user_for_testing():
+    def get_current_active_user_for_testing() -> UserEntity:
         return UserEntity(
             name="test_user",
             hashed_password="****",
@@ -106,7 +92,7 @@ def mock_get_current_active_not_admin_user() -> None:
     (管理者権限ではないユーザーを返す)
     """
 
-    def get_current_active_user_for_testing():
+    def get_current_active_user_for_testing() -> UserEntity:
         return UserEntity(
             name="test_user",
             hashed_password="****",
@@ -124,7 +110,7 @@ def mock_get_disabled_user_from_token() -> None:
     (無効化されたユーザーを返す)
     """
 
-    def get_user_from_token_for_testing():
+    def get_user_from_token_for_testing() -> UserEntity:
         return UserEntity(
             name="test_user",
             hashed_password="****",
@@ -136,13 +122,13 @@ def mock_get_disabled_user_from_token() -> None:
 
 
 @pytest.fixture(scope="function", autouse=True)
-def scope_function_test():
+def scope_function_test() -> Iterator[None]:
     """
     テスト関数単位の事前事後処理
     """
-    session = get_test_session()
+    session = get_test_session_factory()()
 
-    def get_session_for_testing():
+    def get_session_for_testing() -> Iterator[SessionForTest]:
         yield session
 
     # テスト用依存処理をリセット
@@ -150,20 +136,24 @@ def scope_function_test():
     # セッション依存処理をテスト用に置き換え
     app.dependency_overrides[get_session] = get_session_for_testing
 
-    yield  # テスト関数実行
+    yield
 
     # DBにデータ内容を保存させないためロールバックする
     session.rollback()
+    session.close()
+    get_test_session_factory().remove()
 
 
 @pytest.fixture(scope="session", autouse=True)
-def truncate_tables() -> None:
+def truncate_tables() -> Iterator[None]:
     """
     テーブル内容削除
     """
-    with engine.connect() as con:
+    with db_engine().connect() as con:
         con.execute(text("SET FOREIGN_KEY_CHECKS = 0;"))
         for table in BaseDao.metadata.sorted_tables:
             con.execute(text(f"TRUNCATE TABLE {table.name};"))
         con.execute(text("SET FOREIGN_KEY_CHECKS = 1;"))
         con.commit()
+
+    yield
