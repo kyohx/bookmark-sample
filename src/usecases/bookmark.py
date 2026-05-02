@@ -47,7 +47,7 @@ class BookmarkUsecase(UsecaseBase):
         for k, v in request_body.model_dump(exclude_none=True).items():
             setattr(bookmark, k, v)
 
-        self.bookmark_repository.update_one(bookmark)
+        self.bookmark_repository.update_one(bookmark, current_hashed_id=hashed_id)
 
         return {"updated_bookmark": bookmark.model_dump()}
 
