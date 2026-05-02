@@ -4,7 +4,7 @@ from redis.exceptions import RedisError
 
 from ..libs.config import get_config
 from ..libs.log import get_logger
-from ..libs.redis_client import get_redis_client
+from ..libs.redis_client import get_blacklist_redis_client
 from .base import ServiceBase, ServiceError
 
 _logger = get_logger()
@@ -26,9 +26,9 @@ class TokenBlacklistService(ServiceBase):
         pass
 
     def __init__(self) -> None:
-        self.redis = get_redis_client()
-        self.fail_open = _config.redis_fail_open
-        self.default_ttl_seconds = _config.redis_blacklist_default_ttl_days * 24 * 60 * 60
+        self.redis = get_blacklist_redis_client()
+        self.fail_open = _config.blacklist_redis_fail_open
+        self.default_ttl_seconds = _config.blacklist_redis_default_ttl_days * 24 * 60 * 60
 
     def _handle_redis_error(self, exc: Exception, operation: str) -> None:
         """

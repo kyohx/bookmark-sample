@@ -13,9 +13,9 @@ services:
       DATABASE_PASSWORD: root
       DATABASE_NAME: app
       DATABASE_DEBUG: 1
-      REDIS_URL: redis://redis:6379/0
-      REDIS_FAIL_OPEN: 1
-      REDIS_BLACKLIST_DEFAULT_TTL_DAYS: 14
+      BLACKLIST_REDIS_URL: redis://redis:6379/0
+      BLACKLIST_REDIS_FAIL_OPEN: 1
+      BLACKLIST_REDIS_DEFAULT_TTL_DAYS: 14
     tty: true
     volumes:
       - ./:/opt/app

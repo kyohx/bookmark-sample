@@ -69,7 +69,7 @@ class UserUsecase(UsecaseBase):
             else:
                 setattr(user, k, v)
 
-        self.user_repository.update_one(user)
+        self.user_repository.update_one(user, current_name=name)
 
         return {"updated_user": user.to_response_dict()}
 

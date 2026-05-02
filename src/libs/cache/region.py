@@ -1,4 +1,4 @@
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from typing import Any, TypeVar
 
 from dogpile.cache import make_region
@@ -44,36 +44,47 @@ def create_memory_region(expiration_time: int = 300, zstd_level: int = 3) -> Cac
 
 
 def create_redis_region(
+    url: str | None = None,
     host: str = "localhost",
     port: int = 6379,
     db: int = 0,
     expiration_time: int = 3600,
     zstd_level: int = 3,
+    connection_kwargs: Mapping[str, Any] | None = None,
 ) -> CacheRegion:
     """
     zstd 圧縮対応の Redis キャッシュリージョンを生成する。
 
     Args:
+        url: Redis 接続URL
         host: Redis ホスト
         port: Redis ポート
         db: Redis DB 番号
         expiration_time: キャッシュ有効期限
         zstd_level: zstd 圧縮レベル
+        connection_kwargs: Redis クライアント生成時の追加引数
 
     Returns:
         生成したキャッシュリージョン
     """
     _register_backends()
+    arguments: dict[str, Any] = {
+        "expiration_time": expiration_time,
+        "zstd_level": zstd_level,
+    }
+    if url is not None:
+        arguments["url"] = url
+    else:
+        arguments["host"] = host
+        arguments["port"] = port
+        arguments["db"] = db
+    if connection_kwargs is not None:
+        arguments["connection_kwargs"] = dict(connection_kwargs)
+
     return make_region().configure(
         _REDIS_BACKEND_NAME,
         expiration_time=expiration_time,
-        arguments={
-            "host": host,
-            "port": port,
-            "db": db,
-            "expiration_time": expiration_time,
-            "zstd_level": zstd_level,
-        },
+        arguments=arguments,
     )
 
 

@@ -2,8 +2,9 @@ from collections.abc import Iterator
 
 import pytest
 from dogpile.cache.api import NO_VALUE
-from sqlalchemy import Integer, String, create_engine, inspect as sa_inspect
-from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column, sessionmaker
+from dogpile.cache.region import CacheRegion
+from sqlalchemy import Integer, String, inspect as sa_inspect
+from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column
 
 from src.libs.cache import NullCacheRegion, create_memory_region, create_redis_region, query_cache
 from src.libs.cache.key_generator import KeyGenerator
@@ -22,11 +23,8 @@ class Widget(Base):
 
 
 @pytest.fixture
-def session() -> Iterator[Session]:
-    engine = create_engine("sqlite:///:memory:")
-    Base.metadata.create_all(engine)
-    session_factory = sessionmaker(bind=engine, expire_on_commit=False)
-    with session_factory() as db_session:
+def session(sqlite_session_factory) -> Iterator[Session]:
+    with sqlite_session_factory(Base.metadata) as db_session:
         yield db_session
 
 
@@ -104,14 +102,14 @@ def test_template_key_generator_binds_argument_names(session: Session) -> None:
     assert key_func(session, 7) == "widget:7:False"
 
 
-def test_query_cache_caches_detached_model(session: Session) -> None:
+def test_query_cache_caches_detached_model(session: Session, memory_region: CacheRegion) -> None:
     """
     正常系:
     query_cache が detached な ORM オブジェクトをキャッシュする
     """
 
     # キャッシュリージョンとテストデータの準備
-    region = create_memory_region()
+    region = memory_region
     widget_id = _create_widget(session)
 
     class Repository:
@@ -177,14 +175,16 @@ def test_query_cache_supports_custom_session_and_region_attributes(session: Sess
     assert first_widget.id == second_widget.id == widget_id
 
 
-def test_query_cache_supports_function_style_with_session_argument(session: Session) -> None:
+def test_query_cache_supports_function_style_with_session_argument(
+    session: Session, memory_region: CacheRegion
+) -> None:
     """
     正常系:
     関数スタイルでも Session 引数からキャッシュできる
     """
 
     # キャッシュリージョンとテストデータの準備
-    region = create_memory_region()
+    region = memory_region
     widget_id = _create_widget(session)
     calls = 0
 
@@ -208,14 +208,14 @@ def test_query_cache_supports_function_style_with_session_argument(session: Sess
     assert sa_inspect(second_widget).detached
 
 
-def test_unless_skips_cache() -> None:
+def test_unless_skips_cache(memory_region: CacheRegion) -> None:
     """
     正常系:
     unless 条件が True の場合はキャッシュをスキップ
     """
 
     # キャッシュリージョンの準備
-    region = create_memory_region()
+    region = memory_region
     calls = 0
 
     # テスト対象関数の定義
