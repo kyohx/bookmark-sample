@@ -184,6 +184,6 @@ class BookmarkRepository(BaseRepository):
 
     def _find_by_tags_cache_key(self, tag_names: list[str]) -> str:
         version = self._get_cache_version("tag-list")
-        # 各タグ名をエスケープして連結し、区切り文字を含むタグでもキー衝突しないようにする。
-        normalized_tags = ",".join(quote(tag_name, safe="") for tag_name in sorted(tag_names))
+        # タグ順や重複に依存しないように正規化し、区切り文字を含むタグでもキー衝突しないようにする。
+        normalized_tags = ",".join(quote(tag_name, safe="") for tag_name in sorted(set(tag_names)))
         return f"bookmark:list:tags:{normalized_tags}:v:{version}:{self._page_cache_fragment()}"

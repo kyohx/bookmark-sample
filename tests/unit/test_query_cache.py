@@ -102,6 +102,33 @@ def test_template_key_generator_binds_argument_names(session: Session) -> None:
     assert key_func(session, 7) == "widget:7:False"
 
 
+def test_default_key_sorts_keyword_arguments(session: Session) -> None:
+    """
+    正常系:
+    デフォルトキー生成は kwargs の順序差を正規化する
+    """
+
+    # テスト対象関数の定義
+    def load_widget(
+        db: Session, widget_id: int, include_deleted: bool = False, limit: int = 10
+    ) -> None:
+        del db, widget_id, include_deleted, limit
+
+    # kwargs の投入順が違っても、同じキーに正規化されることを確認する。
+    first = KeyGenerator.default(
+        load_widget,
+        (session, 7),
+        {"include_deleted": True, "limit": 20},
+    )
+    second = KeyGenerator.default(
+        load_widget,
+        (session, 7),
+        {"limit": 20, "include_deleted": True},
+    )
+
+    assert first == second
+
+
 def test_query_cache_caches_detached_model(session: Session, memory_region: CacheRegion) -> None:
     """
     正常系:
@@ -138,6 +165,58 @@ def test_query_cache_caches_detached_model(session: Session, memory_region: Cach
     assert first_widget.id == second_widget.id == widget_id
     assert sa_inspect(first_widget).detached
     assert sa_inspect(second_widget).detached
+
+
+def test_query_cache_caches_none_result(memory_region: CacheRegion) -> None:
+    """
+    正常系:
+    query_cache は None も有効なキャッシュ値として保持する
+    """
+
+    # キャッシュリージョンの準備
+    region = memory_region
+    calls = 0
+
+    # テスト対象関数の定義
+    @query_cache(region=region, key_func="widget:{widget_id}")
+    def load_widget(widget_id: int) -> Widget | None:
+        nonlocal calls
+        calls += 1
+        return None
+
+    first = load_widget(7)
+    second = load_widget(7)
+
+    # None は miss 扱いされず、2 回目は関数本体を再実行しない。
+    assert first is None
+    assert second is None
+    assert calls == 1
+
+
+def test_query_cache_caches_empty_list(memory_region: CacheRegion) -> None:
+    """
+    正常系:
+    query_cache は空リストも有効なキャッシュ値として保持する
+    """
+
+    # キャッシュリージョンの準備
+    region = memory_region
+    calls = 0
+
+    # テスト対象関数の定義
+    @query_cache(region=region, key_func="widgets:{prefix}")
+    def load_widgets(prefix: str) -> list[Widget]:
+        nonlocal calls
+        calls += 1
+        return []
+
+    first = load_widgets("missing")
+    second = load_widgets("missing")
+
+    # 空リストも miss 扱いされず、2 回目は cache hit する。
+    assert first == []
+    assert second == []
+    assert calls == 1
 
 
 def test_query_cache_supports_custom_session_and_region_attributes(session: Session) -> None:
