@@ -199,6 +199,12 @@ wrapper(*args, **kwargs) が呼ばれる
     │
     ├─ unless(*args, **kwargs) == True → キャッシュスキップ、関数をそのまま実行
     │
+    ├─ session = SessionResolver.resolve(args, kwargs)
+    │
+    ├─ has_pending_cache_invalidation(session, region) == True
+    │   └─ 関数を実行し、必要なら expunge してそのまま返す
+    │      (stale cache の再利用/再生成を避けるため cache bypass)
+    │
     ├─ cache_key = KeyGenerator.generate(key_func, func, args, kwargs)
     │
     ├─ cached = region.get(cache_key)
@@ -422,18 +428,26 @@ def get_by_id(self, user_id: int) -> User | None:
 
 ## 6. キャッシュ削除
 
-デコレータはキャッシュ削除を自動では行わない。
-削除は呼び出し元が明示的に行う。
+読み込みキャッシュの付与は `@query_cache` デコレータが担う。
+一方、書き込み後の無効化は repository が Session に予約を積み、commit 完了後に共通リスナーが実行する。
+予約は Session 全体ではなく transaction 単位で保持し、nested transaction の rollback では対象 transaction 配下の予約だけを破棄する。
 
 ```python
-# SQLAlchemy イベントで自動削除
-from sqlalchemy import event
+# repository 側では commit 後に消したいキーだけを予約する
+schedule_cache_key_deletes(session, region, f"user:{user.name}")
+schedule_cache_version_bumps(session, region, user_list_version_key)
 
-@event.listens_for(Session, "after_flush")
-def after_flush(session, flush_context):
-    for obj in session.dirty | session.deleted:
-        if isinstance(obj, User):
-            region.delete(f"user:{obj.id}")
+
+@event.listens_for(Session, "after_commit")
+def after_commit(session):
+    # Session に積まれた予約をまとめて反映する
+    ...
+
+
+@event.listens_for(Session, "after_soft_rollback")
+def after_soft_rollback(session, previous_transaction):
+    # rollback 対象 transaction 配下の予約だけを破棄する
+    ...
 ```
 
 ---
@@ -453,7 +467,7 @@ def after_flush(session, flush_context):
 
 | 項目 | 方針 |
 |---|---|
-| スレッドセーフ | dogpile.cache の dogpile lock に依存 |
+| スレッドセーフ | query 結果キャッシュは dogpile lock に依存し、Session event listener 登録は専用 lock で多重登録を防ぐ |
 | 型安全 | `Callable` の型ヒントを付与。mypy 対応 |
 | ログ | `logging` モジュールを使用。キャッシュHIT/MISS を DEBUG レベルで出力 |
 | テスト | `ZstdMemoryBackend` を使って単体テスト可能 |

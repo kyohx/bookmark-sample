@@ -6,6 +6,7 @@ from dogpile.cache.api import NO_VALUE
 from dogpile.cache.region import CacheRegion
 
 from ..log import get_logger
+from .invalidation import has_pending_cache_invalidation
 from .key_generator import KeyFunc, KeyGenerator
 from .region import NullCacheRegion
 from .session_resolver import SessionResolver
@@ -16,6 +17,10 @@ _logger = get_logger()
 
 
 class _CacheRegionLike(Protocol):
+    """
+    query_cache が依存する最小限のキャッシュリージョン操作を表す Protocol。
+    """
+
     def get(
         self,
         key: str,
@@ -62,6 +67,20 @@ def query_cache(
             if unless is not None and unless(*args, **kwargs):
                 return func(*args, **kwargs)
 
+            # 戻り値の detach 判定に使う Session を先に解決しておく。
+            session = session_resolver.resolve(args, dict(kwargs))
+
+            def execute_and_prepare_result() -> T:
+                result = func(*args, **kwargs)
+                if session is not None:
+                    # Session に紐づいた ORM オブジェクトのままキャッシュしない。
+                    session_resolver.expunge(session, result)
+                return result
+
+            if has_pending_cache_invalidation(session, cache_region):
+                # 同一 transaction 内で無効化待ちがある間は、stale cache の再利用/再生成を避ける。
+                return execute_and_prepare_result()
+
             cache_key = KeyGenerator.generate(
                 key_func,
                 func,
@@ -76,18 +95,11 @@ def query_cache(
 
             _logger.debug("Query cache MISS: %s", cache_key)
 
-            def creator() -> T:
-                result = func(*args, **kwargs)
-                session = session_resolver.resolve(args, dict(kwargs))
-                if session is not None:
-                    session_resolver.expunge(session, result)
-                return result
-
             return cast(
                 T,
                 cache_region.get_or_create(
                     cache_key,
-                    creator,
+                    execute_and_prepare_result,
                     expiration_time=expiration_time,
                 ),
             )
