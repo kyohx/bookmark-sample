@@ -1,10 +1,16 @@
-from uuid import uuid4
-
 from dogpile.cache.region import CacheRegion
 from sqlalchemy.orm.session import Session
 
 from ..libs.cache import NullCacheRegion, get_query_cache_region
+from ..libs.cache.invalidation import (
+    install_session_cache_invalidation_listeners,
+    new_cache_version,
+    schedule_cache_key_deletes,
+    schedule_cache_version_bumps,
+)
 from ..libs.page import Page
+
+install_session_cache_invalidation_listeners()
 
 
 class RepositoryError(Exception):
@@ -96,12 +102,11 @@ class BaseRepository:
         Args:
             namespaces: 更新対象の namespace 一覧
         """
-        for namespace in namespaces:
-            # 競合で無効化を取りこぼさないよう、read-modify-write ではなく毎回新しい一意値に差し替える。
-            self.region.set(
-                self._cache_version_key(namespace),
-                self._new_cache_version(),
-            )
+        schedule_cache_version_bumps(
+            self.session,
+            self.region,
+            *(self._cache_version_key(namespace) for namespace in namespaces),
+        )
 
     def _delete_cache_keys(self, *keys: str) -> None:
         """
@@ -110,8 +115,7 @@ class BaseRepository:
         Args:
             keys: 削除対象のキャッシュキー一覧
         """
-        for key in keys:
-            self.region.delete(key)
+        schedule_cache_key_deletes(self.session, self.region, *keys)
 
     @staticmethod
     def _new_cache_version() -> str:
@@ -121,4 +125,4 @@ class BaseRepository:
         Returns:
             新しいバージョン文字列
         """
-        return uuid4().hex
+        return new_cache_version()

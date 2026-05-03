@@ -1,5 +1,6 @@
 from collections.abc import Iterator
 from threading import Barrier, Lock, Thread
+from time import sleep
 
 import pytest
 from dogpile.cache.api import NO_VALUE
@@ -12,6 +13,7 @@ from src.dao.models.tag import TagDao
 from src.dao.models.user import UserDao
 from src.entities.bookmark import BookmarkEntity
 from src.entities.user import UserEntity
+from src.libs.cache import invalidation as cache_invalidation
 from src.libs.enum import AuthorityEnum
 from src.libs.page import Page
 from src.libs.util import get_hashed_id
@@ -90,6 +92,7 @@ def test_user_repository_find_one_cache_and_invalidation(
     first.name = "alice-renamed"
     first.disabled = True
     repository.update_one(first, current_name="alice")
+    session.commit()
 
     # 更新後は古い詳細キャッシュが無効化され、再度 DB を読む。
     refreshed = repository.find_one(name="alice-renamed")
@@ -171,6 +174,7 @@ def test_user_repository_find_all_cache_is_invalidated_on_add(
             authority=AuthorityEnum.READWRITE,
         )
     )
+    session.commit()
 
     # add 後は一覧 version が進み、一覧クエリが再評価される。
     refreshed = repository.find_all()
@@ -291,6 +295,7 @@ def test_user_repository_find_all_cache_invalidation_reaches_all_pages(
             authority=AuthorityEnum.READWRITE,
         )
     )
+    session.commit()
 
     refreshed_first_page = first_page_repository.find_all()
     cached_first_page = first_page_repository.find_all()
@@ -350,6 +355,7 @@ def test_bookmark_repository_find_one_cache_and_invalidation(
     first.memo = "after"
     first.tags = ["tag2"]
     repository.update_one(first, current_hashed_id=bookmark.hashed_id)
+    session.commit()
 
     # 更新後は詳細キャッシュが無効化され、タグも含めて再取得される。
     refreshed = repository.find_one(hashed_id=bookmark.hashed_id)
@@ -450,6 +456,7 @@ def test_bookmark_repository_delete_one_invalidates_detail_and_lists(
     assert tag_list_calls == 1
 
     repository.delete_one(hashed_id=bookmark.hashed_id)
+    session.commit()
 
     # delete 実行時に対象 bookmark を解決するため、詳細 DAO は 1 回追加で呼ばれる。
     assert detail_calls == 2
@@ -513,6 +520,7 @@ def test_bookmark_repository_tag_list_cache_normalizes_key_and_invalidates_on_ad
             tags=["tag1", "tag2"],
         )
     )
+    session.commit()
 
     # add 後は tag-list version が進み、同じタグ条件でも再検索される。
     refreshed = repository.find_by_tags(["tag1", "tag2"])
@@ -712,6 +720,7 @@ def test_bookmark_repository_tag_list_cache_invalidation_reaches_all_pages(
             tags=["tag1"],
         )
     )
+    session.commit()
 
     refreshed_small_page = small_page_repository.find_by_tags(["tag1"])
     cached_small_page = small_page_repository.find_by_tags(["tag1"])
@@ -741,14 +750,171 @@ def test_bump_cache_versions_does_not_depend_on_current_version(
 
     monkeypatch.setattr(repository, "_get_cache_version", fail_get_version)
 
-    repository._bump_cache_versions("list")
+    with session.begin():
+        repository._bump_cache_versions("list")
     first_version = repository.region.get(repository._cache_version_key("list"))
-    repository._bump_cache_versions("list")
+    with session.begin():
+        repository._bump_cache_versions("list")
     second_version = repository.region.get(repository._cache_version_key("list"))
 
     assert isinstance(first_version, str)
     assert isinstance(second_version, str)
     assert first_version != second_version
+
+
+def test_detail_cache_is_deleted_after_commit_but_same_transaction_reads_bypass_cache(
+    session: Session,
+    memory_region: CacheRegion,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """
+    正常系:
+    詳細キャッシュ削除は commit 後に遅延し、同一トランザクション中の再読込は cache を bypass する
+    """
+    UnitDataFactory(session).create_user("alice")
+    repository = UserRepository(session, region=memory_region)
+
+    calls = 0
+    original = repository.user_operator.find_one_by_name
+
+    def wrapped(name: str) -> UserDao | None:
+        # commit 前後の再読込が DB を見に行く回数を追跡する。
+        nonlocal calls
+        calls += 1
+        return original(name)
+
+    monkeypatch.setattr(repository.user_operator, "find_one_by_name", wrapped)
+
+    cached = repository.find_one(name="alice")
+    assert cached.name == "alice"
+    assert calls == 1
+    assert memory_region.get(repository._find_one_cache_key("alice")).name == "alice"
+
+    cached.name = "alice-renamed"
+    repository.update_one(cached, current_name="alice")
+
+    # commit 前は既存キャッシュをまだ削除せず、同一 transaction の読込だけ cache bypass する。
+    pending = repository.find_one(name="alice-renamed")
+    assert pending.name == "alice-renamed"
+    assert calls == 3
+    assert memory_region.get(repository._find_one_cache_key("alice")).name == "alice"
+    assert memory_region.get(repository._find_one_cache_key("alice-renamed")) is NO_VALUE
+
+    session.commit()
+
+    refreshed = repository.find_one(name="alice-renamed")
+    assert refreshed.name == "alice-renamed"
+    assert calls == 4
+    assert memory_region.get(repository._find_one_cache_key("alice")) is NO_VALUE
+    assert (
+        memory_region.get(repository._find_one_cache_key("alice-renamed")).name == "alice-renamed"
+    )
+
+
+def test_list_cache_invalidation_is_discarded_on_rollback(
+    session: Session,
+    memory_region: CacheRegion,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """
+    正常系:
+    rollback 時は予約済み一覧キャッシュ無効化が破棄される
+    """
+    UnitDataFactory(session).create_user("alice")
+    repository = UserRepository(
+        session,
+        page=Page(number=1, size=10),
+        region=memory_region,
+    )
+
+    calls = 0
+    original = repository.user_operator.find_all
+
+    def wrapped() -> list[UserDao]:
+        # rollback 後に既存一覧キャッシュへ戻れるかを DB 呼び出し回数で確認する。
+        nonlocal calls
+        calls += 1
+        return original()
+
+    monkeypatch.setattr(repository.user_operator, "find_all", wrapped)
+
+    first = repository.find_all()
+    assert [user.name for user in first] == ["alice"]
+    assert calls == 1
+    version_key = repository._cache_version_key("list")
+    cached_version = memory_region.get(version_key)
+
+    repository.add_one(
+        UserEntity(
+            name="bob",
+            hashed_password="hashed-password",
+            disabled=False,
+            authority=AuthorityEnum.READWRITE,
+        )
+    )
+    session.rollback()
+
+    rolled_back = repository.find_all()
+    assert [user.name for user in rolled_back] == ["alice"]
+    assert calls == 1
+    assert memory_region.get(version_key) == cached_version
+
+
+def test_nested_rollback_keeps_outer_transaction_cache_invalidation(
+    session: Session,
+    memory_region: CacheRegion,
+) -> None:
+    """
+    正常系:
+    nested transaction の rollback では outer transaction の無効化予約は失われない
+    """
+    memory_region.set("user:detail:outer", {"value": "cached"})
+    memory_region.set("user:detail:nested", {"value": "cached"})
+
+    with session.begin():
+        cache_invalidation.schedule_cache_key_deletes(session, memory_region, "user:detail:outer")
+        nested_transaction = session.begin_nested()
+        cache_invalidation.schedule_cache_key_deletes(session, memory_region, "user:detail:nested")
+        nested_transaction.rollback()
+
+    assert memory_region.get("user:detail:outer") is NO_VALUE
+    assert memory_region.get("user:detail:nested") == {"value": "cached"}
+
+
+def test_install_session_cache_invalidation_listeners_is_thread_safe(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """
+    正常系:
+    listener 登録は並行実行されても 1 回だけ行われる
+    """
+    call_count = 0
+    call_lock = Lock()
+    barrier = Barrier(5)
+
+    def fake_listen(target: object, identifier: str, fn: object) -> None:
+        del target, identifier, fn
+        sleep(0.01)
+
+        nonlocal call_count
+        with call_lock:
+            call_count += 1
+
+    monkeypatch.setattr(cache_invalidation.event, "listen", fake_listen)
+    monkeypatch.setattr(cache_invalidation, "_LISTENERS_INSTALLED", False)
+
+    def worker() -> None:
+        barrier.wait()
+        cache_invalidation.install_session_cache_invalidation_listeners()
+
+    threads = [Thread(target=worker) for _ in range(5)]
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join()
+
+    # after_commit / after_soft_rollback の 2 登録だけに収まることを確認する。
+    assert call_count == 2
 
 
 def test_get_cache_version_initialization_is_atomic(session: Session) -> None:
