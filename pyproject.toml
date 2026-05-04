@@ -14,8 +14,8 @@ dependencies = [
     "python-multipart==0.0.*",
     "sqlalchemy==2.0.*",
     "redis==7.1.*",
-    "dogpile-cache==1.4.*",
-    "zstandard==0.23.*",
+    "dogpile-cache==1.5.*",
+    "zstandard==0.25.*",
 ]
 
 [dependency-groups]
