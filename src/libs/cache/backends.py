@@ -1,5 +1,5 @@
 import pickle  # nosec B403
-from collections.abc import Mapping, Sequence
+from collections.abc import Iterable, Mapping, Sequence
 from typing import Any
 
 import zstandard as zstd
@@ -98,7 +98,7 @@ class ZstdMemoryBackend(_ZstdSerializerMixin, BytesBackend):
         """
         return self._cache.get(key, NO_VALUE)
 
-    def get_serialized_multi(self, keys: Sequence[str]) -> list[bytes | Any]:
+    def get_serialized_multi(self, keys: Iterable[str]) -> Sequence[bytes | Any]:
         """
         複数のシリアライズ済みキャッシュ値を取得する。
 
@@ -139,7 +139,7 @@ class ZstdMemoryBackend(_ZstdSerializerMixin, BytesBackend):
         """
         self._cache.pop(key, None)
 
-    def delete_multi(self, keys: Sequence[str]) -> None:
+    def delete_multi(self, keys: Iterable[str]) -> None:
         """
         複数のキャッシュ値を削除する。
 
@@ -181,7 +181,7 @@ class ZstdRedisBackend(_ZstdSerializerMixin, RedisBackend):
             self._log_redis_error("get", exc)
             return NO_VALUE
 
-    def get_serialized_multi(self, keys: Sequence[str]) -> list[bytes | Any]:
+    def get_serialized_multi(self, keys: Any) -> list[Any]:
         """
         Redis から複数のシリアライズ済みキャッシュ値を取得する。
 
@@ -191,11 +191,12 @@ class ZstdRedisBackend(_ZstdSerializerMixin, RedisBackend):
         Returns:
             取得した値一覧。取得失敗時はすべて `NO_VALUE`
         """
+        key_list = list(keys)
         try:
-            return list(super().get_serialized_multi(keys))
+            return list(super().get_serialized_multi(key_list))
         except RedisError as exc:
             self._log_redis_error("get_multi", exc)
-            return [NO_VALUE for _ in keys]
+            return [NO_VALUE for _ in key_list]
 
     def set_serialized(self, key: str, value: bytes) -> None:
         """
@@ -234,7 +235,7 @@ class ZstdRedisBackend(_ZstdSerializerMixin, RedisBackend):
         except RedisError as exc:
             self._log_redis_error("delete", exc)
 
-    def delete_multi(self, keys: Sequence[str]) -> None:
+    def delete_multi(self, keys: Any) -> None:
         """
         Redis から複数のキャッシュ値を削除する。
 
