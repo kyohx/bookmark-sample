@@ -10,7 +10,9 @@ from sqlalchemy.engine import Engine
 from sqlalchemy.engine.url import URL
 from sqlalchemy.orm import scoped_session, sessionmaker
 
+import src.repositories.base as repository_base
 from src.dao.models.base import BaseDao
+from src.libs.cache import NullCacheRegion
 from src.dao.session import get_session
 from src.entities.user import UserEntity
 from src.libs.config import get_config
@@ -66,6 +68,14 @@ def client() -> TestClient:
     テスト用クライアント
     """
     return TestClient(app)
+
+
+@pytest.fixture(scope="function", autouse=True)
+def disable_query_cache_for_integration(monkeypatch: pytest.MonkeyPatch) -> None:
+    """
+    integration test では rollback でDBだけ巻き戻すため、共有クエリキャッシュを無効化する。
+    """
+    monkeypatch.setattr(repository_base, "get_query_cache_region", lambda: NullCacheRegion())
 
 
 @pytest.fixture
