@@ -3,13 +3,13 @@ name: Check and Tests
 on:
   pull_request:
     paths-ignore:
-      - "README.md"
+      - "*.md"
       - "LICENSE"
   push:
     branches:
       - main
     paths-ignore:
-      - "README.md"
+      - "*.md"
       - "LICENSE"
 
 jobs:
