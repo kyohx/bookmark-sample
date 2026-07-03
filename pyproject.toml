@@ -5,26 +5,26 @@ description = "Bookmark sample"
 readme = "README.md"
 requires-python = "==3.13.*"
 dependencies = [
-    "fastapi==0.135.*",
-    "uvicorn[standard]==0.40.*",
-    "pwdlib[bcrypt]==0.2.*",
+    "fastapi==0.139.*",
+    "uvicorn[standard]==0.49.*",
+    "pwdlib[bcrypt]==0.3.*",
     "PyMySQL==1.1.*",
-    "pyjwt==2.10.*",
+    "pyjwt==2.13.*",
     "python-dotenv==1.1.*",
     "python-multipart==0.0.*",
     "sqlalchemy==2.0.*",
-    "redis==7.1.*",
+    "redis==8.0.*",
     "dogpile-cache==1.5.*",
     "zstandard==0.25.*",
 ]
 
 [dependency-groups]
 dev = [
-    "bandit==1.8.*",
+    "bandit==1.9.*",
     "httpx2==2.4.*",
-    "pyrefly==0.45.*",
-    "pytest==8.3.*",
-    "ruff==0.9.*",
+    "pyrefly==1.1.*",
+    "pytest==9.1.*",
+    "ruff==0.15.*",
     "taskipy==1.14.*",
     "types-passlib==1.7.*",
     "types-PyMySQL==1.1.*",

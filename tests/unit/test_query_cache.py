@@ -3,6 +3,8 @@ from collections.abc import Iterator
 import pytest
 from dogpile.cache.api import NO_VALUE
 from dogpile.cache.region import CacheRegion
+from redis.backoff import NoBackoff
+from redis.retry import Retry
 from sqlalchemy import Integer, String, inspect as sa_inspect
 from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column
 
@@ -403,7 +405,17 @@ def test_redis_backend_fails_open_when_redis_is_unavailable() -> None:
     """
 
     # 到達不能な Redis を指定した Region の準備
-    region = create_redis_region(host="127.0.0.1", port=1, db=0, expiration_time=1)
+    region = create_redis_region(
+        host="127.0.0.1",
+        port=1,
+        db=0,
+        expiration_time=1,
+        connection_kwargs={
+            "retry": Retry(NoBackoff(), 0),
+            "socket_connect_timeout": 0.01,
+            "socket_timeout": 0.01,
+        },
+    )
     calls = 0
 
     # テスト対象関数の定義

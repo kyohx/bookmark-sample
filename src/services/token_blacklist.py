@@ -160,7 +160,7 @@ class TokenBlacklistService(ServiceBase):
         if ttl_seconds <= 0:
             return
         try:
-            self.redis.setex(self._family_current_key(user, family), ttl_seconds, jti)
+            self.redis.set(self._family_current_key(user, family), jti, ex=ttl_seconds)
         except RedisError as exc:
             self._handle_redis_error(exc, "set_current_jti")
 
@@ -180,7 +180,7 @@ class TokenBlacklistService(ServiceBase):
         if ttl <= 0:
             return
         try:
-            self.redis.setex(self._deny_jti_key(jti), ttl, reason or "")
+            self.redis.set(self._deny_jti_key(jti), reason or "", ex=ttl)
         except RedisError as exc:
             self._handle_redis_error(exc, "deny_jti")
 
@@ -203,7 +203,7 @@ class TokenBlacklistService(ServiceBase):
         if ttl <= 0:
             return
         try:
-            self.redis.setex(self._family_deny_key(user, family), ttl, reason or "")
+            self.redis.set(self._family_deny_key(user, family), reason or "", ex=ttl)
         except RedisError as exc:
             self._handle_redis_error(exc, "deny_family")
 

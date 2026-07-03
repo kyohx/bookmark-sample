@@ -18,7 +18,7 @@ class RequestForAddUser(BaseModel):
             "examples": [
                 {
                     "name": "test_user",
-                    "password": "password",
+                    "password": "password",  # nosec
                     "authority": AuthorityEnum.READWRITE,
                 }
             ]

@@ -207,7 +207,10 @@ class ZstdRedisBackend(_ZstdSerializerMixin, RedisBackend):
             value: 保存する値
         """
         try:
-            super().set_serialized(key, value)
+            if self.redis_expiration_time:
+                self.writer_client.set(key, value, ex=self.redis_expiration_time)
+            else:
+                self.writer_client.set(key, value)
         except RedisError as exc:
             self._log_redis_error("set", exc)
 
@@ -219,7 +222,14 @@ class ZstdRedisBackend(_ZstdSerializerMixin, RedisBackend):
             mapping: キャッシュキーと値の対応
         """
         try:
-            super().set_serialized_multi(mapping)
+            if not self.redis_expiration_time:
+                self.writer_client.mset(mapping)
+                return
+
+            pipe = self.writer_client.pipeline()
+            for key, value in mapping.items():
+                pipe.set(key, value, ex=self.redis_expiration_time)
+            pipe.execute()
         except RedisError as exc:
             self._log_redis_error("set_multi", exc)
 
