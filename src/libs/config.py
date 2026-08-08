@@ -24,6 +24,14 @@ class Config(BaseModel):
     "DB名"
     database_debug: bool
     "DBデバッグモード"
+    database_ssl_enabled: bool
+    "DB接続でTLSを有効化するか"
+    database_ssl_ca_certs: str
+    "DB接続TLS検証で使用するCA証明書ファイルパス"
+    database_ssl_verify_cert: bool
+    "DB接続TLSでサーバ証明書を検証するか"
+    database_ssl_verify_identity: bool
+    "DB接続TLSでホスト名一致を検証するか"
     test_database_host: str
     "テスト用DBホスト名"
     jwt_secret_key: str
@@ -84,6 +92,10 @@ _config = Config(
     database_password=env.get("DATABASE_PASSWORD", "root"),
     database_name=env.get("DATABASE_NAME", "db"),
     database_debug=bool(int(env.get("DATABASE_DEBUG", 0))),
+    database_ssl_enabled=bool(int(env.get("DATABASE_SSL_ENABLED", 0))),
+    database_ssl_ca_certs=env.get("DATABASE_SSL_CA_CERTS", ""),
+    database_ssl_verify_cert=bool(int(env.get("DATABASE_SSL_VERIFY_CERT", 1))),
+    database_ssl_verify_identity=bool(int(env.get("DATABASE_SSL_VERIFY_IDENTITY", 1))),
     test_database_host=env.get("TEST_DB_HOST", "db"),
     jwt_secret_key=env.get("JWT_SECRET_KEY", _KEY_DEFAULT_VALUE),
     log_level=env.get("LOG_LEVEL", "DEBUG"),
