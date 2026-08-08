@@ -1,5 +1,3 @@
-## Dockerfile for Heroku
-
 ARG PYTHON_VER=3.13
 
 ## ----- Stage for building python packages
@@ -51,4 +49,4 @@ ENV PYTHONDONTWRITEBYTECODE=1
 COPY . ${APP_HOME}
 
 # デフォルトの起動コマンド設定
-CMD python -m uvicorn src.main:app --workers 2 --host 0.0.0.0 --port $PORT
+CMD python -m uvicorn src.main:app --workers 2 --host 0.0.0.0 --port ${PORT:-10000}
