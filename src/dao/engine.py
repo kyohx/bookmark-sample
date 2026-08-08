@@ -1,3 +1,5 @@
+from typing import Any
+
 from sqlalchemy import create_engine
 from sqlalchemy.engine.url import URL
 
@@ -16,5 +18,18 @@ DATABASE = URL.create(
     database=_config.database_name,
 )
 
+_connect_args: dict[str, Any] = {}
+if _config.database_ssl_enabled:
+    _connect_args["ssl"] = {}
+    if _config.database_ssl_ca_certs:
+        _connect_args["ssl"]["ca"] = _config.database_ssl_ca_certs
+    _connect_args["ssl_verify_cert"] = _config.database_ssl_verify_cert
+    _connect_args["ssl_verify_identity"] = _config.database_ssl_verify_identity
+
 # Engineの作成
-Engine = create_engine(DATABASE, echo=_config.database_debug, pool_pre_ping=True)
+Engine = create_engine(
+    DATABASE,
+    echo=_config.database_debug,
+    pool_pre_ping=True,
+    connect_args=_connect_args,
+)

@@ -74,6 +74,15 @@ http://localhost:8000
 - パスワード: root
 - DB名: app
 
+#### TiDB Cloud (Starter / Essential) 利用時
+
+TiDB Cloud は TLS 接続必須のため、以下を環境変数で設定してください。
+
+- `DATABASE_SSL_ENABLED=1`
+- `DATABASE_SSL_VERIFY_CERT=1`
+- `DATABASE_SSL_VERIFY_IDENTITY=1`
+- `DATABASE_SSL_CA_CERTS=/etc/ssl/certs/ca-certificates.crt` (Debian/Ubuntu系の例)
+
 ## 手順
 
 ### 開発作業開始時
