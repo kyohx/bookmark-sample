@@ -5,7 +5,7 @@ from fastapi.testclient import TestClient
 from src.dao.models.bookmark import BookmarkDao
 from src.dao.models.bookmark_tag import BookmarkTagDao
 from src.dao.models.tag import TagDao
-from src.libs.util import datetime_to_str
+from src.libs.util import datetime_to_str, str_to_datetime
 from src.main import app
 
 from ..base import BaseTest
@@ -63,7 +63,7 @@ class TestUpdateBookmark(BaseTest):
         assert updated_db_bookmark.memo == request_body["memo"]
         assert updated_db_bookmark.hashed_id == bookmark1.hashed_id
         assert updated_bookmark["updated_at"] == datetime_to_str(updated_db_bookmark.updated_at)
-        assert updated_bookmark["updated_at"] != datetime_to_str(datetime(2000, 1, 1, 0, 0, 0))
+        assert str_to_datetime(updated_bookmark["updated_at"]) > datetime(2000, 1, 1, 0, 0, 0)
 
         tags = db_session.query(TagDao).filter(TagDao.name.in_(request_body["tags"])).all()
         assert len(tags) == 2
@@ -152,7 +152,7 @@ class TestUpdateBookmark(BaseTest):
         assert updated_db_bookmark.memo == request_body["memo"]
         assert updated_db_bookmark.hashed_id == bookmark.hashed_id
         assert updated_bookmark["updated_at"] == datetime_to_str(updated_db_bookmark.updated_at)
-        assert updated_bookmark["updated_at"] != datetime_to_str(datetime(2000, 1, 1, 0, 0, 0))
+        assert str_to_datetime(updated_bookmark["updated_at"]) > datetime(2000, 1, 1, 0, 0, 0)
 
         tags = db_session.query(TagDao).all()
         assert len(tags) == 2
