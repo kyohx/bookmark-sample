@@ -32,6 +32,7 @@ class TestUpdateBookmark(BaseTest):
         """
         db_bookmarks = self.create_bookmarks(db_session, num=2)
         bookmark1 = db_bookmarks[0]
+        original_created_at = bookmark1.created_at
         bookmark1.updated_at = datetime(2000, 1, 1, 0, 0, 0)
         db_session.flush()
 
@@ -62,6 +63,7 @@ class TestUpdateBookmark(BaseTest):
         assert updated_db_bookmark is not None
         assert updated_db_bookmark.memo == request_body["memo"]
         assert updated_db_bookmark.hashed_id == bookmark1.hashed_id
+        assert updated_db_bookmark.created_at == original_created_at
         assert updated_bookmark["updated_at"] == datetime_to_str(updated_db_bookmark.updated_at)
         assert str_to_datetime(updated_bookmark["updated_at"]) > datetime(2000, 1, 1, 0, 0, 0)
 
@@ -122,6 +124,7 @@ class TestUpdateBookmark(BaseTest):
         """
         bookmark = self.create_bookmarks(db_session, num=1)[0]
         db_tags = self.get_tags(db_session, bookmark)
+        original_created_at = bookmark.created_at
         bookmark.updated_at = datetime(2000, 1, 1, 0, 0, 0)
         db_session.flush()
 
@@ -151,6 +154,7 @@ class TestUpdateBookmark(BaseTest):
         assert updated_db_bookmark is not None
         assert updated_db_bookmark.memo == request_body["memo"]
         assert updated_db_bookmark.hashed_id == bookmark.hashed_id
+        assert updated_db_bookmark.created_at == original_created_at
         assert updated_bookmark["updated_at"] == datetime_to_str(updated_db_bookmark.updated_at)
         assert str_to_datetime(updated_bookmark["updated_at"]) > datetime(2000, 1, 1, 0, 0, 0)
 
