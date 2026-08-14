@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from fastapi.testclient import TestClient
 
 from src.dao.models.bookmark import BookmarkDao
@@ -30,6 +32,8 @@ class TestUpdateBookmark(BaseTest):
         """
         db_bookmarks = self.create_bookmarks(db_session, num=2)
         bookmark1 = db_bookmarks[0]
+        bookmark1.updated_at = datetime(2000, 1, 1, 0, 0, 0)
+        db_session.flush()
 
         # リクエストボディの作成
         request_body = {"memo": "Updated", "tags": ["updated_tag_1", "updated_tag_2"]}
@@ -58,6 +62,8 @@ class TestUpdateBookmark(BaseTest):
         assert updated_db_bookmark is not None
         assert updated_db_bookmark.memo == request_body["memo"]
         assert updated_db_bookmark.hashed_id == bookmark1.hashed_id
+        assert updated_bookmark["updated_at"] == datetime_to_str(updated_db_bookmark.updated_at)
+        assert updated_bookmark["updated_at"] != datetime_to_str(datetime(2000, 1, 1, 0, 0, 0))
 
         tags = db_session.query(TagDao).filter(TagDao.name.in_(request_body["tags"])).all()
         assert len(tags) == 2
@@ -116,6 +122,8 @@ class TestUpdateBookmark(BaseTest):
         """
         bookmark = self.create_bookmarks(db_session, num=1)[0]
         db_tags = self.get_tags(db_session, bookmark)
+        bookmark.updated_at = datetime(2000, 1, 1, 0, 0, 0)
+        db_session.flush()
 
         # リクエストボディの作成
         request_body = {"memo": "Updated"}
@@ -143,6 +151,8 @@ class TestUpdateBookmark(BaseTest):
         assert updated_db_bookmark is not None
         assert updated_db_bookmark.memo == request_body["memo"]
         assert updated_db_bookmark.hashed_id == bookmark.hashed_id
+        assert updated_bookmark["updated_at"] == datetime_to_str(updated_db_bookmark.updated_at)
+        assert updated_bookmark["updated_at"] != datetime_to_str(datetime(2000, 1, 1, 0, 0, 0))
 
         tags = db_session.query(TagDao).all()
         assert len(tags) == 2
