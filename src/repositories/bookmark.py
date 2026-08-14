@@ -132,6 +132,9 @@ class BookmarkRepository(BaseRepository):
             setattr(bookmark_dao, k, v)
 
         self.bookmark_operator.save(bookmark_dao)
+        self.session.refresh(bookmark_dao)
+        bookmark.created_at = bookmark_dao.created_at
+        bookmark.updated_at = bookmark_dao.updated_at
         self._save_tags(bookmark.tags, bookmark_dao.id)
         # ハッシュID変更にも耐えられるよう、旧キーと新キーの両方を削除する。
         self._delete_cache_keys(
