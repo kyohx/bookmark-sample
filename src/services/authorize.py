@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta, timezone
 from enum import Enum
-from typing import Annotated, Final
+from typing import Annotated, Final, cast
 from uuid import uuid4
 
 import jwt
@@ -15,6 +15,7 @@ from sqlalchemy.orm.session import Session
 from ..dao.session import SessionDepend
 from ..dto.auth import RequestForLogin, Token
 from ..entities.user import UserEntity
+from ..libs.constraints import FIELD_STRING_PASSWORD
 from ..repositories.user import UserRepository
 from .base import ServiceBase, ServiceError
 from .token_blacklist import TokenBlacklistService
@@ -214,7 +215,10 @@ class AuthorizeService(ServiceBase):
             作成されたアクセストークン
         """
         try:
-            RequestForLogin(username=form_data.username, password=form_data.password)
+            RequestForLogin(
+                username=form_data.username,
+                password=cast(FIELD_STRING_PASSWORD, form_data.password),
+            )
         except ValidationError:
             raise self.Error("Incorrect username or password")
 
