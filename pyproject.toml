@@ -65,3 +65,6 @@ update_packages = "uv lock --upgrade && uv sync"
 [tool.pyrefly]
 project-excludes = ["**/tests/"]
 python-version = "3.13"
+
+[tool.basedpyright]
+typeCheckingMode = "standard"
