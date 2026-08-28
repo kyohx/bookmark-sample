@@ -326,7 +326,7 @@ class AuthorizeService(ServiceBase):
                 raise self.Error("Could not validate credentials")
             token_data = TokenData(username=username)
             user = self.get_user(name=token_data.username)
-        except (ValidationError, UserRepository.NotFoundError, self.Error):
+        except ValidationError, UserRepository.NotFoundError, self.Error:
             raise self.Error("Could not validate credentials")
         return user
 
