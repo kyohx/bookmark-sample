@@ -52,7 +52,7 @@
 
 - `task test` は `docker compose exec api python -m pytest` を呼ぶため、通常は API コンテナ起動後に実行します。
 - integration test は MySQL ベースで、FastAPI の dependency override を使って DB セッションや認証依存を差し替えています。
-- Python は `3.13` 固定です。
+- Python は `3.14` 固定です。
 - フォーマットは Ruff ベースで、文字列はダブルクォート設定です。
 - OpenAPI の生成物はルートの `openapi.json` です。
 

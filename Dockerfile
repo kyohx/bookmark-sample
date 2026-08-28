@@ -1,4 +1,4 @@
-ARG PYTHON_VER=3.13
+ARG PYTHON_VER=3.14
 
 ## ----- Stage for building python packages
 FROM ghcr.io/astral-sh/uv:python${PYTHON_VER}-trixie-slim AS builder
