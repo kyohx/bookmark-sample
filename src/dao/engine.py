@@ -5,7 +5,6 @@ from sqlalchemy.engine.url import URL
 
 from ..libs.config import get_config
 
-
 _config = get_config()
 
 # 接続先DBの設定

@@ -1,6 +1,6 @@
+import sys
 from collections.abc import Callable, Iterator
 from contextlib import contextmanager
-import sys
 from pathlib import Path
 
 import pytest

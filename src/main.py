@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.gzip import GZipMiddleware
+
 from .controllers import auth, bookmark, user, version
 from .error_handler import add_error_handlers
 from .libs.openapi_tags import OPENAPI_TAGS

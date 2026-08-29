@@ -99,7 +99,7 @@ class BaseDaoOperator(Generic[T]):
             Args:
                 dao: 対象のDAO
             """
-            if hasattr(dao, "created_at") and getattr(dao, "created_at") is None:
+            if hasattr(dao, "created_at") and dao.created_at is None:
                 # 新規レコードをINSERT対象にする
                 self.session.add(dao)
 

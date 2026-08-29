@@ -3,7 +3,7 @@ from collections.abc import Iterable, Mapping, Sequence
 from typing import Any
 
 import zstandard as zstd
-from dogpile.cache.api import BytesBackend, NO_VALUE
+from dogpile.cache.api import NO_VALUE, BytesBackend
 from dogpile.cache.backends.redis import RedisBackend
 from redis.exceptions import RedisError
 
