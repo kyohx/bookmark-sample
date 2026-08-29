@@ -58,11 +58,7 @@ class UserUsecase(UsecaseBase):
 
         for k, v in request_body.model_dump(exclude_none=True).items():
             if k == "password":
-                setattr(
-                    user,
-                    "hashed_password",
-                    AuthorizeService.get_hashed_password(v.get_secret_value()),
-                )
+                user.hashed_password = AuthorizeService.get_hashed_password(v.get_secret_value())
             elif self.user.name == name and k in ("name", "disabled", "authority"):
                 # 自分自身のname,disabled,authorityは変更できない
                 raise self.OperationError(f"You can not change your own {k} value.")

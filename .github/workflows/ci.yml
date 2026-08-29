@@ -29,6 +29,8 @@ jobs:
         run: uv sync --all-extras
       - name: Check format
         run: uv run ruff format --check ./
+      - name: Lint codes
+        run: uv run ruff check ./
       - name: Check types
         run: uv run pyrefly check
       - name: Check security issues in Python code

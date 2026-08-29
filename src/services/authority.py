@@ -1,6 +1,6 @@
-from .base import ServiceBase, ServiceError
-from ..libs.enum import AuthorityEnum
 from ..entities.user import UserEntity
+from ..libs.enum import AuthorityEnum
+from .base import ServiceBase, ServiceError
 
 
 class AuthorityService(ServiceBase):

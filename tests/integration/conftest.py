@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from functools import lru_cache
 from collections.abc import Iterator
+from functools import lru_cache
 
 import pytest
 from fastapi.testclient import TestClient
@@ -12,9 +12,9 @@ from sqlalchemy.orm import scoped_session, sessionmaker
 
 import src.repositories.base as repository_base
 from src.dao.models.base import BaseDao
-from src.libs.cache import NullCacheRegion
 from src.dao.session import get_session
 from src.entities.user import UserEntity
+from src.libs.cache import NullCacheRegion
 from src.libs.config import get_config
 from src.libs.enum import AuthorityEnum
 from src.main import app
