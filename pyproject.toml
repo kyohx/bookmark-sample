@@ -15,7 +15,6 @@ dependencies = [
     "sqlalchemy==2.0.*",
     "redis==8.0.*",
     "dogpile-cache==1.5.*",
-    "zstandard==0.25.*",
 ]
 
 [dependency-groups]
