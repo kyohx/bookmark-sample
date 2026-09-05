@@ -28,7 +28,7 @@ class TestGetUserList(BaseTest):
         self.create_user(db_session, "test1")
         self.create_user(db_session, "test2")
         users = db_session.query(UserDao).all()
-        users_dict = dict([(user.name, user) for user in users])
+        users_dict = {user.name: user for user in users}
 
         # リクエストの送信
         response = client.get(self.api_path())

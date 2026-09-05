@@ -56,16 +56,12 @@ class TestAddBookmark(BaseTest):
 
         tags = db_session.query(TagDao).filter(TagDao.name.in_(TEST_TAGS)).all()
         assert len(tags) == len(TEST_TAGS)
-        assert set([tag.name for tag in tags]) == set(TEST_TAGS)
+        assert {tag.name for tag in tags} == set(TEST_TAGS)
 
         bookmark_tags = db_session.query(BookmarkTagDao).filter_by(bookmark_id=bookmark.id).all()
         assert len(bookmark_tags) == len(TEST_TAGS)
-        assert set([bookmark_tag.tag_id for bookmark_tag in bookmark_tags]) == set(
-            [tag.id for tag in tags]
-        )
-        assert set([bookmark_tag.bookmark_id for bookmark_tag in bookmark_tags]) == set(
-            [bookmark.id]
-        )
+        assert {bookmark_tag.tag_id for bookmark_tag in bookmark_tags} == {tag.id for tag in tags}
+        assert {bookmark_tag.bookmark_id for bookmark_tag in bookmark_tags} == {bookmark.id}
 
     def test_add_duplicate(
         self,

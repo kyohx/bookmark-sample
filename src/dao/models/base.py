@@ -16,7 +16,7 @@ class BaseDao(DeclarativeBase):
         Returns:
             属性辞書
         """
-        return dict([(k, v) for k, v in self.__dict__.items() if not k.startswith("_")])
+        return {k: v for k, v in self.__dict__.items() if not k.startswith("_")}
 
 
 # "CURRENT_TIMESTAMP" の略称

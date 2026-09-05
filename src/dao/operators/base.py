@@ -1,5 +1,5 @@
 from collections.abc import Sequence
-from typing import Any, TypeVar
+from typing import Any, Protocol, TypeVar, cast
 
 from sqlalchemy import Select, select
 from sqlalchemy.orm.session import Session
@@ -93,6 +93,11 @@ class BaseDaoOperator[T]:
             d: 保存対象のDAO、またはDAOのリスト・タプル
         """
 
+        class _MaybeHasCreatedAt(Protocol):
+            """created_at を持つ可能性がある DAO 向けの Protocol"""
+
+            created_at: object | None
+
         def preprocess_insert_or_update(dao: BaseDao) -> None:
             """
             挿入や更新の前処理
@@ -100,8 +105,9 @@ class BaseDaoOperator[T]:
             Args:
                 dao: 対象のDAO
             """
-            if hasattr(dao, "created_at") and dao.created_at is None:
-                # 新規レコードをINSERT対象にする
+            maybe = cast(_MaybeHasCreatedAt, dao)
+            # created_at 属性が存在し、かつ None の場合は新規レコードとして追加する
+            if hasattr(dao, "created_at") and maybe.created_at is None:
                 self.session.add(dao)
 
         if isinstance(d, Sequence):

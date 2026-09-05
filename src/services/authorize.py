@@ -9,7 +9,7 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jwt.exceptions import InvalidTokenError
 from pwdlib import PasswordHash
 from pwdlib.hashers.bcrypt import BcryptHasher
-from pydantic import BaseModel, ConfigDict, ValidationError
+from pydantic import BaseModel, ConfigDict, SecretStr, ValidationError
 from sqlalchemy.orm.session import Session
 
 from ..dao.session import SessionDepend
@@ -216,7 +216,7 @@ class AuthorizeService(ServiceBase):
         try:
             RequestForLogin(
                 username=form_data.username,
-                password=form_data.password,
+                password=SecretStr(form_data.password),
             )
         except ValidationError:
             raise self.Error("Incorrect username or password")

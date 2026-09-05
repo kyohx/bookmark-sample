@@ -22,7 +22,7 @@ class BookmarkTagDaoOperator(BaseDaoOperator[BookmarkTagDao]):
             new_tags: 新しく関連付けるタグDAOのリスト
         """
         old_tags = TagDaoOperator(self.session).find_by_bookmark_id(bookmark_id)
-        if set([tag.name for tag in old_tags]) == set([tag.name for tag in new_tags]):
+        if {tag.name for tag in old_tags} == {tag.name for tag in new_tags}:
             # タグ内容に変化がないので抜ける
             return
 
