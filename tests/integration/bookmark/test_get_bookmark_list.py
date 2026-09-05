@@ -26,7 +26,7 @@ class TestGetBookmarkList(BaseTest):
         ブックマークリスト全件取得
         """
         bookmarks = self.create_bookmarks(db_session, num=2)
-        bookmarks_dict = dict([(bookmark.hashed_id, bookmark) for bookmark in bookmarks])
+        bookmarks_dict = {bookmark.hashed_id: bookmark for bookmark in bookmarks}
 
         # リクエストの送信
         response = client.get(self.api_path())
@@ -50,7 +50,7 @@ class TestGetBookmarkList(BaseTest):
             assert "tags" in res_bookmark
             assert isinstance(res_bookmark["tags"], list)
             assert len(res_bookmark["tags"]) == len(expected_tags)
-            assert set(res_bookmark["tags"]) == set([tag.name for tag in expected_tags])
+            assert set(res_bookmark["tags"]) == {tag.name for tag in expected_tags}
             assert res_bookmark["created_at"] == datetime_to_str(db_bookmark.created_at)
             assert res_bookmark["updated_at"] == datetime_to_str(db_bookmark.updated_at)
 
@@ -88,7 +88,7 @@ class TestGetBookmarkList(BaseTest):
         assert "tags" in res_bookmark
         assert isinstance(res_bookmark["tags"], list)
         assert len(res_bookmark["tags"]) == len(expected_tags)
-        assert set(res_bookmark["tags"]) == set([tag.name for tag in expected_tags])
+        assert set(res_bookmark["tags"]) == {tag.name for tag in expected_tags}
         assert tagname in res_bookmark["tags"]
         assert res_bookmark["created_at"] == datetime_to_str(db_bookmark.created_at)
         assert res_bookmark["updated_at"] == datetime_to_str(db_bookmark.updated_at)

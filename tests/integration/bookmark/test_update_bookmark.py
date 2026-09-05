@@ -69,18 +69,16 @@ class TestUpdateBookmark(BaseTest):
 
         tags = db_session.query(TagDao).filter(TagDao.name.in_(request_body["tags"])).all()
         assert len(tags) == 2
-        assert set([tag.name for tag in tags]) == set(request_body["tags"])
+        assert {tag.name for tag in tags} == set(request_body["tags"])
 
         bookmark_tags = (
             db_session.query(BookmarkTagDao).filter_by(bookmark_id=updated_db_bookmark.id).all()
         )
         assert len(bookmark_tags) == 2
-        assert set([bookmark_tag.tag_id for bookmark_tag in bookmark_tags]) == set(
-            [tag.id for tag in tags]
-        )
-        assert set([bookmark_tag.bookmark_id for bookmark_tag in bookmark_tags]) == set(
-            [updated_db_bookmark.id]
-        )
+        assert {bookmark_tag.tag_id for bookmark_tag in bookmark_tags} == {tag.id for tag in tags}
+        assert {bookmark_tag.bookmark_id for bookmark_tag in bookmark_tags} == {
+            updated_db_bookmark.id
+        }
 
     def test_update_same_tags(
         self,
@@ -141,7 +139,7 @@ class TestUpdateBookmark(BaseTest):
         assert updated_bookmark["url"] == bookmark.url
         assert updated_bookmark["memo"] == request_body["memo"]
         assert updated_bookmark["hashed_id"] == bookmark.hashed_id
-        assert set(updated_bookmark["tags"]) == set([tag.name for tag in db_tags])
+        assert set(updated_bookmark["tags"]) == {tag.name for tag in db_tags}
         assert updated_bookmark["created_at"] == datetime_to_str(bookmark.created_at)
         assert updated_bookmark["updated_at"] is not None
 
@@ -160,18 +158,16 @@ class TestUpdateBookmark(BaseTest):
 
         tags = db_session.query(TagDao).all()
         assert len(tags) == 2
-        assert set([tag.name for tag in tags]) == set([tag.name for tag in db_tags])
+        assert {tag.name for tag in tags} == {tag.name for tag in db_tags}
 
         bookmark_tags = (
             db_session.query(BookmarkTagDao).filter_by(bookmark_id=updated_db_bookmark.id).all()
         )
         assert len(bookmark_tags) == 2
-        assert set([bookmark_tag.tag_id for bookmark_tag in bookmark_tags]) == set(
-            [tag.id for tag in tags]
-        )
-        assert set([bookmark_tag.bookmark_id for bookmark_tag in bookmark_tags]) == set(
-            [updated_db_bookmark.id]
-        )
+        assert {bookmark_tag.tag_id for bookmark_tag in bookmark_tags} == {tag.id for tag in tags}
+        assert {bookmark_tag.bookmark_id for bookmark_tag in bookmark_tags} == {
+            updated_db_bookmark.id
+        }
 
     def test_update_tags_only(
         self,
@@ -216,20 +212,20 @@ class TestUpdateBookmark(BaseTest):
 
         tags = db_session.query(TagDao).all()
         assert len(tags) == 4
-        assert set([tag.name for tag in tags]) == set(request_body["tags"]) | set(
-            [tag.name for tag in db_tags]
-        )
+        assert {tag.name for tag in tags} == set(request_body["tags"]) | {
+            tag.name for tag in db_tags
+        }
 
         bookmark_tags = (
             db_session.query(BookmarkTagDao).filter_by(bookmark_id=updated_db_bookmark.id).all()
         )
         assert len(bookmark_tags) == 2
-        assert set([bookmark_tag.tag_id for bookmark_tag in bookmark_tags]) == set(
-            [tag.id for tag in updated_db_tags]
-        )
-        assert set([bookmark_tag.bookmark_id for bookmark_tag in bookmark_tags]) == set(
-            [updated_db_bookmark.id]
-        )
+        assert {bookmark_tag.tag_id for bookmark_tag in bookmark_tags} == {
+            tag.id for tag in updated_db_tags
+        }
+        assert {bookmark_tag.bookmark_id for bookmark_tag in bookmark_tags} == {
+            updated_db_bookmark.id
+        }
 
     def test_update_notfound(
         self,

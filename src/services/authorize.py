@@ -1,6 +1,6 @@
-from datetime import datetime, timedelta, timezone
-from enum import Enum
-from typing import Annotated, Final, cast
+from datetime import UTC, datetime, timedelta
+from enum import StrEnum
+from typing import Annotated, Final
 from uuid import uuid4
 
 import jwt
@@ -9,13 +9,12 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jwt.exceptions import InvalidTokenError
 from pwdlib import PasswordHash
 from pwdlib.hashers.bcrypt import BcryptHasher
-from pydantic import BaseModel, ConfigDict, ValidationError
+from pydantic import BaseModel, ConfigDict, SecretStr, ValidationError
 from sqlalchemy.orm.session import Session
 
 from ..dao.session import SessionDepend
 from ..dto.auth import RequestForLogin, Token
 from ..entities.user import UserEntity
-from ..libs.constraints import FIELD_STRING_PASSWORD
 from ..repositories.user import UserRepository
 from .base import ServiceBase, ServiceError
 from .token_blacklist import TokenBlacklistService
@@ -32,7 +31,7 @@ class TokenData(BaseModel):
     model_config = ConfigDict(frozen=True)
 
 
-class TokenType(str, Enum):
+class TokenType(StrEnum):
     """
     トークン種別
     """
@@ -66,7 +65,7 @@ class AuthorizeService(ServiceBase):
 
     @staticmethod
     def _get_ttl_seconds(expire_at: int) -> int:
-        now = int(datetime.now(timezone.utc).timestamp())
+        now = int(datetime.now(UTC).timestamp())
         return max(expire_at - now, 0)
 
     @classmethod
@@ -177,7 +176,7 @@ class AuthorizeService(ServiceBase):
             作成されたトークン
         """
         to_encode = data.copy()
-        expire = datetime.now(timezone.utc) + expires_delta
+        expire = datetime.now(UTC) + expires_delta
         to_encode.update({"exp": expire, "type": token_type.value})
         encoded_jwt = jwt.encode(to_encode, self.jwt_secret_key, algorithm=self.ALGORITHM)
         return encoded_jwt
@@ -217,7 +216,7 @@ class AuthorizeService(ServiceBase):
         try:
             RequestForLogin(
                 username=form_data.username,
-                password=cast(FIELD_STRING_PASSWORD, form_data.password),
+                password=SecretStr(form_data.password),
             )
         except ValidationError:
             raise self.Error("Incorrect username or password")

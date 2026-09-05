@@ -57,6 +57,8 @@ select = [
     "I",  # isort
     "F",  # pyflakes
     "B",  # flake8-bugbear
+    "C4",  # flake8-comprehensions
+    "UP"   # pyupgrade
 ]
 # 除外するエラーの種類
 ignore = [

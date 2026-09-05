@@ -1,4 +1,5 @@
-from typing import Any, Generic, Sequence, Type, TypeVar
+from collections.abc import Sequence
+from typing import Any, Protocol, TypeVar, cast
 
 from sqlalchemy import Select, select
 from sqlalchemy.orm.session import Session
@@ -9,13 +10,13 @@ from ..models.base import BaseDao
 T = TypeVar("T", bound=BaseDao)  # BaseDao を継承した任意の型を表す型変数
 
 
-class BaseDaoOperator(Generic[T]):
+class BaseDaoOperator[T]:
     """
     DAO操作クラス
     """
 
     # サブクラスで具体的な DAO 型を指定すると、find_all() 等の戻り値型に反映される
-    MAIN_DAO: Type[T]
+    MAIN_DAO: type[T]
 
     def __init__(
         self,
@@ -92,6 +93,11 @@ class BaseDaoOperator(Generic[T]):
             d: 保存対象のDAO、またはDAOのリスト・タプル
         """
 
+        class _MaybeHasCreatedAt(Protocol):
+            """created_at を持つ可能性がある DAO 向けの Protocol"""
+
+            created_at: object | None
+
         def preprocess_insert_or_update(dao: BaseDao) -> None:
             """
             挿入や更新の前処理
@@ -99,8 +105,9 @@ class BaseDaoOperator(Generic[T]):
             Args:
                 dao: 対象のDAO
             """
-            if hasattr(dao, "created_at") and dao.created_at is None:
-                # 新規レコードをINSERT対象にする
+            maybe = cast(_MaybeHasCreatedAt, dao)
+            # created_at 属性が存在し、かつ None の場合は新規レコードとして追加する
+            if hasattr(dao, "created_at") and maybe.created_at is None:
                 self.session.add(dao)
 
         if isinstance(d, Sequence):

@@ -160,6 +160,9 @@ def truncate_tables() -> Iterator[None]:
     テーブル内容削除
     """
     with db_engine().connect() as con:
+        # テスト用データベースにテーブルが存在することを保証（存在しなければ作成）
+        BaseDao.metadata.create_all(db_engine())
+
         con.execute(text("SET FOREIGN_KEY_CHECKS = 0;"))
         for table in BaseDao.metadata.sorted_tables:
             con.execute(text(f"TRUNCATE TABLE {table.name};"))

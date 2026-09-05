@@ -39,9 +39,9 @@ class TestGetBookmark(BaseTest):
         assert res_bookmark["url"] == db_bookmark.url
         assert res_bookmark["memo"] == db_bookmark.memo
         assert res_bookmark["hashed_id"] == db_bookmark.hashed_id
-        assert set(res_bookmark["tags"]) == set(
-            [tag.name for tag in self.get_tags(db_session, db_bookmark)]
-        )
+        assert set(res_bookmark["tags"]) == {
+            tag.name for tag in self.get_tags(db_session, db_bookmark)
+        }
         assert res_bookmark["created_at"] == datetime_to_str(db_bookmark.created_at)
         assert res_bookmark["updated_at"] == datetime_to_str(db_bookmark.updated_at)
 
