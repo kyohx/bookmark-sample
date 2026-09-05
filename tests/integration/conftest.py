@@ -114,6 +114,24 @@ def mock_get_current_active_not_admin_user() -> None:
 
 
 @pytest.fixture
+def mock_get_current_active_read_user() -> None:
+    """
+    ログインユーザー依存処理のモック化
+    (読み取り専用権限ユーザーを返す)
+    """
+
+    def get_current_active_user_for_testing() -> UserEntity:
+        return UserEntity(
+            name="test_user",
+            hashed_password="****",
+            authority=AuthorityEnum.READ,
+            disabled=False,
+        )
+
+    app.dependency_overrides[get_current_active_user] = get_current_active_user_for_testing
+
+
+@pytest.fixture
 def mock_get_disabled_user_from_token() -> None:
     """
     トークンからのユーザー取得処理のモック化

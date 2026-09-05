@@ -63,6 +63,26 @@ class TestDeleteBookmark(BaseTest):
         # レスポンスの検証
         assert response.status_code == 404
 
+    def test_delete_by_read_user(
+        self,
+        client: TestClient,
+        db_session: SessionForTest,
+        mock_get_current_active_read_user: None,
+    ):
+        """
+        異常系:
+        READ 権限ユーザーはブックマーク削除できない
+        """
+        bookmarks = self.create_bookmarks(db_session, num=1)
+        bookmark = bookmarks[0]
+
+        response = client.delete(self.api_path(bookmark.hashed_id))
+
+        assert response.status_code == 403
+        assert db_session.query(BookmarkDao).filter_by(id=bookmark.id).count() == 1
+        assert db_session.query(BookmarkTagDao).filter_by(bookmark_id=bookmark.id).count() == 2
+        assert db_session.query(TagDao).count() == 2
+
     def test_add_invalid_hashed_id(
         self,
         client: TestClient,

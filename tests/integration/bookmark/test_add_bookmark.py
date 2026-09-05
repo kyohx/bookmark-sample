@@ -86,6 +86,27 @@ class TestAddBookmark(BaseTest):
         response = client.post(self.api_path(), json=request_body)
         assert response.status_code == 409
 
+    def test_add_by_read_user(
+        self,
+        client: TestClient,
+        db_session: SessionForTest,
+        mock_get_current_active_read_user: None,
+    ):
+        """
+        異常系:
+        READ 権限ユーザーはブックマーク追加できない
+        """
+        request_body = {
+            "url": TEST_URL,
+            "memo": "テストメモ",
+            "tags": TEST_TAGS,
+        }
+
+        response = client.post(self.api_path(), json=request_body)
+
+        assert response.status_code == 403
+        assert db_session.query(BookmarkDao).where(BookmarkDao.url == TEST_URL).count() == 0
+
     def test_add_invalid_url(
         self,
         client: TestClient,

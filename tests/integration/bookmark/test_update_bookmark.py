@@ -248,6 +248,33 @@ class TestUpdateBookmark(BaseTest):
         # レスポンスの検証
         assert response.status_code == 404
 
+    def test_update_by_read_user(
+        self,
+        client: TestClient,
+        db_session: SessionForTest,
+        mock_get_current_active_read_user: None,
+    ):
+        """
+        異常系:
+        READ 権限ユーザーはブックマーク更新できない
+        """
+        bookmark = self.create_bookmarks(db_session, num=1)[0]
+        original_tags = self.get_tags(db_session, bookmark)
+        request_body = {"memo": "Updated", "tags": ["updated_tag_1", "updated_tag_2"]}
+
+        response = client.patch(self.api_path(bookmark.hashed_id), json=request_body)
+
+        assert response.status_code == 403
+
+        db_bookmark = db_session.query(BookmarkDao).filter_by(id=bookmark.id).one()
+        assert db_bookmark.memo == bookmark.memo
+        assert db_bookmark.hashed_id == bookmark.hashed_id
+
+        db_tags = self.get_tags(db_session, db_bookmark)
+        assert {tag.name for tag in db_tags} == {tag.name for tag in original_tags}
+        assert db_session.query(TagDao).count() == 2
+        assert db_session.query(BookmarkTagDao).filter_by(bookmark_id=bookmark.id).count() == 2
+
     def test_update_invalid_hashed_id(
         self,
         client: TestClient,
