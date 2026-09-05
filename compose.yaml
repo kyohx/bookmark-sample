@@ -28,7 +28,7 @@ services:
         condition: service_healthy
   # DB (mysql)
   db:
-    image: mysql:8.4
+    image: ${MYSQL_IMAGE:-mysql:8.4}
     container_name: db
     hostname: db
     environment:
@@ -50,7 +50,7 @@ services:
 
   # Redis
   redis:
-    image: redis:8.6-alpine
+    image: ${REDIS_IMAGE:-redis:8.6-alpine}
     container_name: redis
     hostname: redis
     ports:

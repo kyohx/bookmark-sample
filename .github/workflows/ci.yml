@@ -1,5 +1,9 @@
 name: Check and Tests
 
+env:
+  MYSQL_IMAGE: mysql:8.4
+  REDIS_IMAGE: redis:8.6-alpine
+
 on:
   pull_request:
     paths-ignore:
@@ -51,8 +55,46 @@ jobs:
           python-version-file: ".python-version"
       - name: Install python packages
         run: uv sync --all-extras
+      - name: Prepare DB image cache metadata
+        id: docker-image-cache-meta
+        env:
+          COMPOSE_HASH: ${{ hashFiles('compose.yaml') }}
+        run: |
+          mysql_image_key=$(printf '%s' "${MYSQL_IMAGE}" | sed 's/[^[:alnum:]_.-]/-/g')
+          redis_image_key=$(printf '%s' "${REDIS_IMAGE}" | sed 's/[^[:alnum:]_.-]/-/g')
+          {
+            echo "cache-key=${RUNNER_OS}-db-images-${mysql_image_key}-${redis_image_key}-${COMPOSE_HASH}"
+            echo "mysql-tar=/tmp/.docker-image-cache/${mysql_image_key}.tar"
+            echo "redis-tar=/tmp/.docker-image-cache/${redis_image_key}.tar"
+          } >> "${GITHUB_OUTPUT}"
+      - name: Restore DB image cache
+        id: docker-image-cache
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: /tmp/.docker-image-cache
+          key: ${{ steps.docker-image-cache-meta.outputs.cache-key }}
+      - name: Load cached DB images
+        run: |
+          if [ -f "${{ steps.docker-image-cache-meta.outputs.mysql-tar }}" ]; then
+            docker load --input "${{ steps.docker-image-cache-meta.outputs.mysql-tar }}"
+          fi
+          if [ -f "${{ steps.docker-image-cache-meta.outputs.redis-tar }}" ]; then
+            docker load --input "${{ steps.docker-image-cache-meta.outputs.redis-tar }}"
+          fi
       - name: Setup DB container
         run: docker compose up -d --quiet-pull --wait db redis
+      - name: Save DB image cache
+        if: steps.docker-image-cache.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p /tmp/.docker-image-cache
+          docker save --output "${{ steps.docker-image-cache-meta.outputs.mysql-tar }}" "${MYSQL_IMAGE}"
+          docker save --output "${{ steps.docker-image-cache-meta.outputs.redis-tar }}" "${REDIS_IMAGE}"
+      - name: Persist DB image cache
+        if: steps.docker-image-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: /tmp/.docker-image-cache
+          key: ${{ steps.docker-image-cache-meta.outputs.cache-key }}
       - name: Run tests
         run: uv run pytest
         env:
