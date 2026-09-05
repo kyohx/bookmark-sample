@@ -113,12 +113,12 @@ class NullCacheRegion:
         del key, expiration_time, ignore_expiration
         return NO_VALUE
 
-    def get_or_create(
+    def get_or_create[T](
         self,
         key: str,
-        creator: Callable[[], Any],
+        creator: Callable[[], T],
         expiration_time: float | None = None,
-    ) -> Any:
+    ) -> T:
         """
         キャッシュを使わずに生成関数をそのまま実行する。
 
