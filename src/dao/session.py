@@ -1,4 +1,5 @@
-from typing import Annotated, Iterator
+from collections.abc import Iterator
+from typing import Annotated
 
 from fastapi import Depends
 from sqlalchemy.orm import Session, scoped_session, sessionmaker

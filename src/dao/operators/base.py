@@ -1,4 +1,5 @@
-from typing import Any, Generic, Sequence, Type, TypeVar
+from collections.abc import Sequence
+from typing import Any, TypeVar
 
 from sqlalchemy import Select, select
 from sqlalchemy.orm.session import Session
@@ -9,13 +10,13 @@ from ..models.base import BaseDao
 T = TypeVar("T", bound=BaseDao)  # BaseDao を継承した任意の型を表す型変数
 
 
-class BaseDaoOperator(Generic[T]):
+class BaseDaoOperator[T]:
     """
     DAO操作クラス
     """
 
     # サブクラスで具体的な DAO 型を指定すると、find_all() 等の戻り値型に反映される
-    MAIN_DAO: Type[T]
+    MAIN_DAO: type[T]
 
     def __init__(
         self,

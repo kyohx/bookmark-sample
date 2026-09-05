@@ -36,14 +36,22 @@ class _CacheRegionLike(Protocol):
     ) -> Any: ...
 
 
+class _DecoratorProtocol(Protocol[P, T]):
+    """
+    戻り値注釈内で ParamSpec を Callable にネストしないようにするデコレータ用の Protocol
+    """
+
+    def __call__(self, func: Callable[P, T]) -> Callable[P, T]: ...
+
+
 def query_cache(
     region: CacheRegion | NullCacheRegion | None = None,
     key_func: KeyFunc | str | None = None,
     expiration_time: int | None = None,
     session_attr: str = "session",
     region_attr: str = "region",
-    unless: Callable[P, bool] | None = None,
-) -> Callable[[Callable[P, T]], Callable[P, T]]:
+    unless: Callable[..., bool] | None = None,
+) -> _DecoratorProtocol[P, T]:
     """
     SQLAlchemy クエリ結果をキャッシュするデコレータを返す。
 
