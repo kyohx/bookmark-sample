@@ -1,8 +1,8 @@
 import pickle  # nosec B403
 from collections.abc import Iterable, Mapping, Sequence
+from compression import zstd
 from typing import Any
 
-import zstandard as zstd
 from dogpile.cache.api import NO_VALUE, BytesBackend
 from dogpile.cache.backends.redis import RedisBackend
 from redis.exceptions import RedisError
@@ -43,9 +43,7 @@ class _ZstdSerializerMixin:
         Args:
             zstd_level: zstd 圧縮レベル
         """
-        normalized_level = _normalize_zstd_level(zstd_level)
-        self._compressor = zstd.ZstdCompressor(level=normalized_level)
-        self._decompressor = zstd.ZstdDecompressor()
+        self._zstd_level = _normalize_zstd_level(zstd_level)
         self.serializer = self._serialize
         self.deserializer = self._deserialize
 
@@ -59,7 +57,7 @@ class _ZstdSerializerMixin:
         Returns:
             圧縮済みバイト列
         """
-        return self._compressor.compress(pickle.dumps(value))
+        return zstd.compress(pickle.dumps(value), level=self._zstd_level)
 
     def _deserialize(self, value: bytes) -> Any:
         """
@@ -71,7 +69,7 @@ class _ZstdSerializerMixin:
         Returns:
             復元した値
         """
-        return pickle.loads(self._decompressor.decompress(value))  # nosec B301
+        return pickle.loads(zstd.decompress(value))  # nosec B301
 
 
 class ZstdMemoryBackend(_ZstdSerializerMixin, BytesBackend):
