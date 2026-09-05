@@ -100,8 +100,6 @@ source .venv/bin/activate
 docker compose up -d
 ```
 
-利用する MySQL / Redis イメージを変えたい場合は、`MYSQL_IMAGE` と `REDIS_IMAGE` を環境変数で上書きできます。
-
 #### 全コンテナの停止・削除
 
 ```bash
