@@ -59,11 +59,11 @@ jobs:
           key: ${{ runner.os }}-db-images-${{ hashFiles('compose.yaml') }}
       - name: Load cached DB images
         run: |
-          if [ -f /tmp/.docker-image-cache/mysql-8.4.tar ]; then
-            docker load --input /tmp/.docker-image-cache/mysql-8.4.tar
+          if [ -f /tmp/.docker-image-cache/mysql.tar ]; then
+            docker load --input /tmp/.docker-image-cache/mysql.tar
           fi
-          if [ -f /tmp/.docker-image-cache/redis-8.6-alpine.tar ]; then
-            docker load --input /tmp/.docker-image-cache/redis-8.6-alpine.tar
+          if [ -f /tmp/.docker-image-cache/redis.tar ]; then
+            docker load --input /tmp/.docker-image-cache/redis.tar
           fi
       - name: Setup DB container
         run: docker compose up -d --quiet-pull --wait db redis
@@ -71,8 +71,8 @@ jobs:
         if: steps.docker-image-cache.outputs.cache-hit != 'true'
         run: |
           mkdir -p /tmp/.docker-image-cache
-          docker save --output /tmp/.docker-image-cache/mysql-8.4.tar mysql:8.4
-          docker save --output /tmp/.docker-image-cache/redis-8.6-alpine.tar redis:8.6-alpine
+          docker save --output /tmp/.docker-image-cache/mysql.tar mysql:8.4.11
+          docker save --output /tmp/.docker-image-cache/redis.tar redis:8.6.6-alpine
       - name: Persist DB image cache
         if: steps.docker-image-cache.outputs.cache-hit != 'true'
         uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
