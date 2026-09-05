@@ -1,14 +1,14 @@
 from collections.abc import Callable, Mapping
-from typing import Any, TypeVar
+from typing import Any
 
 from dogpile.cache import make_region
 from dogpile.cache.api import NO_VALUE
-from dogpile.cache.region import CacheRegion, register_backend
+from dogpile.cache.backends import register_backend
+from dogpile.cache.region import CacheRegion
 
 _MEMORY_BACKEND_NAME = "bookmark.zstd_memory"
 _REDIS_BACKEND_NAME = "bookmark.zstd_redis"
 _BACKENDS_REGISTERED = False
-T = TypeVar("T")
 
 
 def _register_backends() -> None:
@@ -113,7 +113,7 @@ class NullCacheRegion:
         del key, expiration_time, ignore_expiration
         return NO_VALUE
 
-    def get_or_create(
+    def get_or_create[T](
         self,
         key: str,
         creator: Callable[[], T],

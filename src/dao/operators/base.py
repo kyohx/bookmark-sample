@@ -1,5 +1,5 @@
 from collections.abc import Sequence
-from typing import Any, Protocol, TypeVar, cast
+from typing import Any, Protocol, cast
 
 from sqlalchemy import Select, select
 from sqlalchemy.orm.session import Session
@@ -7,10 +7,8 @@ from sqlalchemy.orm.session import Session
 from ...libs.page import Page
 from ..models.base import BaseDao
 
-T = TypeVar("T", bound=BaseDao)  # BaseDao を継承した任意の型を表す型変数
 
-
-class BaseDaoOperator[T]:
+class BaseDaoOperator[T: BaseDao]:
     """
     DAO操作クラス
     """
