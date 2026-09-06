@@ -29,7 +29,7 @@ class BookmarkUsecase(UsecaseBase):
         bookmark.hashed_id = get_hashed_id(str(bookmark.url))
         self.bookmark_repository.add_one(bookmark)
 
-        return {"hashed_id": bookmark.hashed_id}
+        return {"added_bookmark": bookmark.model_dump()}
 
     def update(self, request_body: RequestForUpdateBookmark, hashed_id: str) -> dict:
         """

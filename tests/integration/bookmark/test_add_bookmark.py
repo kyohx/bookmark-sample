@@ -3,6 +3,7 @@ from fastapi.testclient import TestClient
 from src.dao.models.bookmark import BookmarkDao
 from src.dao.models.bookmark_tag import BookmarkTagDao
 from src.dao.models.tag import TagDao
+from src.libs.util import datetime_to_str
 from src.main import app
 
 from ..base import BaseTest
@@ -42,9 +43,14 @@ class TestAddBookmark(BaseTest):
         # レスポンスの検証
         assert response.status_code == 200
         response_body = response.json()
-        assert "hashed_id" in response_body
-        hashed_id = response_body["hashed_id"]
-        assert len(hashed_id) == 64
+        assert "added_bookmark" in response_body
+        added_bookmark = response_body["added_bookmark"]
+        assert len(added_bookmark["hashed_id"]) == 64
+        assert added_bookmark["url"] == request_body["url"]
+        assert added_bookmark["memo"] == request_body["memo"]
+        assert set(added_bookmark["tags"]) == set(request_body["tags"])
+        assert added_bookmark["created_at"] is not None
+        assert added_bookmark["updated_at"] is not None
 
         # データベースの検証
         bookmarks = db_session.query(BookmarkDao).filter_by(url=TEST_URL).all()
@@ -52,7 +58,9 @@ class TestAddBookmark(BaseTest):
         bookmark = bookmarks[0]
         assert bookmark.url == request_body["url"]
         assert bookmark.memo == request_body["memo"]
-        assert bookmark.hashed_id == hashed_id
+        assert bookmark.hashed_id == added_bookmark["hashed_id"]
+        assert added_bookmark["created_at"] == datetime_to_str(bookmark.created_at)
+        assert added_bookmark["updated_at"] == datetime_to_str(bookmark.updated_at)
 
         tags = db_session.query(TagDao).filter(TagDao.name.in_(TEST_TAGS)).all()
         assert len(tags) == len(TEST_TAGS)
