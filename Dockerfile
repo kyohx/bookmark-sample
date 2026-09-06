@@ -1,3 +1,5 @@
+## Dockerfile for Render
+
 ARG PYTHON_VER=3.14
 
 ## ----- Stage for building python packages
@@ -14,6 +16,9 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 FROM python:${PYTHON_VER}-slim AS app
 
 ARG PYTHON_VER
+
+# ポート指定
+EXPOSE 10000
 
 # Webアプリのパス指定
 ARG APP_HOME=/opt/app
@@ -49,4 +54,4 @@ ENV PYTHONDONTWRITEBYTECODE=1
 COPY . ${APP_HOME}
 
 # デフォルトの起動コマンド設定
-CMD python -m uvicorn src.main:app --workers 2 --host 0.0.0.0 --port ${PORT:-10000}
+CMD ["python", "-m", "uvicorn", "src.main:app", "--workers", "2", "--host", "0.0.0.0", "--port", "10000"]
