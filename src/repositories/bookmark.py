@@ -109,6 +109,9 @@ class BookmarkRepository(BaseRepository):
         bookmark_dao = BookmarkDao(**bookmark.model_dump(exclude={"tags"}))
 
         self.bookmark_operator.save(bookmark_dao)
+        self.session.refresh(bookmark_dao)
+        bookmark.created_at = bookmark_dao.created_at
+        bookmark.updated_at = bookmark_dao.updated_at
         self._save_tags(bookmark.tags, bookmark_dao.id)
         # 詳細キーは直接削除し、一覧系は version を進めてまとめて無効化する。
         self._delete_cache_keys(type(self)._find_one_cache_key(bookmark_dao.hashed_id))
