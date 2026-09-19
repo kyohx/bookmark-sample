@@ -41,9 +41,8 @@ def add_bookmark(
     """
     ブックマーク追加
     """
-    res = usecase.add(req)
-
-    return ResponseForAddBookmark(**res)
+    bookmark = usecase.add(req)
+    return ResponseForAddBookmark.from_entity(bookmark)
 
 
 @router.patch(
@@ -58,9 +57,8 @@ def update_bookmark(
     """
     ブックマーク更新
     """
-    res = usecase.update(req, hashed_id)
-
-    return ResponseForUpdateBookmark(**res)
+    bookmark = usecase.update(req, hashed_id)
+    return ResponseForUpdateBookmark.from_entity(bookmark)
 
 
 @router.delete(
@@ -74,9 +72,8 @@ def delete_bookmark(
     """
     ブックマーク削除
     """
-    res = usecase.delete(hashed_id)
-
-    return ResponseForDeleteBookmark(**res)
+    usecase.delete(hashed_id)
+    return ResponseForDeleteBookmark.empty()
 
 
 @router.get(
@@ -90,9 +87,8 @@ def get_bookmark(
     """
     ブックマーク取得
     """
-    res = usecase.get_one(hashed_id)
-
-    return ResponseForGetBookmark(**res)
+    bookmark = usecase.get_one(hashed_id)
+    return ResponseForGetBookmark.from_entity(bookmark)
 
 
 @router.get(
@@ -106,6 +102,5 @@ def get_bookmarks(
     """
     ブックマークリスト取得
     """
-    res = usecase.get_list(tag_names=tag)
-
-    return ResponseForGetBookmarkList(**res)
+    bookmarks = usecase.get_list(tag_names=tag)
+    return ResponseForGetBookmarkList.from_entities(bookmarks)

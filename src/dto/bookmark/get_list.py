@@ -1,7 +1,10 @@
+from __future__ import annotations
+
 from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, field_validator
 
+from ...entities.bookmark import BookmarkEntity
 from ...libs.constraints import (
     FIELD_HASHED_ID,
     FIELD_STRING_DATETIME,
@@ -47,11 +50,19 @@ class Bookmark(BaseModel):
             return datetime_to_str(value)
         raise ValueError("Invalid type")
 
+    @classmethod
+    def from_entity(cls, bookmark: BookmarkEntity) -> Bookmark:
+        return cls.model_validate(bookmark.model_dump(exclude_none=True))
+
 
 #### リスト取得レスポンス
 class ResponseForGetBookmarkList(BaseModel):
     bookmarks: list[Bookmark]
     "ブックマーク情報リスト"
+
+    @classmethod
+    def from_entities(cls, bookmarks: list[BookmarkEntity]) -> ResponseForGetBookmarkList:
+        return cls(bookmarks=[Bookmark.from_entity(bookmark) for bookmark in bookmarks])
 
     model_config = ConfigDict(
         json_schema_extra={

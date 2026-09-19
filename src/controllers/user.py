@@ -40,9 +40,8 @@ def add_user(
     """
     ユーザー追加
     """
-    res = usecase.add(req)
-
-    return ResponseForAddUser(**res)
+    usecase.add(req)
+    return ResponseForAddUser.empty()
 
 
 @router.patch(
@@ -59,9 +58,8 @@ def update_user(
      - ログインユーザー自身のname,disabled,authorityは変更できない
      - 管理者以外はログインユーザー自身の情報のみ変更可能
     """
-    res = usecase.update(req, name)
-
-    return ResponseForUpdateUser(**res)
+    user = usecase.update(req, name)
+    return ResponseForUpdateUser.from_entity(user)
 
 
 @router.get(
@@ -75,9 +73,8 @@ def get_user(
     """
     ユーザー取得
     """
-    res = usecase.get_one(name)
-
-    return ResponseForGetUser(**res)
+    user = usecase.get_one(name)
+    return ResponseForGetUser.from_entity(user)
 
 
 @router.get(
@@ -90,6 +87,5 @@ def get_users(
     """
     ユーザーリスト取得
     """
-    res = usecase.get_list()
-
-    return ResponseForGetUserList(**res)
+    users = usecase.get_list()
+    return ResponseForGetUserList.from_entities(users)

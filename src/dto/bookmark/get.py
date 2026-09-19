@@ -1,5 +1,8 @@
+from __future__ import annotations
+
 from pydantic import BaseModel, ConfigDict
 
+from ...entities.bookmark import BookmarkEntity
 from .get_list import Bookmark
 
 
@@ -7,6 +10,10 @@ from .get_list import Bookmark
 class ResponseForGetBookmark(BaseModel):
     bookmark: Bookmark
     "ブックマーク情報"
+
+    @classmethod
+    def from_entity(cls, bookmark: BookmarkEntity) -> ResponseForGetBookmark:
+        return cls(bookmark=Bookmark.from_entity(bookmark))
 
     model_config = ConfigDict(
         json_schema_extra={
