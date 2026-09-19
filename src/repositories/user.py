@@ -54,6 +54,9 @@ class UserRepository(BaseRepository):
         user_dao = UserDao(**user.model_dump())
 
         self.user_operator.save(user_dao)
+        self.session.refresh(user_dao)
+        user.created_at = user_dao.created_at
+        user.updated_at = user_dao.updated_at
         # 詳細キーは直接削除し、一覧系は version を進めてまとめて無効化する。
         self._invalidate_detail_and_list_caches(
             detail_keys=(type(self)._find_one_cache_key(user.name),),
@@ -75,6 +78,9 @@ class UserRepository(BaseRepository):
         self._assign_attributes(user_dao, user.model_dump(exclude_none=True))
 
         self.user_operator.save(user_dao)
+        self.session.refresh(user_dao)
+        user.created_at = user_dao.created_at
+        user.updated_at = user_dao.updated_at
         # name 変更に備えて旧キーと新キーの両方を落とす。
         self._invalidate_detail_and_list_caches(
             detail_keys=(

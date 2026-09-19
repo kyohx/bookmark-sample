@@ -2,6 +2,7 @@ from fastapi.testclient import TestClient
 
 from src.dao.models.user import UserDao
 from src.libs.enum import AuthorityEnum
+from src.libs.util import datetime_to_str
 from src.main import app
 from src.services.authorize import AuthorizeService
 
@@ -50,6 +51,8 @@ class TestUpdateUser(BaseTest):
         assert updated_user["name"] == updated_db_user.name
         assert updated_user["disabled"] == updated_db_user.disabled
         assert updated_user["authority"] == updated_db_user.authority
+        assert updated_user["created_at"] == datetime_to_str(updated_db_user.created_at)
+        assert updated_user["updated_at"] == datetime_to_str(updated_db_user.updated_at)
 
     def test_update_name_only(
         self,
@@ -76,6 +79,8 @@ class TestUpdateUser(BaseTest):
         assert updated_user["name"] == updated_db_user.name
         assert updated_user["disabled"] == updated_db_user.disabled
         assert updated_user["authority"] == updated_db_user.authority
+        assert updated_user["created_at"] == datetime_to_str(updated_db_user.created_at)
+        assert updated_user["updated_at"] == datetime_to_str(updated_db_user.updated_at)
 
     def test_update_password_only(
         self,
@@ -105,6 +110,8 @@ class TestUpdateUser(BaseTest):
         )
         assert updated_user["disabled"] == updated_db_user.disabled
         assert updated_user["authority"] == updated_db_user.authority
+        assert updated_user["created_at"] == datetime_to_str(updated_db_user.created_at)
+        assert updated_user["updated_at"] == datetime_to_str(updated_db_user.updated_at)
 
     def test_update_disabled_only(
         self,
@@ -131,6 +138,8 @@ class TestUpdateUser(BaseTest):
         assert updated_user["name"] == updated_db_user.name
         assert updated_user["disabled"] == updated_db_user.disabled
         assert updated_user["authority"] == updated_db_user.authority
+        assert updated_user["created_at"] == datetime_to_str(updated_db_user.created_at)
+        assert updated_user["updated_at"] == datetime_to_str(updated_db_user.updated_at)
 
     def test_update_authority_only(
         self,
@@ -157,6 +166,8 @@ class TestUpdateUser(BaseTest):
         assert updated_user["name"] == updated_db_user.name
         assert updated_user["disabled"] == updated_db_user.disabled
         assert updated_user["authority"] == updated_db_user.authority
+        assert updated_user["created_at"] == datetime_to_str(updated_db_user.created_at)
+        assert updated_user["updated_at"] == datetime_to_str(updated_db_user.updated_at)
 
     def test_update_notfound(
         self,

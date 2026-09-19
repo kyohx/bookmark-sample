@@ -2,6 +2,7 @@ from fastapi.testclient import TestClient
 
 from src.dao.models.user import UserDao
 from src.libs.enum import AuthorityEnum
+from src.libs.util import datetime_to_str
 from src.main import app
 from src.services.authorize import AuthorizeService
 
@@ -41,11 +42,19 @@ class TestAddUser(BaseTest):
 
         # レスポンスの検証
         assert response.status_code == 200
+        response_body = response.json()
+        assert "added_user" in response_body
+        added_user = response_body["added_user"]
 
         # データベースの検証
         users = db_session.query(UserDao).all()
         assert len(users) == 1
         user = users[0]
+        assert added_user["name"] == user.name
+        assert added_user["disabled"] == user.disabled
+        assert added_user["authority"] == user.authority
+        assert added_user["created_at"] == datetime_to_str(user.created_at)
+        assert added_user["updated_at"] == datetime_to_str(user.updated_at)
         assert user.name == request_body["name"]
         assert AuthorizeService.verify_password(request_body["password"], user.hashed_password)
         assert user.disabled is False

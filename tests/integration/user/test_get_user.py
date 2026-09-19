@@ -2,6 +2,7 @@ from fastapi.testclient import TestClient
 
 from src.entities.user import UserEntity
 from src.libs.enum import AuthorityEnum
+from src.libs.util import datetime_to_str
 from src.main import app
 from src.services.authorize import get_current_active_user
 
@@ -40,6 +41,8 @@ class TestGetUser(BaseTest):
         assert res_user["name"] == db_user.name
         assert res_user["disabled"] == db_user.disabled
         assert res_user["authority"] == db_user.authority
+        assert res_user["created_at"] == datetime_to_str(db_user.created_at)
+        assert res_user["updated_at"] == datetime_to_str(db_user.updated_at)
 
     def test_get_one_notfound(
         self,
