@@ -17,9 +17,15 @@ from ..libs.enum import AuthorityEnum
 from ..libs.openapi_tags import TagNameEnum
 from ..services.authorize import AuthorizeService, UserDepends
 from ..usecases.blacklist import BlacklistUsecase
+from .dependencies import usecase_dependency
 
 router: Final[APIRouter] = APIRouter()
 tagname: Final[str] = TagNameEnum.AUTH.value
+
+AdminBlacklistUsecaseDepend = Annotated[
+    BlacklistUsecase,
+    Depends(usecase_dependency(BlacklistUsecase, required_authority=AuthorityEnum.ADMIN)),
+]
 
 
 @router.post(
@@ -58,17 +64,12 @@ def refresh_token(
 )
 def add_blacklist_jti(
     req: RequestForBlacklistAddJti,
-    session: SessionDepend,
-    user: UserDepends,
+    usecase: AdminBlacklistUsecaseDepend,
 ) -> Response:
     """
     jtiをリフレッシュトークンブラックリストに追加する(管理者のみ)
     """
-    BlacklistUsecase(
-        session=session,
-        user=user,
-        required_authority=AuthorityEnum.ADMIN,
-    ).add_jti(req)
+    usecase.add_jti(req)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
@@ -78,17 +79,12 @@ def add_blacklist_jti(
 )
 def add_blacklist_family(
     req: RequestForBlacklistAddFamily,
-    session: SessionDepend,
-    user: UserDepends,
+    usecase: AdminBlacklistUsecaseDepend,
 ) -> Response:
     """
     user+familyをリフレッシュトークンブラックリストに追加する(管理者のみ)
     """
-    BlacklistUsecase(
-        session=session,
-        user=user,
-        required_authority=AuthorityEnum.ADMIN,
-    ).add_family(req)
+    usecase.add_family(req)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
@@ -98,17 +94,12 @@ def add_blacklist_family(
 )
 def delete_blacklist_jti(
     jti: FIELD_STRING_JTI,
-    session: SessionDepend,
-    user: UserDepends,
+    usecase: AdminBlacklistUsecaseDepend,
 ) -> Response:
     """
     jtiのリフレッシュトークンブラックリストを削除する(管理者のみ)
     """
-    BlacklistUsecase(
-        session=session,
-        user=user,
-        required_authority=AuthorityEnum.ADMIN,
-    ).delete_jti(jti)
+    usecase.delete_jti(jti)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
@@ -119,17 +110,12 @@ def delete_blacklist_jti(
 def delete_blacklist_family(
     user: FIELD_STRING_USERNAME,
     family: FIELD_STRING_FAMILY,
-    session: SessionDepend,
-    current_user: UserDepends,
+    usecase: AdminBlacklistUsecaseDepend,
 ) -> Response:
     """
     user+familyのリフレッシュトークンブラックリストを削除する(管理者のみ)
     """
-    BlacklistUsecase(
-        session=session,
-        user=current_user,
-        required_authority=AuthorityEnum.ADMIN,
-    ).delete_family(user, family)
+    usecase.delete_family(user, family)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 

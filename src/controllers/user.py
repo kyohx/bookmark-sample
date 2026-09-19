@@ -1,21 +1,32 @@
-from typing import Final
+from typing import Annotated, Final
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 
-from ..dao.session import SessionDepend
 from ..dto.user.add import RequestForAddUser, ResponseForAddUser
 from ..dto.user.get import ResponseForGetUser
 from ..dto.user.get_list import ResponseForGetUserList
 from ..dto.user.update import RequestForUpdateUser, ResponseForUpdateUser
-from ..libs.constraints import FIELD_PAGE_NUMBER, FIELD_PAGE_SIZE, FIELD_STRING_USERNAME
+from ..libs.constraints import FIELD_STRING_USERNAME
 from ..libs.enum import AuthorityEnum
 from ..libs.openapi_tags import TagNameEnum
-from ..libs.page import Page
-from ..services.authorize import UserDepends
 from ..usecases.user import UserUsecase
+from .dependencies import paged_usecase_dependency, usecase_dependency
 
 router: Final[APIRouter] = APIRouter()
 tagname: Final[str] = TagNameEnum.USER.value
+
+AdminUserUsecaseDepend = Annotated[
+    UserUsecase,
+    Depends(usecase_dependency(UserUsecase, required_authority=AuthorityEnum.ADMIN)),
+]
+UserUpdateUsecaseDepend = Annotated[
+    UserUsecase,
+    Depends(usecase_dependency(UserUsecase, required_authority=AuthorityEnum.NONE)),
+]
+PagedAdminUserUsecaseDepend = Annotated[
+    UserUsecase,
+    Depends(paged_usecase_dependency(UserUsecase, required_authority=AuthorityEnum.ADMIN)),
+]
 
 
 @router.post(
@@ -24,17 +35,12 @@ tagname: Final[str] = TagNameEnum.USER.value
 )
 def add_user(
     req: RequestForAddUser,
-    session: SessionDepend,
-    user: UserDepends,
+    usecase: AdminUserUsecaseDepend,
 ) -> ResponseForAddUser:
     """
     ユーザー追加
     """
-    res = UserUsecase(
-        session=session,
-        user=user,
-        required_authority=AuthorityEnum.ADMIN,
-    ).add(req)
+    res = usecase.add(req)
 
     return ResponseForAddUser(**res)
 
@@ -46,19 +52,14 @@ def add_user(
 def update_user(
     name: FIELD_STRING_USERNAME,
     req: RequestForUpdateUser,
-    session: SessionDepend,
-    user: UserDepends,
+    usecase: UserUpdateUsecaseDepend,
 ) -> ResponseForUpdateUser:
     """
     ユーザー更新
      - ログインユーザー自身のname,disabled,authorityは変更できない
      - 管理者以外はログインユーザー自身の情報のみ変更可能
     """
-    res = UserUsecase(
-        session=session,
-        user=user,
-        required_authority=AuthorityEnum.NONE,
-    ).update(req, name)
+    res = usecase.update(req, name)
 
     return ResponseForUpdateUser(**res)
 
@@ -69,17 +70,12 @@ def update_user(
 )
 def get_user(
     name: FIELD_STRING_USERNAME,
-    session: SessionDepend,
-    user: UserDepends,
+    usecase: AdminUserUsecaseDepend,
 ) -> ResponseForGetUser:
     """
     ユーザー取得
     """
-    res = UserUsecase(
-        session=session,
-        user=user,
-        required_authority=AuthorityEnum.ADMIN,
-    ).get_one(name)
+    res = usecase.get_one(name)
 
     return ResponseForGetUser(**res)
 
@@ -89,19 +85,11 @@ def get_user(
     response_model=ResponseForGetUserList,
 )
 def get_users(
-    session: SessionDepend,
-    user: UserDepends,
-    page: FIELD_PAGE_NUMBER = 1,
-    size: FIELD_PAGE_SIZE = 10,
+    usecase: PagedAdminUserUsecaseDepend,
 ) -> ResponseForGetUserList:
     """
     ユーザーリスト取得
     """
-    res = UserUsecase(
-        session=session,
-        user=user,
-        required_authority=AuthorityEnum.ADMIN,
-        page=Page(number=page, size=size),
-    ).get_list()
+    res = usecase.get_list()
 
     return ResponseForGetUserList(**res)
