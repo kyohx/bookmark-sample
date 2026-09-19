@@ -1,5 +1,4 @@
 from collections.abc import Mapping, Sequence
-from typing import TypeVar
 
 from dogpile.cache.region import CacheRegion
 from sqlalchemy.orm.session import Session
@@ -14,8 +13,6 @@ from ..libs.cache.invalidation import (
 from ..libs.page import Page
 
 install_session_cache_invalidation_listeners()
-
-TValue = TypeVar("TValue")
 
 
 class RepositoryError(Exception):
@@ -138,7 +135,7 @@ class BaseRepository:
         self._delete_cache_keys(*detail_keys)
         self._bump_cache_versions(*list_namespaces)
 
-    def _require_found(self, value: TValue | None) -> TValue:
+    def _require_found[TValue](self, value: TValue | None) -> TValue:
         """
         値の存在を保証し、未存在なら NotFoundError を送出する。
 
