@@ -1,5 +1,8 @@
+from typing import Self
+
 from pydantic import BaseModel, ConfigDict
 
+from ...entities.user import UserEntity
 from ...libs.constraints import FIELD_STRING_PASSWORD, FIELD_STRING_USERNAME
 from ...libs.enum import AuthorityEnum
 from .get import UserDetail
@@ -33,6 +36,10 @@ class RequestForUpdateUser(BaseModel):
 #### 更新レスポンス
 class ResponseForUpdateUser(BaseModel):
     updated_user: UserDetail
+
+    @classmethod
+    def from_entity(cls, user: UserEntity) -> Self:
+        return cls(updated_user=UserDetail.from_entity(user))
 
     model_config = ConfigDict(
         json_schema_extra={

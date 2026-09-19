@@ -15,7 +15,7 @@ class UserUsecase(UsecaseBase):
         super().__init__(*args, **kwargs)
         self.user_repository = UserRepository(self.session, page=self.page)
 
-    def add(self, request_body: RequestForAddUser) -> dict:
+    def add(self, request_body: RequestForAddUser) -> None:
         """
         新しいユーザーを追加する。
 
@@ -23,7 +23,7 @@ class UserUsecase(UsecaseBase):
             request_body: 追加するユーザーのリクエストデータ
 
         Returns:
-            空の辞書(追加成功を示す)
+            なし
         """
         user = UserEntity(
             name=request_body.name,
@@ -35,9 +35,7 @@ class UserUsecase(UsecaseBase):
         )
         self.user_repository.add_one(user)
 
-        return {}
-
-    def update(self, request_body: RequestForUpdateUser, name: str) -> dict:
+    def update(self, request_body: RequestForUpdateUser, name: str) -> UserEntity:
         """
         既存のユーザー情報を更新する。
 
@@ -46,7 +44,7 @@ class UserUsecase(UsecaseBase):
             name: 更新対象のユーザー名
 
         Returns:
-            レスポンスの辞書
+            更新後のユーザー
 
         Raises:
             AuthorityService.Error: ユーザーが更新権限を持っていない
@@ -67,9 +65,9 @@ class UserUsecase(UsecaseBase):
 
         self.user_repository.update_one(user, current_name=name)
 
-        return {"updated_user": user.to_response_dict()}
+        return user
 
-    def get_one(self, name: str) -> dict:
+    def get_one(self, name: str) -> UserEntity:
         """
         指定されたユーザーを取得する。
 
@@ -77,19 +75,19 @@ class UserUsecase(UsecaseBase):
             name: 取得対象のユーザー名
 
         Returns:
-            レスポンスの辞書
+            取得したユーザー
         """
         user = self.user_repository.find_one(name=name)
 
-        return {"user": user.to_response_dict()}
+        return user
 
-    def get_list(self) -> dict:
+    def get_list(self) -> list[UserEntity]:
         """
         全てのユーザーのリストを取得する。
 
         Returns:
-            レスポンスの辞書
+            ユーザーリスト
         """
         user_list = self.user_repository.find_all()
 
-        return {"users": [user.to_response_dict() for user in user_list]}
+        return user_list

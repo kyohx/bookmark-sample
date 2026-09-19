@@ -1,5 +1,8 @@
+from typing import Self
+
 from pydantic import BaseModel, ConfigDict, field_serializer
 
+from ...entities.bookmark import BookmarkEntity
 from ...libs.constraints import FIELD_STRING_MAX400, FIELD_TAGS, FIELD_URL
 from .get_list import Bookmark
 
@@ -37,6 +40,10 @@ class RequestForAddBookmark(BaseModel):
 class ResponseForAddBookmark(BaseModel):
     added_bookmark: Bookmark
     "追加後のブックマーク情報"
+
+    @classmethod
+    def from_entity(cls, bookmark: BookmarkEntity) -> Self:
+        return cls(added_bookmark=Bookmark.from_entity(bookmark))
 
     model_config = ConfigDict(
         json_schema_extra={

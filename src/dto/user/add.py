@@ -1,3 +1,5 @@
+from typing import Self
+
 from pydantic import BaseModel, ConfigDict
 
 from ...libs.constraints import FIELD_STRING_PASSWORD, FIELD_STRING_USERNAME
@@ -28,4 +30,6 @@ class RequestForAddUser(BaseModel):
 
 #### 追加レスポンス
 class ResponseForAddUser(BaseModel):
-    pass
+    @classmethod
+    def empty(cls) -> Self:
+        return cls()
