@@ -1,6 +1,7 @@
 from fastapi.testclient import TestClient
 
 from src.dao.models.user import UserDao
+from src.libs.util import datetime_to_str
 from src.main import app
 
 from ..base import BaseTest
@@ -45,6 +46,8 @@ class TestGetUserList(BaseTest):
             db_user = users_dict[res_user["name"]]
             assert res_user["disabled"] == db_user.disabled
             assert res_user["authority"] == db_user.authority
+            assert res_user["created_at"] == datetime_to_str(db_user.created_at)
+            assert res_user["updated_at"] == datetime_to_str(db_user.updated_at)
 
     def test_get_list_by_not_admin_user(
         self,

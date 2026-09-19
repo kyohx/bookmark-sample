@@ -25,6 +25,8 @@ class ResponseForGetUserList(BaseModel):
                             "name": "test_user",
                             "authority": AuthorityEnum.READWRITE,
                             "disabled": False,
+                            "created_at": "2025-01-01 12:34:56",
+                            "updated_at": "2025-01-01 12:34:56",
                         }
                     ]
                 }
