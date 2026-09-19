@@ -82,8 +82,12 @@ def add_error_handlers(app: FastAPI) -> None:
     async def operation_error_handler(request: Request, exc: UsecaseBase.OperationError):
         return _detail_response(status.HTTP_400_BAD_REQUEST, str(exc))
 
+    @app.exception_handler(UsecaseBase.NotFoundError)
+    async def usecase_not_found_handler(request: Request, exc: UsecaseBase.NotFoundError):
+        return _detail_response(status.HTTP_404_NOT_FOUND, str(exc))
+
     @app.exception_handler(BaseRepository.NotFoundError)
-    async def not_found_handler(request: Request, exc: BaseRepository.NotFoundError):
+    async def repository_not_found_handler(request: Request, exc: BaseRepository.NotFoundError):
         return _detail_response(status.HTTP_404_NOT_FOUND, str(exc))
 
     @app.exception_handler(IntegrityError)

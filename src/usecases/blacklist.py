@@ -1,5 +1,4 @@
 from ..dto.auth import RequestForBlacklistAddFamily, RequestForBlacklistAddJti
-from ..repositories.base import BaseRepository
 from ..services.token_blacklist import TokenBlacklistService
 from .base import UsecaseBase
 
@@ -41,7 +40,7 @@ class BlacklistUsecase(UsecaseBase):
         jtiのブラックリストを削除する。
         """
         if not self.token_blacklist_service.is_jti_denied(jti):
-            raise BaseRepository.NotFoundError("Blacklist jti not found")
+            raise self.NotFoundError("Blacklist jti not found")
         self.token_blacklist_service.remove_jti(jti)
         return {}
 
@@ -50,6 +49,6 @@ class BlacklistUsecase(UsecaseBase):
         user+familyのブラックリストを削除する。
         """
         if not self.token_blacklist_service.is_family_denied(user, family):
-            raise BaseRepository.NotFoundError("Blacklist family not found")
+            raise self.NotFoundError("Blacklist family not found")
         self.token_blacklist_service.remove_family(user, family)
         return {}
