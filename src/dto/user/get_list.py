@@ -1,4 +1,4 @@
-from __future__ import annotations
+from typing import Self
 
 from pydantic import BaseModel, ConfigDict
 
@@ -13,7 +13,7 @@ class ResponseForGetUserList(BaseModel):
     "ユーザー情報リスト"
 
     @classmethod
-    def from_entities(cls, users: list[UserEntity]) -> ResponseForGetUserList:
+    def from_entities(cls, users: list[UserEntity]) -> Self:
         return cls(users=[UserDetail.from_entity(user) for user in users])
 
     model_config = ConfigDict(

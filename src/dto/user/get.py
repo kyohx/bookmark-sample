@@ -1,4 +1,4 @@
-from __future__ import annotations
+from typing import Self
 
 from pydantic import BaseModel, ConfigDict
 
@@ -16,7 +16,7 @@ class UserDetail(BaseModel):
     "無効フラグ"
 
     @classmethod
-    def from_entity(cls, user: UserEntity) -> UserDetail:
+    def from_entity(cls, user: UserEntity) -> Self:
         return cls(
             name=user.name,
             authority=user.authority,
@@ -29,7 +29,7 @@ class ResponseForGetUser(BaseModel):
     user: UserDetail
 
     @classmethod
-    def from_entity(cls, user: UserEntity) -> ResponseForGetUser:
+    def from_entity(cls, user: UserEntity) -> Self:
         return cls(user=UserDetail.from_entity(user))
 
     model_config = ConfigDict(

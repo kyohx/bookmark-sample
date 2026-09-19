@@ -1,4 +1,4 @@
-from __future__ import annotations
+from typing import Self
 
 from pydantic import BaseModel, ConfigDict
 
@@ -31,5 +31,5 @@ class RequestForAddUser(BaseModel):
 #### 追加レスポンス
 class ResponseForAddUser(BaseModel):
     @classmethod
-    def empty(cls) -> ResponseForAddUser:
+    def empty(cls) -> Self:
         return cls()

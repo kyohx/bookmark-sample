@@ -1,6 +1,5 @@
-from __future__ import annotations
-
 from datetime import datetime
+from typing import Self
 
 from pydantic import BaseModel, ConfigDict, field_validator
 
@@ -51,7 +50,7 @@ class Bookmark(BaseModel):
         raise ValueError("Invalid type")
 
     @classmethod
-    def from_entity(cls, bookmark: BookmarkEntity) -> Bookmark:
+    def from_entity(cls, bookmark: BookmarkEntity) -> Self:
         return cls.model_validate(bookmark.model_dump(exclude_none=True))
 
 
@@ -61,7 +60,7 @@ class ResponseForGetBookmarkList(BaseModel):
     "ブックマーク情報リスト"
 
     @classmethod
-    def from_entities(cls, bookmarks: list[BookmarkEntity]) -> ResponseForGetBookmarkList:
+    def from_entities(cls, bookmarks: list[BookmarkEntity]) -> Self:
         return cls(bookmarks=[Bookmark.from_entity(bookmark) for bookmark in bookmarks])
 
     model_config = ConfigDict(

@@ -1,4 +1,4 @@
-from __future__ import annotations
+from typing import Self
 
 from pydantic import BaseModel, ConfigDict
 
@@ -38,7 +38,7 @@ class ResponseForUpdateUser(BaseModel):
     updated_user: UserDetail
 
     @classmethod
-    def from_entity(cls, user: UserEntity) -> ResponseForUpdateUser:
+    def from_entity(cls, user: UserEntity) -> Self:
         return cls(updated_user=UserDetail.from_entity(user))
 
     model_config = ConfigDict(

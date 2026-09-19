@@ -1,4 +1,4 @@
-from __future__ import annotations
+from typing import Self
 
 from pydantic import BaseModel, ConfigDict, field_serializer
 
@@ -42,7 +42,7 @@ class ResponseForAddBookmark(BaseModel):
     "追加後のブックマーク情報"
 
     @classmethod
-    def from_entity(cls, bookmark: BookmarkEntity) -> ResponseForAddBookmark:
+    def from_entity(cls, bookmark: BookmarkEntity) -> Self:
         return cls(added_bookmark=Bookmark.from_entity(bookmark))
 
     model_config = ConfigDict(

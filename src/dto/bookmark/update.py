@@ -1,4 +1,4 @@
-from __future__ import annotations
+from typing import Self
 
 from pydantic import BaseModel, ConfigDict
 
@@ -35,7 +35,7 @@ class ResponseForUpdateBookmark(BaseModel):
     "更新後のブックマーク情報"
 
     @classmethod
-    def from_entity(cls, bookmark: BookmarkEntity) -> ResponseForUpdateBookmark:
+    def from_entity(cls, bookmark: BookmarkEntity) -> Self:
         return cls(updated_bookmark=Bookmark.from_entity(bookmark))
 
     model_config = ConfigDict(

@@ -1,4 +1,4 @@
-from __future__ import annotations
+from typing import Self
 
 from pydantic import BaseModel
 
@@ -6,5 +6,5 @@ from pydantic import BaseModel
 #### 削除レスポンス
 class ResponseForDeleteBookmark(BaseModel):
     @classmethod
-    def empty(cls) -> ResponseForDeleteBookmark:
+    def empty(cls) -> Self:
         return cls()
