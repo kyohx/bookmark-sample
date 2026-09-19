@@ -22,6 +22,13 @@ class UsecaseBase:
 
         pass
 
+    class NotFoundError(UsecaseError):
+        """
+        ユースケース層で対象データが見つからない
+        """
+
+        pass
+
     def __init__(
         self,
         session: Session,
