@@ -1,22 +1,33 @@
-from typing import Final
+from typing import Annotated, Final
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 
-from ..dao.session import SessionDepend
 from ..dto.bookmark.add import RequestForAddBookmark, ResponseForAddBookmark
 from ..dto.bookmark.delete import ResponseForDeleteBookmark
 from ..dto.bookmark.get import ResponseForGetBookmark
 from ..dto.bookmark.get_list import ResponseForGetBookmarkList
 from ..dto.bookmark.update import RequestForUpdateBookmark, ResponseForUpdateBookmark
-from ..libs.constraints import FIELD_PAGE_NUMBER, FIELD_PAGE_SIZE, PATH_HASHED_ID, QUERY_TAGS
+from ..libs.constraints import PATH_HASHED_ID, QUERY_TAGS
 from ..libs.enum import AuthorityEnum
 from ..libs.openapi_tags import TagNameEnum
-from ..libs.page import Page
-from ..services.authorize import UserDepends
 from ..usecases.bookmark import BookmarkUsecase
+from .dependencies import paged_usecase_dependency, usecase_dependency
 
 router: Final[APIRouter] = APIRouter()
 tagname: Final[str] = TagNameEnum.BOOKMARK.value
+
+ReadWriteBookmarkUsecaseDepend = Annotated[
+    BookmarkUsecase,
+    Depends(usecase_dependency(BookmarkUsecase, required_authority=AuthorityEnum.READWRITE)),
+]
+ReadBookmarkUsecaseDepend = Annotated[
+    BookmarkUsecase,
+    Depends(usecase_dependency(BookmarkUsecase, required_authority=AuthorityEnum.READ)),
+]
+PagedReadBookmarkUsecaseDepend = Annotated[
+    BookmarkUsecase,
+    Depends(paged_usecase_dependency(BookmarkUsecase, required_authority=AuthorityEnum.READ)),
+]
 
 
 @router.post(
@@ -25,17 +36,12 @@ tagname: Final[str] = TagNameEnum.BOOKMARK.value
 )
 def add_bookmark(
     req: RequestForAddBookmark,
-    session: SessionDepend,
-    user: UserDepends,
+    usecase: ReadWriteBookmarkUsecaseDepend,
 ) -> ResponseForAddBookmark:
     """
     ブックマーク追加
     """
-    res = BookmarkUsecase(
-        session=session,
-        user=user,
-        required_authority=AuthorityEnum.READWRITE,
-    ).add(req)
+    res = usecase.add(req)
 
     return ResponseForAddBookmark(**res)
 
@@ -47,17 +53,12 @@ def add_bookmark(
 def update_bookmark(
     hashed_id: PATH_HASHED_ID,
     req: RequestForUpdateBookmark,
-    session: SessionDepend,
-    user: UserDepends,
+    usecase: ReadWriteBookmarkUsecaseDepend,
 ) -> ResponseForUpdateBookmark:
     """
     ブックマーク更新
     """
-    res = BookmarkUsecase(
-        session=session,
-        user=user,
-        required_authority=AuthorityEnum.READWRITE,
-    ).update(req, hashed_id)
+    res = usecase.update(req, hashed_id)
 
     return ResponseForUpdateBookmark(**res)
 
@@ -68,17 +69,12 @@ def update_bookmark(
 )
 def delete_bookmark(
     hashed_id: PATH_HASHED_ID,
-    session: SessionDepend,
-    user: UserDepends,
+    usecase: ReadWriteBookmarkUsecaseDepend,
 ) -> ResponseForDeleteBookmark:
     """
     ブックマーク削除
     """
-    res = BookmarkUsecase(
-        session=session,
-        user=user,
-        required_authority=AuthorityEnum.READWRITE,
-    ).delete(hashed_id)
+    res = usecase.delete(hashed_id)
 
     return ResponseForDeleteBookmark(**res)
 
@@ -89,17 +85,12 @@ def delete_bookmark(
 )
 def get_bookmark(
     hashed_id: PATH_HASHED_ID,
-    session: SessionDepend,
-    user: UserDepends,
+    usecase: ReadBookmarkUsecaseDepend,
 ) -> ResponseForGetBookmark:
     """
     ブックマーク取得
     """
-    res = BookmarkUsecase(
-        session=session,
-        user=user,
-        required_authority=AuthorityEnum.READ,
-    ).get_one(hashed_id)
+    res = usecase.get_one(hashed_id)
 
     return ResponseForGetBookmark(**res)
 
@@ -109,20 +100,12 @@ def get_bookmark(
     response_model=ResponseForGetBookmarkList,
 )
 def get_bookmarks(
-    session: SessionDepend,
-    user: UserDepends,
+    usecase: PagedReadBookmarkUsecaseDepend,
     tag: QUERY_TAGS = None,
-    page: FIELD_PAGE_NUMBER = 1,
-    size: FIELD_PAGE_SIZE = 10,
 ) -> ResponseForGetBookmarkList:
     """
     ブックマークリスト取得
     """
-    res = BookmarkUsecase(
-        session=session,
-        user=user,
-        required_authority=AuthorityEnum.READ,
-        page=Page(number=page, size=size),
-    ).get_list(tag_names=tag)
+    res = usecase.get_list(tag_names=tag)
 
     return ResponseForGetBookmarkList(**res)
