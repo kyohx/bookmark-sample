@@ -2,8 +2,10 @@ from typing import Self
 
 from pydantic import BaseModel, ConfigDict
 
+from ...entities.user import UserEntity
 from ...libs.constraints import FIELD_STRING_PASSWORD, FIELD_STRING_USERNAME
 from ...libs.enum import AuthorityEnum
+from .get import UserDetail
 
 
 #### 追加リクエスト
@@ -30,6 +32,8 @@ class RequestForAddUser(BaseModel):
 
 #### 追加レスポンス
 class ResponseForAddUser(BaseModel):
+    added_user: UserDetail
+
     @classmethod
-    def empty(cls) -> Self:
-        return cls()
+    def from_entity(cls, user: UserEntity) -> Self:
+        return cls(added_user=UserDetail.from_entity(user))

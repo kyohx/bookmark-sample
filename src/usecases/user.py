@@ -15,7 +15,7 @@ class UserUsecase(UsecaseBase):
         super().__init__(*args, **kwargs)
         self.user_repository = UserRepository(self.session, page=self.page)
 
-    def add(self, request_body: RequestForAddUser) -> None:
+    def add(self, request_body: RequestForAddUser) -> UserEntity:
         """
         新しいユーザーを追加する。
 
@@ -23,7 +23,7 @@ class UserUsecase(UsecaseBase):
             request_body: 追加するユーザーのリクエストデータ
 
         Returns:
-            なし
+            追加後のユーザー
         """
         user = UserEntity(
             name=request_body.name,
@@ -34,6 +34,7 @@ class UserUsecase(UsecaseBase):
             authority=request_body.authority,
         )
         self.user_repository.add_one(user)
+        return user
 
     def update(self, request_body: RequestForUpdateUser, name: str) -> UserEntity:
         """

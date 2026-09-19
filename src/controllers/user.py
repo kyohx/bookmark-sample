@@ -40,8 +40,8 @@ def add_user(
     """
     ユーザー追加
     """
-    usecase.add(req)
-    return ResponseForAddUser.empty()
+    user = usecase.add(req)
+    return ResponseForAddUser.from_entity(user)
 
 
 @router.patch(

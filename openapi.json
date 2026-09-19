@@ -1264,8 +1264,15 @@
         ]
       },
       "ResponseForAddUser": {
-        "properties": {},
+        "properties": {
+          "added_user": {
+            "$ref": "#/components/schemas/UserDetail"
+          }
+        },
         "type": "object",
+        "required": [
+          "added_user"
+        ],
         "title": "ResponseForAddUser"
       },
       "ResponseForDeleteBookmark": {
