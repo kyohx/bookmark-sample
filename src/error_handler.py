@@ -15,6 +15,31 @@ from .usecases.base import UsecaseBase
 logger: Final = get_logger()
 
 
+def _detail_response(
+    status_code: int,
+    detail: str,
+    *,
+    headers: dict[str, str] | None = None,
+) -> JSONResponse:
+    return JSONResponse(
+        status_code=status_code,
+        content={"detail": detail},
+        headers=headers,
+    )
+
+
+def _database_error_response(
+    exc: IntegrityError | OperationalError,
+    *,
+    status_code: int,
+    message: str,
+) -> JSONResponse:
+    # 異常系エラーはログにスタックトレースを出す
+    if status_code == status.HTTP_500_INTERNAL_SERVER_ERROR:
+        logger.exception(str(exc), exc_info=exc)
+    return _detail_response(status_code, message)
+
+
 def add_error_handlers(app: FastAPI) -> None:
     """
     エラーハンドラ追加
@@ -22,39 +47,27 @@ def add_error_handlers(app: FastAPI) -> None:
 
     @app.exception_handler(AuthorizeService.Error)
     async def auth_error_handler(request: Request, exc: AuthorizeService.Error):
-        return JSONResponse(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            content={"detail": str(exc)},
+        return _detail_response(
+            status.HTTP_401_UNAUTHORIZED,
+            str(exc),
             headers={"WWW-Authenticate": "Bearer"},
         )
 
     @app.exception_handler(TokenBlacklistService.Error)
     async def blacklist_error_handler(request: Request, exc: TokenBlacklistService.Error):
-        return JSONResponse(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            content={"detail": str(exc)},
-        )
+        return _detail_response(status.HTTP_503_SERVICE_UNAVAILABLE, str(exc))
 
     @app.exception_handler(AuthorityService.Error)
     async def authority_error_handler(request: Request, exc: AuthorityService.Error):
-        return JSONResponse(
-            status_code=status.HTTP_403_FORBIDDEN,
-            content={"detail": str(exc)},
-        )
+        return _detail_response(status.HTTP_403_FORBIDDEN, str(exc))
 
     @app.exception_handler(UsecaseBase.OperationError)
     async def operation_error_handler(request: Request, exc: UsecaseBase.OperationError):
-        return JSONResponse(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            content={"detail": str(exc)},
-        )
+        return _detail_response(status.HTTP_400_BAD_REQUEST, str(exc))
 
     @app.exception_handler(BaseRepository.NotFoundError)
     async def not_found_handler(request: Request, exc: BaseRepository.NotFoundError):
-        return JSONResponse(
-            status_code=status.HTTP_404_NOT_FOUND,
-            content={"detail": str(exc)},
-        )
+        return _detail_response(status.HTTP_404_NOT_FOUND, str(exc))
 
     @app.exception_handler(IntegrityError)
     async def integrity_error_handler(request: Request, exc: IntegrityError):
@@ -71,10 +84,7 @@ def add_error_handlers(app: FastAPI) -> None:
                     status_code = status.HTTP_424_FAILED_DEPENDENCY
                     message = "Foreign key constraint error"
 
-        # 異常系エラーはログにスタックトレースを出す
-        if status_code == status.HTTP_500_INTERNAL_SERVER_ERROR:
-            logger.exception(str(exc), exc_info=exc)
-        return JSONResponse(status_code=status_code, content={"detail": message})
+        return _database_error_response(exc, status_code=status_code, message=message)
 
     @app.exception_handler(OperationalError)
     async def operational_error_handler(request: Request, exc: OperationalError):
@@ -87,7 +97,4 @@ def add_error_handlers(app: FastAPI) -> None:
                     status_code = status.HTTP_409_CONFLICT
                     message = "Deadlock error"
 
-        # 異常系エラーはログにスタックトレースを出す
-        if status_code == status.HTTP_500_INTERNAL_SERVER_ERROR:
-            logger.exception(str(exc), exc_info=exc)
-        return JSONResponse(status_code=status_code, content={"detail": message})
+        return _database_error_response(exc, status_code=status_code, message=message)
