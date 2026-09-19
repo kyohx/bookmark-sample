@@ -14,6 +14,8 @@ class BookmarkRepository(BaseRepository):
     ブックマークリポジトリクラス
     """
 
+    LIST_CACHE_NAMESPACES = ("list", "tag-list")
+
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.bookmark_operator = BookmarkDaoOperator(self.session, page=self.page)
@@ -34,9 +36,7 @@ class BookmarkRepository(BaseRepository):
         Raises:
             NotFoundError: 指定されたハッシュIDに対応するデータが見つからない
         """
-        bookmark_dao = self.bookmark_operator.find_one_by_hashed_id(hashed_id)
-        if not bookmark_dao:
-            raise self.NotFoundError("Not found specified data.")
+        bookmark_dao = self._require_found(self.bookmark_operator.find_one_by_hashed_id(hashed_id))
 
         # ループしない前提なのでn+1にはならない
         tags = self.tag_operator.find_by_bookmark_id(bookmark_dao.id)
@@ -114,8 +114,10 @@ class BookmarkRepository(BaseRepository):
         bookmark.updated_at = bookmark_dao.updated_at
         self._save_tags(bookmark.tags, bookmark_dao.id)
         # 詳細キーは直接削除し、一覧系は version を進めてまとめて無効化する。
-        self._delete_cache_keys(type(self)._find_one_cache_key(bookmark_dao.hashed_id))
-        self._bump_cache_versions("list", "tag-list")
+        self._invalidate_detail_and_list_caches(
+            detail_keys=(type(self)._find_one_cache_key(bookmark_dao.hashed_id),),
+            list_namespaces=self.LIST_CACHE_NAMESPACES,
+        )
 
     def update_one(self, bookmark: BookmarkEntity, /, current_hashed_id: str) -> None:
         """
@@ -128,11 +130,13 @@ class BookmarkRepository(BaseRepository):
         Raises:
             NotFoundError: 更新対象のブックマークが存在しない
         """
-        bookmark_dao = self.bookmark_operator.find_one_by_hashed_id(current_hashed_id)
-        if bookmark_dao is None:
-            raise self.NotFoundError("Not found specified data.")
-        for k, v in bookmark.model_dump(exclude_none=True, exclude={"tags"}).items():
-            setattr(bookmark_dao, k, v)
+        bookmark_dao = self._require_found(
+            self.bookmark_operator.find_one_by_hashed_id(current_hashed_id)
+        )
+        self._assign_attributes(
+            bookmark_dao,
+            bookmark.model_dump(exclude_none=True, exclude={"tags"}),
+        )
 
         self.bookmark_operator.save(bookmark_dao)
         self.session.refresh(bookmark_dao)
@@ -140,11 +144,13 @@ class BookmarkRepository(BaseRepository):
         bookmark.updated_at = bookmark_dao.updated_at
         self._save_tags(bookmark.tags, bookmark_dao.id)
         # ハッシュID変更にも耐えられるよう、旧キーと新キーの両方を削除する。
-        self._delete_cache_keys(
-            type(self)._find_one_cache_key(current_hashed_id),
-            type(self)._find_one_cache_key(bookmark_dao.hashed_id),
+        self._invalidate_detail_and_list_caches(
+            detail_keys=(
+                type(self)._find_one_cache_key(current_hashed_id),
+                type(self)._find_one_cache_key(bookmark_dao.hashed_id),
+            ),
+            list_namespaces=self.LIST_CACHE_NAMESPACES,
         )
-        self._bump_cache_versions("list", "tag-list")
 
     def _save_tags(self, tags: list[str] | None, bookmark_dao_id: int) -> None:
         """
@@ -172,13 +178,13 @@ class BookmarkRepository(BaseRepository):
         Raises:
             NotFoundError: 指定されたハッシュIDに対応するデータが見つからない
         """
-        bookmark_dao = self.bookmark_operator.find_one_by_hashed_id(hashed_id)
-        if bookmark_dao is None:
-            raise self.NotFoundError("Not found specified data.")
+        bookmark_dao = self._require_found(self.bookmark_operator.find_one_by_hashed_id(hashed_id))
 
         self.bookmark_operator.delete(bookmark_dao)
-        self._delete_cache_keys(type(self)._find_one_cache_key(hashed_id))
-        self._bump_cache_versions("list", "tag-list")
+        self._invalidate_detail_and_list_caches(
+            detail_keys=(type(self)._find_one_cache_key(hashed_id),),
+            list_namespaces=self.LIST_CACHE_NAMESPACES,
+        )
 
     @staticmethod
     def _find_one_cache_key(hashed_id: str | None) -> str:

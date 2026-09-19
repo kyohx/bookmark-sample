@@ -10,6 +10,8 @@ class UserRepository(BaseRepository):
     ユーザリポジトリクラス
     """
 
+    LIST_CACHE_NAMESPACES = ("list",)
+
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.user_operator = UserDaoOperator(self.session, page=self.page)
@@ -28,9 +30,7 @@ class UserRepository(BaseRepository):
         Raises:
             NotFoundError: 指定されたユーザー名に対応するデータが見つからない
         """
-        user_dao = self.user_operator.find_one_by_name(name)
-        if not user_dao:
-            raise self.NotFoundError("Not found specified data.")
+        user_dao = self._require_found(self.user_operator.find_one_by_name(name))
 
         return UserEntity(**user_dao.to_dict())
 
@@ -55,8 +55,10 @@ class UserRepository(BaseRepository):
 
         self.user_operator.save(user_dao)
         # 詳細キーは直接削除し、一覧系は version を進めてまとめて無効化する。
-        self._delete_cache_keys(type(self)._find_one_cache_key(user.name))
-        self._bump_cache_versions("list")
+        self._invalidate_detail_and_list_caches(
+            detail_keys=(type(self)._find_one_cache_key(user.name),),
+            list_namespaces=self.LIST_CACHE_NAMESPACES,
+        )
 
     def update_one(self, user: UserEntity, /, current_name: str) -> None:
         """
@@ -69,19 +71,18 @@ class UserRepository(BaseRepository):
         Raises:
             NotFoundError: 更新対象のユーザーが存在しない
         """
-        user_dao = self.user_operator.find_one_by_name(current_name)
-        if user_dao is None:
-            raise self.NotFoundError("Not found specified data.")
-        for k, v in user.model_dump(exclude_none=True).items():
-            setattr(user_dao, k, v)
+        user_dao = self._require_found(self.user_operator.find_one_by_name(current_name))
+        self._assign_attributes(user_dao, user.model_dump(exclude_none=True))
 
         self.user_operator.save(user_dao)
         # name 変更に備えて旧キーと新キーの両方を落とす。
-        self._delete_cache_keys(
-            type(self)._find_one_cache_key(current_name),
-            type(self)._find_one_cache_key(user_dao.name),
+        self._invalidate_detail_and_list_caches(
+            detail_keys=(
+                type(self)._find_one_cache_key(current_name),
+                type(self)._find_one_cache_key(user_dao.name),
+            ),
+            list_namespaces=self.LIST_CACHE_NAMESPACES,
         )
-        self._bump_cache_versions("list")
 
     @staticmethod
     def _find_one_cache_key(name: str) -> str:

@@ -1,3 +1,5 @@
+from collections.abc import Mapping, Sequence
+
 from dogpile.cache.region import CacheRegion
 from sqlalchemy.orm.session import Session
 
@@ -116,6 +118,51 @@ class BaseRepository:
             keys: 削除対象のキャッシュキー一覧
         """
         schedule_cache_key_deletes(self.session, self.region, *keys)
+
+    def _invalidate_detail_and_list_caches(
+        self,
+        *,
+        detail_keys: Sequence[str],
+        list_namespaces: Sequence[str],
+    ) -> None:
+        """
+        詳細キャッシュ削除と一覧キャッシュ version 更新をまとめて行う。
+
+        Args:
+            detail_keys: 削除対象の詳細キャッシュキー一覧
+            list_namespaces: 更新対象の一覧 namespace 一覧
+        """
+        self._delete_cache_keys(*detail_keys)
+        self._bump_cache_versions(*list_namespaces)
+
+    def _require_found[TValue](self, value: TValue | None) -> TValue:
+        """
+        値の存在を保証し、未存在なら NotFoundError を送出する。
+
+        Args:
+            value: 存在を必須とする値
+
+        Returns:
+            存在が確認できた値
+
+        Raises:
+            NotFoundError: 値が None の場合
+        """
+        if value is None:
+            raise self.NotFoundError("Not found specified data.")
+        return value
+
+    @staticmethod
+    def _assign_attributes(target: object, values: Mapping[str, object]) -> None:
+        """
+        指定された値群をオブジェクトへ代入する。
+
+        Args:
+            target: 代入先オブジェクト
+            values: 属性名と値の対応
+        """
+        for key, value in values.items():
+            setattr(target, key, value)
 
     @staticmethod
     def _new_cache_version() -> str:
