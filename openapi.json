@@ -920,14 +920,16 @@
             "maxLength": 19,
             "minLength": 19,
             "pattern": "^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$",
-            "title": "Created At"
+            "title": "Created At",
+            "example": "2025-01-01 12:34:56"
           },
           "updated_at": {
             "type": "string",
             "maxLength": 19,
             "minLength": 19,
             "pattern": "^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$",
-            "title": "Updated At"
+            "title": "Updated At",
+            "example": "2025-01-01 12:34:56"
           },
           "tags": {
             "items": {
@@ -1567,14 +1569,16 @@
             "maxLength": 19,
             "minLength": 19,
             "pattern": "^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$",
-            "title": "Created At"
+            "title": "Created At",
+            "example": "2025-01-01 12:34:56"
           },
           "updated_at": {
             "type": "string",
             "maxLength": 19,
             "minLength": 19,
             "pattern": "^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$",
-            "title": "Updated At"
+            "title": "Updated At",
+            "example": "2025-01-01 12:34:56"
           }
         },
         "type": "object",
