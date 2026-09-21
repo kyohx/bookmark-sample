@@ -58,7 +58,7 @@ class ResponseForAddBookmark(BaseModel):
                             "test",
                         ],
                         "created_at": "2025-01-01 12:34:56",
-                        "updated_at": "2025-01-01 12:34:56",
+                        "updated_at": "2025-01-02 09:45:01",
                     },
                 }
             ]

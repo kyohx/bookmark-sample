@@ -36,6 +36,7 @@ FIELD_STRING_DATETIME = Annotated[
     StringConstraints(
         min_length=19, max_length=19, pattern=r"^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$"
     ),
+    Field(json_schema_extra={"example": "2025-01-01 12:34:56"}),
 ]
 FIELD_PAGE_NUMBER = Annotated[int, Field(ge=1)]
 FIELD_PAGE_SIZE = Annotated[int, Field(ge=1, le=100)]
