@@ -37,3 +37,19 @@ class ResponseForAddUser(BaseModel):
     @classmethod
     def from_entity(cls, user: UserEntity) -> Self:
         return cls(added_user=UserDetail.from_entity(user))
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "examples": [
+                {
+                    "added_user": {
+                        "name": "test_user",
+                        "authority": AuthorityEnum.READWRITE,
+                        "disabled": False,
+                        "created_at": "2025-01-01 12:34:56",
+                        "updated_at": "2025-01-02 09:45:01",
+                    }
+                }
+            ]
+        }
+    )

@@ -1275,7 +1275,18 @@
         "required": [
           "added_user"
         ],
-        "title": "ResponseForAddUser"
+        "title": "ResponseForAddUser",
+        "examples": [
+          {
+            "added_user": {
+              "authority": 2,
+              "created_at": "2025-01-01 12:34:56",
+              "disabled": false,
+              "name": "test_user",
+              "updated_at": "2025-01-02 09:45:01"
+            }
+          }
+        ]
       },
       "ResponseForDeleteBookmark": {
         "properties": {},
