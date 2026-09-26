@@ -1,6 +1,6 @@
 from datetime import UTC, datetime, timedelta
 from enum import StrEnum
-from typing import Annotated, Final
+from typing import Annotated, Final, Literal
 from uuid import uuid4
 
 import jwt
@@ -9,7 +9,7 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jwt.exceptions import InvalidTokenError
 from pwdlib import PasswordHash
 from pwdlib.hashers.bcrypt import BcryptHasher
-from pydantic import BaseModel, ConfigDict, SecretStr, ValidationError
+from pydantic import BaseModel, ConfigDict, Field, SecretStr, ValidationError
 from sqlalchemy.orm.session import Session
 
 from ..dao.session import SessionDepend
@@ -20,17 +20,6 @@ from .base import ServiceBase, ServiceError
 from .token_blacklist import TokenBlacklistService
 
 
-class TokenData(BaseModel):
-    """
-    トークンデータ
-    """
-
-    username: str
-    "ユーザー名"
-
-    model_config = ConfigDict(frozen=True)
-
-
 class TokenType(StrEnum):
     """
     トークン種別
@@ -38,6 +27,29 @@ class TokenType(StrEnum):
 
     ACCESS = "access"
     REFRESH = "refresh"
+
+
+class TokenPayload(BaseModel):
+    """JWT の共通クレーム。暗黙の型変換を許可しない。"""
+
+    sub: Annotated[str, Field(min_length=1)]
+    exp: int
+
+    model_config = ConfigDict(frozen=True, strict=True)
+
+
+class AccessTokenPayload(TokenPayload):
+    """アクセストークンのペイロード。"""
+
+    type: Literal["access"]
+
+
+class RefreshTokenPayload(TokenPayload):
+    """リフレッシュトークンのペイロード。"""
+
+    type: Literal["refresh"]
+    jti: Annotated[str, Field(min_length=1)]
+    fam: Annotated[str, Field(min_length=1)]
 
 
 class AuthorizeService(ServiceBase):
@@ -181,13 +193,15 @@ class AuthorizeService(ServiceBase):
         encoded_jwt = jwt.encode(to_encode, self.jwt_secret_key, algorithm=self.ALGORITHM)
         return encoded_jwt
 
-    def _decode_token(self, token: str, expected_type: TokenType) -> dict:
+    def _decode_token[TPayload: TokenPayload](
+        self, token: str, payload_model: type[TPayload]
+    ) -> TPayload:
         """
         トークンをデコードする。
 
         Args:
             token: デコード対象のトークン
-            expected_type: 期待するトークン種別
+            payload_model: 期待するトークン種別のペイロードモデル
 
         Returns:
             デコード済みのペイロード
@@ -196,11 +210,13 @@ class AuthorizeService(ServiceBase):
             AuthorizeService.Error: トークン内容が無効または期限切れ
         """
         try:
-            payload = jwt.decode(token, self.jwt_secret_key, algorithms=[self.ALGORITHM])
-            if payload.get("type") != expected_type.value:
-                raise self.Error("Invalid token type")
-            return payload
-        except InvalidTokenError:
+            # PyJWT のクレーム検証でも、不正な exp の型で TypeError が発生する。
+            try:
+                payload = jwt.decode(token, self.jwt_secret_key, algorithms=[self.ALGORITHM])
+            except TypeError:
+                raise self.Error("Could not validate credentials")
+            return payload_model.model_validate(payload)
+        except InvalidTokenError, ValidationError:
             raise self.Error("Could not validate credentials")
 
     def login(self, form_data: OAuth2PasswordRequestForm) -> Token:
@@ -259,13 +275,11 @@ class AuthorizeService(ServiceBase):
         Returns:
             新しいアクセストークンとリフレッシュトークン
         """
-        payload = self._decode_token(refresh_token, expected_type=TokenType.REFRESH)
-        username = payload.get("sub")
-        refresh_jti = payload.get("jti")
-        family = payload.get("fam")
-        exp = payload.get("exp")
-        if not username or not refresh_jti or not family or not exp:
-            raise self.Error("Could not validate credentials")
+        payload = self._decode_token(refresh_token, RefreshTokenPayload)
+        username = payload.sub
+        refresh_jti = payload.jti
+        family = payload.fam
+        exp = payload.exp
 
         if self.blacklist_service.is_jti_denied(refresh_jti):
             raise self.Error("Could not validate credentials")
@@ -319,13 +333,9 @@ class AuthorizeService(ServiceBase):
             AuthorizeService.Error: トークン内容が無効または期限切れ
         """
         try:
-            payload = self._decode_token(token, expected_type=TokenType.ACCESS)
-            username = payload.get("sub")
-            if not username:
-                raise self.Error("Could not validate credentials")
-            token_data = TokenData(username=username)
-            user = self.get_user(name=token_data.username)
-        except ValidationError, UserRepository.NotFoundError, self.Error:
+            payload = self._decode_token(token, AccessTokenPayload)
+            user = self.get_user(name=payload.sub)
+        except UserRepository.NotFoundError, self.Error:
             raise self.Error("Could not validate credentials")
         return user
 
