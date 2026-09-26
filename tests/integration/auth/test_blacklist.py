@@ -2,7 +2,7 @@ from fastapi.testclient import TestClient
 
 from src.libs.enum import AuthorityEnum
 from src.main import app
-from src.services.authorize import AuthorizeService, TokenType
+from src.services.authorize import AuthorizeService, RefreshTokenPayload
 
 from ..base import BaseTest
 from ..support import TEST_PASSWORD, SessionForTest
@@ -15,7 +15,7 @@ class TestBlacklist(BaseTest):
 
     def _get_refresh_payload(self, db_session: SessionForTest, refresh_token: str) -> dict:
         service = AuthorizeService(session=db_session)
-        return service._decode_token(refresh_token, expected_type=TokenType.REFRESH)
+        return service._decode_token(refresh_token, RefreshTokenPayload).model_dump()
 
     def test_blacklist_add_jti_admin(
         self,
