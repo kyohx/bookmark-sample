@@ -3,8 +3,12 @@ from unittest.mock import Mock
 
 import jwt
 import pytest
+from redis.exceptions import RedisError
 
+from src.entities.user import UserEntity
+from src.libs.enum import AuthorityEnum
 from src.services.authorize import AccessTokenPayload, AuthorizeService, RefreshTokenPayload
+from src.services.token_blacklist import TokenBlacklistService
 
 
 @pytest.fixture
@@ -102,3 +106,37 @@ def test_invalid_token(service: AuthorizeService, kind: str, invalid: str) -> No
         token = "invalid"
     with pytest.raises(AuthorizeService.Error):
         service._decode_token(token, model)
+
+
+@pytest.mark.parametrize("fail_open", [True, False])
+@pytest.mark.parametrize("redis_available", [True, False])
+def test_refresh_redis_failure_follows_fail_open(
+    service: AuthorizeService, fail_open: bool, redis_available: bool
+) -> None:
+    """セッション台帳の更新失敗でも fail-open 設定どおりに動く。"""
+    service.get_user = Mock(
+        return_value=UserEntity(
+            name="test_user",
+            hashed_password="unused",
+            disabled=False,
+            authority=AuthorityEnum.READWRITE,
+        )
+    )
+    blacklist = TokenBlacklistService()
+    blacklist.fail_open = fail_open
+    if redis_available:
+        redis = Mock()
+        redis.exists.return_value = 0
+        redis.get.return_value = None
+        redis.pipeline.side_effect = RedisError("offline")
+        blacklist.redis = redis
+    else:
+        blacklist.redis = None
+    service.blacklist_service = blacklist
+
+    token = encode(service, claims("refresh"))
+    if fail_open:
+        assert service.refresh(token).refresh_token
+    else:
+        with pytest.raises(TokenBlacklistService.Error, match="Redis unavailable"):
+            service.refresh(token)

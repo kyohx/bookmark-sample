@@ -1,14 +1,16 @@
 from typing import Annotated, Final
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Response, status
 
 from ..dto.user.add import RequestForAddUser, ResponseForAddUser
 from ..dto.user.get import ResponseForGetUser
 from ..dto.user.get_list import ResponseForGetUserList
+from ..dto.user.sessions import ResponseForGetSessions
 from ..dto.user.update import RequestForUpdateUser, ResponseForUpdateUser
-from ..libs.constraints import FIELD_STRING_USERNAME
+from ..libs.constraints import FIELD_STRING_FAMILY, FIELD_STRING_USERNAME
 from ..libs.enum import AuthorityEnum
 from ..libs.openapi_tags import TagNameEnum
+from ..usecases.session import SessionUsecase
 from ..usecases.user import UserUsecase
 from .dependencies import paged_usecase_dependency, usecase_dependency
 
@@ -26,6 +28,10 @@ UserUpdateUsecaseDepend = Annotated[
 PagedAdminUserUsecaseDepend = Annotated[
     UserUsecase,
     Depends(paged_usecase_dependency(UserUsecase, required_authority=AuthorityEnum.ADMIN)),
+]
+AdminSessionUsecaseDepend = Annotated[
+    SessionUsecase,
+    Depends(usecase_dependency(SessionUsecase, required_authority=AuthorityEnum.ADMIN)),
 ]
 
 
@@ -89,3 +95,23 @@ def get_users(
     """
     users = usecase.get_list()
     return ResponseForGetUserList.from_entities(users)
+
+
+@router.get("/users/{name}/sessions", response_model=ResponseForGetSessions)
+def get_user_sessions(
+    name: FIELD_STRING_USERNAME,
+    usecase: AdminSessionUsecaseDepend,
+) -> ResponseForGetSessions:
+    """ユーザーの有効期限内のリフレッシュセッションを一覧表示する（管理者のみ）。"""
+    return ResponseForGetSessions.from_entities(usecase.get_list(name))
+
+
+@router.delete("/users/{name}/sessions/{session_id}", status_code=status.HTTP_204_NO_CONTENT)
+def revoke_user_session(
+    name: FIELD_STRING_USERNAME,
+    session_id: FIELD_STRING_FAMILY,
+    usecase: AdminSessionUsecaseDepend,
+) -> Response:
+    """指定したセッションのリフレッシュトークンを失効させる（管理者のみ）。"""
+    usecase.revoke(name, session_id)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)

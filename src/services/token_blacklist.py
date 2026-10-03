@@ -1,7 +1,9 @@
+from datetime import UTC, datetime
 from typing import Final
 
 from redis.exceptions import RedisError
 
+from ..entities.session import RefreshSession
 from ..libs.config import get_config
 from ..libs.log import get_logger
 from ..libs.redis_client import get_blacklist_redis_client
@@ -84,6 +86,126 @@ class TokenBlacklistService(ServiceBase):
             Redisキー
         """
         return f"{self.KEY_PREFIX}:family:deny:{user}:{family}"
+
+    def _session_key(self, user: str, family: str) -> str:
+        return f"{self.KEY_PREFIX}:session:{user}:{family}"
+
+    def _sessions_key(self, user: str) -> str:
+        return f"{self.KEY_PREFIX}:sessions:{user}"
+
+    def _require_redis(self):
+        if self.redis is None:
+            raise self.Error("Redis unavailable")
+        return self.redis
+
+    def record_session(
+        self, user: str, family: str, expires_at: int, user_agent: str | None = None
+    ) -> None:
+        """ログイン時のセッションを登録し、一覧から参照可能にする。"""
+        redis = self._require_redis()
+        now = int(datetime.now(UTC).timestamp())
+        ttl = max(expires_at - now, 1)
+        try:
+            with redis.pipeline() as pipe:
+                pipe.hset(
+                    self._session_key(user, family),
+                    mapping={
+                        "created_at": now,
+                        "last_used_at": now,
+                        "expires_at": expires_at,
+                        "revoked": 0,
+                        "user_agent": (user_agent or "")[:256],
+                    },
+                )
+                pipe.expire(self._session_key(user, family), ttl)
+                pipe.zadd(self._sessions_key(user), {family: expires_at})
+                pipe.expire(self._sessions_key(user), ttl)
+                pipe.execute()
+        except RedisError as exc:
+            raise self.Error("Redis unavailable") from exc
+
+    def touch_session(self, user: str, family: str, expires_at: int) -> None:
+        """ローテーション後のセッションの最終利用日時と期限を更新する。"""
+        redis = self.redis
+        if redis is None:
+            self._handle_redis_error(RedisError("Redis unavailable"), "touch_session")
+            return
+        now = int(datetime.now(UTC).timestamp())
+        ttl = max(expires_at - now, 1)
+        try:
+            with redis.pipeline() as pipe:
+                # デプロイ前に発行されたトークンも、更新後は一覧に載せる。
+                pipe.hsetnx(self._session_key(user, family), "created_at", now)
+                pipe.hsetnx(self._session_key(user, family), "revoked", 0)
+                pipe.hsetnx(self._session_key(user, family), "user_agent", "")
+                pipe.hset(
+                    self._session_key(user, family),
+                    mapping={"last_used_at": now, "expires_at": expires_at},
+                )
+                pipe.expire(self._session_key(user, family), ttl)
+                pipe.zadd(self._sessions_key(user), {family: expires_at})
+                pipe.expire(self._sessions_key(user), ttl)
+                pipe.execute()
+        except RedisError as exc:
+            self._handle_redis_error(exc, "touch_session")
+
+    def list_sessions(self, user: str) -> list[RefreshSession]:
+        """指定ユーザーの有効期限内のセッションを取得する。"""
+        redis = self._require_redis()
+        now = int(datetime.now(UTC).timestamp())
+        try:
+            redis.zremrangebyscore(self._sessions_key(user), "-inf", now)
+            families = redis.zrange(self._sessions_key(user), 0, -1)
+            sessions = []
+            for family in families:
+                if isinstance(family, bytes):
+                    family = family.decode()
+                if not isinstance(family, str):
+                    continue
+                data = redis.hgetall(self._session_key(user, family))
+                if not data:
+                    redis.zrem(self._sessions_key(user), family)
+                    continue
+                data = {
+                    key.decode() if isinstance(key, bytes) else key: value.decode()
+                    if isinstance(value, bytes)
+                    else value
+                    for key, value in data.items()
+                }
+                sessions.append(
+                    RefreshSession(
+                        id=family,
+                        created_at=datetime.fromtimestamp(int(data["created_at"]), UTC),
+                        last_used_at=datetime.fromtimestamp(int(data["last_used_at"]), UTC),
+                        expires_at=datetime.fromtimestamp(int(data["expires_at"]), UTC),
+                        revoked=data["revoked"] == "1",
+                        user_agent=data["user_agent"] or None,
+                    )
+                )
+            return sorted(sessions, key=lambda session: session.created_at, reverse=True)
+        except RedisError as exc:
+            raise self.Error("Redis unavailable") from exc
+
+    def revoke_session(self, user: str, family: str) -> bool:
+        """存在する family のリフレッシュトークンを期限まで拒否する。"""
+        redis = self._require_redis()
+        try:
+            data = redis.hgetall(self._session_key(user, family))
+            if not data:
+                return False
+            expires_at = data.get("expires_at", data.get(b"expires_at"))
+            if expires_at is None:
+                raise self.Error("Session metadata unavailable")
+            now = int(datetime.now(UTC).timestamp())
+            # 並行中のリフレッシュが新しいトークンを発行しても失効状態を維持する。
+            ttl = max(int(expires_at) - now, _config.refresh_token_expire_days * 86400, 1)
+            with redis.pipeline() as pipe:
+                pipe.set(self._family_deny_key(user, family), "session revoked", ex=ttl)
+                pipe.hset(self._session_key(user, family), "revoked", 1)
+                pipe.execute()
+            return True
+        except RedisError as exc:
+            raise self.Error("Redis unavailable") from exc
 
     def is_jti_denied(self, jti: str) -> bool:
         """
@@ -204,6 +326,8 @@ class TokenBlacklistService(ServiceBase):
             return
         try:
             self.redis.set(self._family_deny_key(user, family), reason or "", ex=ttl)
+            if self.redis.exists(self._session_key(user, family)):
+                self.redis.hset(self._session_key(user, family), "revoked", 1)
         except RedisError as exc:
             self._handle_redis_error(exc, "deny_family")
 
