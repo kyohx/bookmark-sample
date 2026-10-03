@@ -1,3 +1,4 @@
+import re
 from datetime import timedelta
 from uuid import uuid4
 
@@ -48,7 +49,10 @@ class TestSessions(BaseTest):
         assert set(sessions) == {first_family, second_family}
         assert sessions[first_family]["user_agent"] == "first device"
         assert sessions[first_family]["revoked"] is False
-        assert sessions[first_family]["expires_at"]
+        for field in ("created_at", "last_used_at", "expires_at"):
+            assert re.fullmatch(
+                r"\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}", sessions[first_family][field]
+            )
         assert "refresh_token" not in sessions[first_family]
 
         revoke_path = app.url_path_for("revoke_user_session", name=name, session_id=first_family)

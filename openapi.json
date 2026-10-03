@@ -895,55 +895,6 @@
         "type": "object",
         "title": "HTTPValidationError"
       },
-      "RefreshSession": {
-        "properties": {
-          "id": {
-            "type": "string",
-            "title": "Id"
-          },
-          "created_at": {
-            "type": "string",
-            "format": "date-time",
-            "title": "Created At"
-          },
-          "last_used_at": {
-            "type": "string",
-            "format": "date-time",
-            "title": "Last Used At"
-          },
-          "expires_at": {
-            "type": "string",
-            "format": "date-time",
-            "title": "Expires At"
-          },
-          "revoked": {
-            "type": "boolean",
-            "title": "Revoked"
-          },
-          "user_agent": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "User Agent"
-          }
-        },
-        "type": "object",
-        "required": [
-          "id",
-          "created_at",
-          "last_used_at",
-          "expires_at",
-          "revoked",
-          "user_agent"
-        ],
-        "title": "RefreshSession",
-        "description": "管理者に表示するリフレッシュセッション。"
-      },
       "RequestForAddBookmark": {
         "properties": {
           "url": {
@@ -1298,7 +1249,7 @@
         "properties": {
           "sessions": {
             "items": {
-              "$ref": "#/components/schemas/RefreshSession"
+              "$ref": "#/components/schemas/SessionDetail"
             },
             "type": "array",
             "title": "Sessions"
@@ -1489,6 +1440,63 @@
             }
           }
         ]
+      },
+      "SessionDetail": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "created_at": {
+            "type": "string",
+            "maxLength": 19,
+            "minLength": 19,
+            "pattern": "^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$",
+            "title": "Created At",
+            "example": "2025-01-01 12:34:56"
+          },
+          "last_used_at": {
+            "type": "string",
+            "maxLength": 19,
+            "minLength": 19,
+            "pattern": "^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$",
+            "title": "Last Used At",
+            "example": "2025-01-01 12:34:56"
+          },
+          "expires_at": {
+            "type": "string",
+            "maxLength": 19,
+            "minLength": 19,
+            "pattern": "^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$",
+            "title": "Expires At",
+            "example": "2025-01-01 12:34:56"
+          },
+          "revoked": {
+            "type": "boolean",
+            "title": "Revoked"
+          },
+          "user_agent": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "User Agent"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "created_at",
+          "last_used_at",
+          "expires_at",
+          "revoked",
+          "user_agent"
+        ],
+        "title": "SessionDetail"
       },
       "UserDetail": {
         "properties": {

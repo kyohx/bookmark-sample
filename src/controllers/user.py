@@ -103,7 +103,7 @@ def get_user_sessions(
     usecase: AdminSessionUsecaseDepend,
 ) -> ResponseForGetSessions:
     """ユーザーの有効期限内のリフレッシュセッションを一覧表示する（管理者のみ）。"""
-    return ResponseForGetSessions(sessions=usecase.get_list(name))
+    return ResponseForGetSessions.from_entities(usecase.get_list(name))
 
 
 @router.delete("/users/{name}/sessions/{session_id}", status_code=status.HTTP_204_NO_CONTENT)
