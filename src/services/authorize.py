@@ -219,7 +219,7 @@ class AuthorizeService(ServiceBase):
         except InvalidTokenError, ValidationError:
             raise self.Error("Could not validate credentials")
 
-    def login(self, form_data: OAuth2PasswordRequestForm) -> Token:
+    def login(self, form_data: OAuth2PasswordRequestForm, user_agent: str | None = None) -> Token:
         """
         ログイン処理を行い、アクセストークンを取得する。
 
@@ -253,6 +253,12 @@ class AuthorizeService(ServiceBase):
             data={"sub": user.name, "jti": refresh_jti, "fam": family},
             expires_delta=refresh_token_expires,
         )
+        self.blacklist_service.record_session(
+            user.name,
+            family,
+            self._decode_token(refresh_token, RefreshTokenPayload).exp,
+            user_agent,
+        )
         self.blacklist_service.set_current_jti(
             user.name,
             family,
@@ -281,9 +287,6 @@ class AuthorizeService(ServiceBase):
         family = payload.fam
         exp = payload.exp
 
-        if self.blacklist_service.is_jti_denied(refresh_jti):
-            raise self.Error("Could not validate credentials")
-
         if self.blacklist_service.is_family_denied(username, family):
             raise self.Error("Could not validate credentials")
 
@@ -294,6 +297,9 @@ class AuthorizeService(ServiceBase):
                 username, family, ttl_seconds, reason="reuse detected"
             )
             self.blacklist_service.deny_jti(refresh_jti, ttl_seconds, reason="reuse detected")
+            raise self.Error("Could not validate credentials")
+
+        if self.blacklist_service.is_jti_denied(refresh_jti):
             raise self.Error("Could not validate credentials")
         user = self.get_user(name=username)
         if user.disabled:
@@ -311,6 +317,11 @@ class AuthorizeService(ServiceBase):
         )
         ttl_seconds_old = self._get_ttl_seconds(exp)
         ttl_seconds_new = int(refresh_token_expires.total_seconds())
+        self.blacklist_service.touch_session(
+            user.name,
+            family,
+            self._decode_token(new_refresh_token, RefreshTokenPayload).exp,
+        )
         self.blacklist_service.deny_jti(refresh_jti, ttl_seconds_old, reason="rotated")
         self.blacklist_service.set_current_jti(user.name, family, new_refresh_jti, ttl_seconds_new)
         return Token(
