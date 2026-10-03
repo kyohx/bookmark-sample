@@ -126,7 +126,10 @@ class TokenBlacklistService(ServiceBase):
 
     def touch_session(self, user: str, family: str, expires_at: int) -> None:
         """ローテーション後のセッションの最終利用日時と期限を更新する。"""
-        redis = self._require_redis()
+        redis = self.redis
+        if redis is None:
+            self._handle_redis_error(RedisError("Redis unavailable"), "touch_session")
+            return
         now = int(datetime.now(UTC).timestamp())
         ttl = max(expires_at - now, 1)
         try:
@@ -144,7 +147,7 @@ class TokenBlacklistService(ServiceBase):
                 pipe.expire(self._sessions_key(user), ttl)
                 pipe.execute()
         except RedisError as exc:
-            raise self.Error("Redis unavailable") from exc
+            self._handle_redis_error(exc, "touch_session")
 
     def list_sessions(self, user: str) -> list[RefreshSession]:
         """指定ユーザーの有効期限内のセッションを取得する。"""
