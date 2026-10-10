@@ -24,6 +24,8 @@ class Config(BaseModel):
     "DB名"
     database_debug: bool
     "DBデバッグモード"
+    database_timezone: str
+    "DBのタイムゾーンなし日時を解釈するIANAタイムゾーン名"
     database_ssl_enabled: bool
     "DB接続でTLSを有効化するか"
     database_ssl_ca_certs: str
@@ -92,6 +94,7 @@ _config = Config(
     database_password=env.get("DATABASE_PASSWORD", "root"),
     database_name=env.get("DATABASE_NAME", "db"),
     database_debug=bool(int(env.get("DATABASE_DEBUG", 0))),
+    database_timezone=env.get("DATABASE_TIMEZONE", "Asia/Tokyo"),
     database_ssl_enabled=bool(int(env.get("DATABASE_SSL_ENABLED", 0))),
     database_ssl_ca_certs=env.get("DATABASE_SSL_CA_CERTS", ""),
     database_ssl_verify_cert=bool(int(env.get("DATABASE_SSL_VERIFY_CERT", 1))),

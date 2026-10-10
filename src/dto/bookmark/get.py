@@ -27,8 +27,8 @@ class ResponseForGetBookmark(BaseModel):
                             "private",
                             "test",
                         ],
-                        "created_at": "2025-01-01 12:34:56",
-                        "updated_at": "2025-01-02 09:45:01",
+                        "created_at": "2025-01-01T12:34:56+09:00",
+                        "updated_at": "2025-01-02T09:45:01+09:00",
                     }
                 }
             ]

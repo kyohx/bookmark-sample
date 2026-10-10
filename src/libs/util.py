@@ -1,6 +1,7 @@
 from datetime import datetime
 from hashlib import sha256
 from typing import Final
+from zoneinfo import ZoneInfo
 
 from ..libs.config import get_config
 
@@ -16,10 +17,10 @@ def get_hashed_id(value: str) -> str:
 
 def str_to_datetime(s: str) -> datetime:
     """
-    文字列をdatetime型に変換
+    ISO 8601形式の文字列をdatetime型に変換（タイムゾーンを保持する）
     """
     try:
-        d = datetime.strptime(s, "%Y-%m-%d %H:%M:%S")
+        d = datetime.fromisoformat(s)
     except ValueError:
         raise ValueError("illegal datetime format")
     return d
@@ -27,6 +28,11 @@ def str_to_datetime(s: str) -> datetime:
 
 def datetime_to_str(d: datetime) -> str:
     """
-    datetime型を文字列に変換
+    日時をタイムゾーン付き・秒精度のISO 8601形式に変換する。
+
+    MySQLのDATETIMEなど、タイムゾーン情報のない値はDBの設定に従って解釈する。
+    タイムゾーン情報のある値は元のオフセットを保持する。
     """
-    return d.strftime("%Y-%m-%d %H:%M:%S")
+    if d.utcoffset() is None:
+        d = d.replace(tzinfo=ZoneInfo(get_config().database_timezone))
+    return d.isoformat(timespec="seconds")
