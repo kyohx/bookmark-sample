@@ -51,7 +51,7 @@ class TestSessions(BaseTest):
         assert sessions[first_family]["revoked"] is False
         for field in ("created_at", "last_used_at", "expires_at"):
             assert re.fullmatch(
-                r"\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}", sessions[first_family][field]
+                r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\+00:00", sessions[first_family][field]
             )
         assert "refresh_token" not in sessions[first_family]
 

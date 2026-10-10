@@ -32,9 +32,14 @@ FIELD_HASHED_ID = Annotated[
 FIELD_STRING_DATETIME = Annotated[
     str,
     StringConstraints(
-        min_length=19, max_length=19, pattern=r"^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$"
+        min_length=20,
+        max_length=25,
+        pattern=r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(Z|[+-]\d{2}:\d{2})$",
     ),
-    Field(json_schema_extra={"example": "2025-01-01 12:34:56"}),
+    Field(
+        description="タイムゾーン付き・秒精度のISO 8601形式の日時",
+        json_schema_extra={"format": "date-time", "example": "2025-01-01T12:34:56+09:00"},
+    ),
 ]
 FIELD_PAGE_NUMBER = Annotated[int, Field(ge=1)]
 FIELD_PAGE_SIZE = Annotated[int, Field(ge=1, le=100)]
