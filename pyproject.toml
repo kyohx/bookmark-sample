@@ -5,7 +5,7 @@ description = "Bookmark sample"
 readme = "README.md"
 requires-python = "==3.14.*"
 dependencies = [
-    "fastapi==0.141.*",
+    "fastapi==0.162.*",
     "uvicorn[standard]==0.53.*",
     "pwdlib[bcrypt]==0.3.*",
     "PyMySQL==1.1.*",
@@ -87,9 +87,3 @@ python-version = "3.14"
 
 [tool.basedpyright]
 typeCheckingMode = "standard"
-
-# 暫定措置
-[tool.pytest.ini_options]
-filterwarnings = [
-    "ignore:The anyio.abc.BlockingPortal alias is deprecated:DeprecationWarning"
-]
