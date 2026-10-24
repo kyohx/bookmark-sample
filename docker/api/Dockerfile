@@ -52,4 +52,4 @@ ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1
 
 # デフォルトの起動コマンド設定
-CMD ["python", "-m", "uvicorn", "src.main:app", "--log-config", "logging.json", "--reload", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["python", "-m", "uvicorn", "src.main:app", "--log-config", "config/logging.json", "--reload", "--host", "0.0.0.0", "--port", "8000"]

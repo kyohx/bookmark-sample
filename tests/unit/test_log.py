@@ -90,7 +90,7 @@ import os
 from uvicorn import Config
 from sqlalchemy import create_engine, text
 
-Config('src.main:app', log_config='logging.json')
+Config('src.main:app', log_config='config/logging.json')
 from src.libs.log import get_logger
 
 logger = get_logger()

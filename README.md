@@ -83,7 +83,7 @@ MySQL の `DATETIME` はタイムゾーン情報を保持しないため、`DATA
 
 アプリの出力レベルは既存の `LOG_LEVEL`（`DEBUG` / `INFO` / `ERROR`、既定値 `DEBUG`）、SQLログの有効化は `DATABASE_DEBUG=1` で指定します。Uvicornの既定の出力レベルは `INFO` です。
 
-Dockerの起動コマンドにはログ設定を組み込んでいます。直接起動する場合もリポジトリルートで `python -m uvicorn src.main:app --log-config logging.json` を指定してください。
+ログ設定は `config/logging.json` に格納し、Dockerの起動コマンドに組み込んでいます。直接起動する場合もリポジトリルートで `python -m uvicorn src.main:app --log-config config/logging.json` を指定してください。
 
 ## 接続情報
 

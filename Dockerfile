@@ -54,4 +54,4 @@ ENV PYTHONDONTWRITEBYTECODE=1
 COPY . ${APP_HOME}
 
 # デフォルトの起動コマンド設定
-CMD ["python", "-m", "uvicorn", "src.main:app", "--log-config", "logging.json", "--workers", "2", "--host", "0.0.0.0", "--port", "10000"]
+CMD ["python", "-m", "uvicorn", "src.main:app", "--log-config", "config/logging.json", "--workers", "2", "--host", "0.0.0.0", "--port", "10000"]
