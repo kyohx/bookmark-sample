@@ -73,6 +73,18 @@ MySQL の `DATETIME` はタイムゾーン情報を保持しないため、`DATA
 
 セッション台帳は blacklist 用 Redis に保存します。ログイン、一覧取得、失効操作には `BLACKLIST_REDIS_URL` が必要です。Redis が利用できない場合、これらの操作は 503 を返します。既存のリフレッシュ処理は `BLACKLIST_REDIS_FAIL_OPEN` の設定に従い、標準設定では Redis 障害時にブラックリスト照会を通過します。失効の強制を優先する運用では `BLACKLIST_REDIS_FAIL_OPEN=0` にしてください。導入前に発行されたセッションは、次のリフレッシュ後から一覧に現れます。
 
+## ログ出力
+
+アプリ、Uvicorn（起動・アクセス・エラー）、DBデバッグ時のSQLログは標準出力に1行1JSONで出力します。共通フィールドは `timestamp`（UTC・ミリ秒精度のISO 8601）、`level`、`logger`、`message` です。例外のスタックトレースは `exception`、`stack_info=True` の呼び出し元情報は `stack_info` に格納し、改行はJSON内でエスケープします。
+
+```json
+{"timestamp": "2026-10-24T00:00:00.000+00:00", "level": "WARNING", "logger": "API", "message": "Blacklist Redis URL is not configured"}
+```
+
+アプリの出力レベルは既存の `LOG_LEVEL`（`DEBUG` / `INFO` / `ERROR`、既定値 `DEBUG`）、SQLログの有効化は `DATABASE_DEBUG=1` で指定します。Uvicornの既定の出力レベルは `INFO` です。
+
+Dockerの起動コマンドにはログ設定を組み込んでいます。直接起動する場合もリポジトリルートで `python -m uvicorn src.main:app --log-config logging.json` を指定してください。
+
 ## 接続情報
 
 ### WebAPI
