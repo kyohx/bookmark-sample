@@ -12,6 +12,55 @@ from .base import ServiceBase, ServiceError
 _logger = get_logger()
 _config = get_config()
 
+# KEYS: 最新jti、family拒否、旧jti拒否、セッション、ユーザーのセッション一覧。
+# ARGV: 旧jti、新jti、旧トークン期限、新トークン期限、family。
+# 照会と書き込みの間に別のrefresh/revokeが割り込まないよう、すべてRedis内で行う。
+_ROTATE_REFRESH_TOKEN_SCRIPT: Final[str] = """
+local now = tonumber(redis.call('TIME')[1])
+local old_expires_at = tonumber(ARGV[3])
+local new_expires_at = tonumber(ARGV[4])
+if old_expires_at <= now or new_expires_at <= now then
+    return 0
+end
+if redis.call('EXISTS', KEYS[2]) == 1
+    or redis.call('HGET', KEYS[4], 'revoked') == '1' then
+    return 0
+end
+
+local current_jti = redis.call('GET', KEYS[1])
+if current_jti and current_jti ~= ARGV[1] then
+    -- 新しいトークンの期限までfamilyを拒否し、旧トークンの再利用を防ぐ。
+    local session_expires_at = tonumber(redis.call('HGET', KEYS[4], 'expires_at')) or 0
+    local deny_until = math.max(
+        old_expires_at, session_expires_at,
+        now + math.max(redis.call('TTL', KEYS[1]), 0), now + 1
+    )
+    redis.call('SET', KEYS[2], 'reuse detected', 'EXAT', deny_until)
+    redis.call('SET', KEYS[3], 'reuse detected', 'EXAT', old_expires_at)
+    if redis.call('EXISTS', KEYS[4]) == 1 then
+        redis.call('HSET', KEYS[4], 'revoked', 1)
+    end
+    return 0
+end
+if redis.call('EXISTS', KEYS[3]) == 1 then
+    return 0
+end
+
+redis.call('SET', KEYS[3], 'rotated', 'EXAT', old_expires_at)
+redis.call('SET', KEYS[1], ARGV[2], 'EXAT', new_expires_at)
+-- デプロイ前に発行されたトークンも、初回更新後は台帳に登録する。
+redis.call('HSETNX', KEYS[4], 'created_at', now)
+redis.call('HSETNX', KEYS[4], 'revoked', 0)
+redis.call('HSETNX', KEYS[4], 'user_agent', '')
+redis.call('HSET', KEYS[4], 'last_used_at', now, 'expires_at', new_expires_at)
+redis.call('EXPIREAT', KEYS[4], new_expires_at)
+redis.call('ZADD', KEYS[5], new_expires_at, ARGV[5])
+if redis.call('TTL', KEYS[5]) < new_expires_at - now then
+    redis.call('EXPIREAT', KEYS[5], new_expires_at)
+end
+return 1
+"""
+
 
 class TokenBlacklistService(ServiceBase):
     """
@@ -124,30 +173,45 @@ class TokenBlacklistService(ServiceBase):
         except RedisError as exc:
             raise self.Error("Redis unavailable") from exc
 
-    def touch_session(self, user: str, family: str, expires_at: int) -> None:
-        """ローテーション後のセッションの最終利用日時と期限を更新する。"""
+    def rotate_refresh_token(
+        self,
+        user: str,
+        family: str,
+        old_jti: str,
+        new_jti: str,
+        old_expires_at: int,
+        new_expires_at: int,
+    ) -> bool:
+        """旧トークンの検証・失効、新jtiと台帳の更新を原子的に行う。
+
+        拒否・再利用・期限切れはFalse。Redis障害時は既存のfail-open設定に従う。
+        最新jtiが未登録の旧セッションも、初回更新時に登録する。
+        """
         redis = self.redis
         if redis is None:
-            self._handle_redis_error(RedisError("Redis unavailable"), "touch_session")
-            return
-        now = int(datetime.now(UTC).timestamp())
-        ttl = max(expires_at - now, 1)
+            self._handle_redis_error(RedisError("Redis unavailable"), "rotate_refresh_token")
+            return True
         try:
-            with redis.pipeline() as pipe:
-                # デプロイ前に発行されたトークンも、更新後は一覧に載せる。
-                pipe.hsetnx(self._session_key(user, family), "created_at", now)
-                pipe.hsetnx(self._session_key(user, family), "revoked", 0)
-                pipe.hsetnx(self._session_key(user, family), "user_agent", "")
-                pipe.hset(
+            return (
+                redis.eval(
+                    _ROTATE_REFRESH_TOKEN_SCRIPT,
+                    5,
+                    self._family_current_key(user, family),
+                    self._family_deny_key(user, family),
+                    self._deny_jti_key(old_jti),
                     self._session_key(user, family),
-                    mapping={"last_used_at": now, "expires_at": expires_at},
+                    self._sessions_key(user),
+                    old_jti,
+                    new_jti,
+                    old_expires_at,
+                    new_expires_at,
+                    family,
                 )
-                pipe.expire(self._session_key(user, family), ttl)
-                pipe.zadd(self._sessions_key(user), {family: expires_at})
-                pipe.expire(self._sessions_key(user), ttl)
-                pipe.execute()
+                == 1
+            )
         except RedisError as exc:
-            self._handle_redis_error(exc, "touch_session")
+            self._handle_redis_error(exc, "rotate_refresh_token")
+            return True
 
     def list_sessions(self, user: str) -> list[RefreshSession]:
         """指定ユーザーの有効期限内のセッションを取得する。"""

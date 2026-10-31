@@ -113,7 +113,7 @@ def test_invalid_token(service: AuthorizeService, kind: str, invalid: str) -> No
 def test_refresh_redis_failure_follows_fail_open(
     service: AuthorizeService, fail_open: bool, redis_available: bool
 ) -> None:
-    """セッション台帳の更新失敗でも fail-open 設定どおりに動く。"""
+    """原子的な更新に失敗した場合も fail-open 設定どおりに動く。"""
     service.get_user = Mock(
         return_value=UserEntity(
             name="test_user",
@@ -126,9 +126,7 @@ def test_refresh_redis_failure_follows_fail_open(
     blacklist.fail_open = fail_open
     if redis_available:
         redis = Mock()
-        redis.exists.return_value = 0
-        redis.get.return_value = None
-        redis.pipeline.side_effect = RedisError("offline")
+        redis.eval.side_effect = RedisError("offline")
         blacklist.redis = redis
     else:
         blacklist.redis = None
@@ -140,3 +138,34 @@ def test_refresh_redis_failure_follows_fail_open(
     else:
         with pytest.raises(TokenBlacklistService.Error, match="Redis unavailable"):
             service.refresh(token)
+
+
+def test_refresh_rejected_rotation_does_not_return_tokens(service: AuthorizeService) -> None:
+    service.get_user = Mock(
+        return_value=UserEntity(
+            name="test_user",
+            hashed_password="unused",
+            disabled=False,
+            authority=AuthorityEnum.READWRITE,
+        )
+    )
+    service.blacklist_service = Mock(spec=TokenBlacklistService)
+    service.blacklist_service.rotate_refresh_token.return_value = False
+    with pytest.raises(AuthorizeService.Error, match="Could not validate credentials"):
+        service.refresh(encode(service, claims("refresh")))
+    service.blacklist_service.rotate_refresh_token.assert_called_once()
+
+
+def test_refresh_disabled_user_does_not_rotate(service: AuthorizeService) -> None:
+    service.get_user = Mock(
+        return_value=UserEntity(
+            name="test_user",
+            hashed_password="unused",
+            disabled=True,
+            authority=AuthorityEnum.READWRITE,
+        )
+    )
+    service.blacklist_service = Mock(spec=TokenBlacklistService)
+    with pytest.raises(AuthorizeService.Error, match="Inactive user"):
+        service.refresh(encode(service, claims("refresh")))
+    service.blacklist_service.rotate_refresh_token.assert_not_called()
