@@ -192,10 +192,16 @@ class BookmarkRepository(BaseRepository):
 
     def _find_all_cache_key(self) -> str:
         version = self._get_cache_version("list")
-        return f"bookmark:list:all:v:{version}:{self._page_cache_fragment()}"
+        return (
+            f"bookmark:list:all:order:created_at-desc:id-desc:"
+            f"v:{version}:{self._page_cache_fragment()}"
+        )
 
     def _find_by_tags_cache_key(self, tag_names: list[str]) -> str:
         version = self._get_cache_version("tag-list")
         # タグ順や重複に依存しないように正規化し、区切り文字を含むタグでもキー衝突しないようにする。
         normalized_tags = ",".join(quote(tag_name, safe="") for tag_name in sorted(set(tag_names)))
-        return f"bookmark:list:tags:{normalized_tags}:v:{version}:{self._page_cache_fragment()}"
+        return (
+            f"bookmark:list:tags:{normalized_tags}:order:created_at-desc:id-desc:"
+            f"v:{version}:{self._page_cache_fragment()}"
+        )

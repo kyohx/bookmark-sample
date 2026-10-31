@@ -3,6 +3,7 @@ from typing import Any, Protocol, cast
 
 from sqlalchemy import Select, select
 from sqlalchemy.orm.session import Session
+from sqlalchemy.sql.elements import ColumnElement
 
 from ...libs.page import Page
 from ..models.base import BaseDao
@@ -15,6 +16,8 @@ class BaseDaoOperator[T: BaseDao]:
 
     # サブクラスで具体的な DAO 型を指定すると、find_all() 等の戻り値型に反映される
     MAIN_DAO: type[T]
+    # 一覧の並び順は具象operatorで定義し、LIMIT/OFFSETより前に適用する。
+    LIST_ORDER_BY: tuple[ColumnElement[Any], ...] = ()
 
     def __init__(
         self,
@@ -65,7 +68,7 @@ class BaseDaoOperator[T: BaseDao]:
         Returns:
             取得したDAOのリスト
         """
-        statement = select(self.MAIN_DAO)
+        statement = select(self.MAIN_DAO).order_by(*self.LIST_ORDER_BY)
         statement = self.pagenation(statement)
         return list(self.session.execute(statement).scalars().all())
 

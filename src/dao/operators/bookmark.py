@@ -12,6 +12,7 @@ class BookmarkDaoOperator(BaseDaoOperator[BookmarkDao]):
     """
 
     MAIN_DAO = BookmarkDao
+    LIST_ORDER_BY = (BookmarkDao.created_at.desc(), BookmarkDao.id.desc())
 
     def find_one_by_hashed_id(self, hashed_id: str) -> BookmarkDao | None:
         """
@@ -41,6 +42,7 @@ class BookmarkDaoOperator(BaseDaoOperator[BookmarkDao]):
             .join(TagDao, BookmarkTagDao.tag_id == TagDao.id)
             .where(TagDao.name.in_(tags))
             .distinct()
+            .order_by(*self.LIST_ORDER_BY)
         )
         statement = self.pagenation(statement)
         return list(self.session.scalars(statement).all())
