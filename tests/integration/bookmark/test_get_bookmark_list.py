@@ -1,9 +1,13 @@
+from datetime import datetime, timedelta
+
+import pytest
 from fastapi.testclient import TestClient
 
 from src.libs.util import datetime_to_str
 from src.main import app
 
 from ..base import BaseTest
+from ..factory import DataFactory
 from ..support import TEST_TAG_NAME, SessionForTest
 
 
@@ -149,7 +153,10 @@ class TestGetBookmarkList(BaseTest):
         ページネーション
         """
         # テストデータ作成
-        self.create_bookmarks(db_session, num=20)
+        bookmarks = self.create_bookmarks(db_session, num=20)
+        for bookmark in bookmarks:
+            bookmark.created_at = datetime(2025, 1, 1)
+        db_session.flush()
 
         # リクエストの送信
         response = client.get(f"{self.api_path()}?page=2&size=10")
@@ -159,8 +166,9 @@ class TestGetBookmarkList(BaseTest):
         response_body = response.json()
         assert "bookmarks" in response_body
         assert len(response_body["bookmarks"]) == 10
-        for i, res_bookmark in enumerate(response_body["bookmarks"], start=11):
-            assert res_bookmark["memo"] == f"Example{i}"
+        assert [bookmark["memo"] for bookmark in response_body["bookmarks"]] == [
+            f"Example{i}" for i in range(10, 0, -1)
+        ]
 
         # リクエストの送信 (ページ数が大きい)
         response = client.get(f"{self.api_path()}?page=3&size=10")
@@ -183,7 +191,10 @@ class TestGetBookmarkList(BaseTest):
         """
         # テストデータ作成
         tags = ["test_tag1", "test_tag2"]
-        self.create_bookmarks(db_session, num=20, tag_names=tags)
+        bookmarks = self.create_bookmarks(db_session, num=20, tag_names=tags)
+        for bookmark in bookmarks:
+            bookmark.created_at = datetime(2025, 1, 1)
+        db_session.flush()
 
         # リクエストの送信
         response = client.get(f"{self.api_path()}?tag={tags[0]}&tag={tags[1]}&page=2&size=10")
@@ -193,8 +204,9 @@ class TestGetBookmarkList(BaseTest):
         response_body = response.json()
         assert "bookmarks" in response_body
         assert len(response_body["bookmarks"]) == 10
-        for i, res_bookmark in enumerate(response_body["bookmarks"], start=11):
-            assert res_bookmark["memo"] == f"Example{i}"
+        assert [bookmark["memo"] for bookmark in response_body["bookmarks"]] == [
+            f"Example{i}" for i in range(10, 0, -1)
+        ]
 
         # リクエストの送信 (ページ数が大きい)
         response = client.get(f"{self.api_path()}?tag={tags[0]}&tag={tags[1]}&page=3&size=10")
@@ -204,6 +216,47 @@ class TestGetBookmarkList(BaseTest):
         response_body = response.json()
         assert "bookmarks" in response_body
         assert len(response_body["bookmarks"]) == 0
+
+    @pytest.mark.parametrize("tag_filter", [False, True])
+    def test_get_list_ordered_by_creation_time_across_pages(
+        self,
+        client: TestClient,
+        db_session: SessionForTest,
+        mock_get_current_active_user: None,
+        tag_filter: bool,
+    ):
+        """作成日時の降順・同時刻はID降順で、ページ境界でも順序を固定する。"""
+        tags = ["test_tag1", "test_tag2"]
+        bookmarks = self.create_bookmarks(db_session, num=5, tag_names=tags)
+        base_time = datetime(2025, 1, 1, 12)
+        # 同じ日付内で時刻を入れ替え、作成日時とIDの順序が異なるデータを用意する。
+        for i, seconds in enumerate((1, 3, 2, 3, 3)):
+            bookmarks[i].created_at = base_time + timedelta(seconds=seconds)
+            bookmarks[i].updated_at = base_time + timedelta(seconds=10 - i)
+        if tag_filter:
+            excluded = DataFactory(db_session).create_bookmark(
+                "https://example.com/excluded", "not matched", ["other"]
+            )
+            excluded.created_at = base_time + timedelta(seconds=20)
+        db_session.flush()
+        expected = [bookmarks[i].hashed_id for i in (4, 3, 1, 2, 0)]
+        params = {"tag": tags} if tag_filter else {}
+
+        # ページ指定なしの既定取得にも同じ順序を適用する。
+        response = client.get(self.api_path(), params=params)
+        assert response.status_code == 200
+        assert [bookmark["hashed_id"] for bookmark in response.json()["bookmarks"]] == expected
+
+        for page in range(1, 5):
+            response = client.get(self.api_path(), params=params | {"page": page, "size": 2})
+            assert response.status_code == 200
+            assert [bookmark["hashed_id"] for bookmark in response.json()["bookmarks"]] == expected[
+                (page - 1) * 2 : page * 2
+            ]
+
+        repeated = client.get(self.api_path(), params=params | {"page": 1, "size": 2})
+        assert repeated.status_code == 200
+        assert [bookmark["hashed_id"] for bookmark in repeated.json()["bookmarks"]] == expected[:2]
 
     def test_get_list_pagenation_invalid(
         self,

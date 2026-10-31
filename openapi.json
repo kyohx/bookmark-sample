@@ -168,7 +168,7 @@
           "bookmark"
         ],
         "summary": "Get Bookmarks",
-        "description": "ブックマークリスト取得",
+        "description": "ブックマークリスト取得\n\n作成日時の降順で返します。同じ作成日時の場合はIDの降順です。\nタグで絞り込んだ場合も同じ並び順を適用します。",
         "operationId": "get_bookmarks_bookmarks_get",
         "security": [
           {
@@ -455,7 +455,7 @@
           "user"
         ],
         "summary": "Get Users",
-        "description": "ユーザーリスト取得",
+        "description": "ユーザーリスト取得\n\n作成日時の降順で返します。同じ作成日時の場合はIDの降順です。",
         "operationId": "get_users_users_get",
         "security": [
           {

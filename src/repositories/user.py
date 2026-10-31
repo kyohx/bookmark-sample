@@ -96,4 +96,4 @@ class UserRepository(BaseRepository):
 
     def _find_all_cache_key(self) -> str:
         version = self._get_cache_version("list")
-        return f"user:list:v:{version}:{self._page_cache_fragment()}"
+        return f"user:list:order:created_at-desc:id-desc:v:{version}:{self._page_cache_fragment()}"

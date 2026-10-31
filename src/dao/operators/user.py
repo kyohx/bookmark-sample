@@ -8,6 +8,7 @@ class UserDaoOperator(BaseDaoOperator[UserDao]):
     """
 
     MAIN_DAO = UserDao
+    LIST_ORDER_BY = (UserDao.created_at.desc(), UserDao.id.desc())
 
     def find_one_by_name(self, name: str) -> UserDao | None:
         """

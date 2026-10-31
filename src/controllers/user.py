@@ -92,6 +92,8 @@ def get_users(
 ) -> ResponseForGetUserList:
     """
     ユーザーリスト取得
+
+    作成日時の降順で返します。同じ作成日時の場合はIDの降順です。
     """
     users = usecase.get_list()
     return ResponseForGetUserList.from_entities(users)

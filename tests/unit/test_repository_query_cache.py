@@ -1,6 +1,9 @@
 from collections.abc import Iterator
+from datetime import datetime, timedelta
+from functools import partial
 from threading import Barrier, Lock, Thread
 from time import sleep
+from unittest.mock import Mock
 
 import pytest
 from dogpile.cache.api import NO_VALUE
@@ -59,6 +62,60 @@ class ConcurrentVersionRegion:
     def delete(self, key: str) -> None:
         del key
         self._value = NO_VALUE
+
+
+@pytest.mark.parametrize("kind", ["user", "bookmark", "tag-list"])
+def test_list_cache_preserves_creation_order_and_ignores_legacy_cache(
+    session: Session,
+    memory_region: CacheRegion,
+    monkeypatch: pytest.MonkeyPatch,
+    kind: str,
+) -> None:
+    """旧順序のキャッシュが残っていても、新順序で取得してキャッシュする。"""
+    factory = UnitDataFactory(session)
+    records = []
+    for i, seconds in enumerate((1, 3, 2, 3, 3)):
+        if kind == "user":
+            record = factory.create_user(f"user{i}")
+        else:
+            record = factory.create_bookmark(f"https://example.com/{i}", f"memo{i}", ["tag1"])
+        record.created_at = datetime(2025, 1, 1, 12) + timedelta(seconds=seconds)
+        records.append(record)
+    session.flush()
+    page = Page(number=1, size=2)
+
+    if kind == "user":
+        repository = UserRepository(session, page=page, region=memory_region)
+        version = repository._get_cache_version("list")
+        legacy_key = f"user:list:v:{version}:page:1:size:2"
+        legacy_result = [UserEntity(**record.to_dict()) for record in records[:2]]
+        getter = Mock(wraps=repository.user_operator.find_all)
+        monkeypatch.setattr(repository.user_operator, "find_all", getter)
+        read = repository.find_all
+    else:
+        repository = BookmarkRepository(session, page=page, region=memory_region)
+        legacy_result = [BookmarkEntity(**record.to_dict()) for record in records[:2]]
+        if kind == "bookmark":
+            version = repository._get_cache_version("list")
+            legacy_key = f"bookmark:list:all:v:{version}:page:1:size:2"
+            getter = Mock(wraps=repository.bookmark_operator.find_all)
+            monkeypatch.setattr(repository.bookmark_operator, "find_all", getter)
+            read = repository.find_all
+        else:
+            version = repository._get_cache_version("tag-list")
+            legacy_key = f"bookmark:list:tags:tag1:v:{version}:page:1:size:2"
+            getter = Mock(wraps=repository.bookmark_operator.find_by_tags)
+            monkeypatch.setattr(repository.bookmark_operator, "find_by_tags", getter)
+            read = partial(repository.find_by_tags, ["tag1"])
+    memory_region.set(legacy_key, legacy_result)
+
+    first = read()
+    cached = read()
+    field = "name" if kind == "user" else "hashed_id"
+    expected = [getattr(records[i], field) for i in (4, 3)]
+    assert [getattr(entity, field) for entity in first] == expected
+    assert [getattr(entity, field) for entity in cached] == expected
+    getter.assert_called_once()
 
 
 def test_user_repository_find_one_cache_and_invalidation(

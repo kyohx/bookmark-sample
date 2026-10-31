@@ -101,6 +101,9 @@ def get_bookmarks(
 ) -> ResponseForGetBookmarkList:
     """
     ブックマークリスト取得
+
+    作成日時の降順で返します。同じ作成日時の場合はIDの降順です。
+    タグで絞り込んだ場合も同じ並び順を適用します。
     """
     bookmarks = usecase.get_list(tag_names=tag)
     return ResponseForGetBookmarkList.from_entities(bookmarks)
