@@ -81,13 +81,15 @@ MySQL の `DATETIME` はタイムゾーン情報を保持しないため、`DATA
 
 ## ログ出力
 
-アプリ、Uvicorn（起動・アクセス・エラー）、DBデバッグ時のSQLログは標準出力に1行1JSONで出力します。共通フィールドは `timestamp`（UTC・ミリ秒精度のISO 8601）、`level`、`logger`、`message` です。例外のスタックトレースは `exception`、`stack_info=True` の呼び出し元情報は `stack_info` に格納し、改行はJSON内でエスケープします。
+アプリ、Uvicorn（起動・アクセス・エラー）、DBデバッグ時のSQLログは標準出力に1行1JSONで出力します。共通フィールドは `timestamp`（UTC・ミリ秒精度のISO 8601）、`level`、`logger`、`message`、`request_id` です。例外のスタックトレースは `exception`、`stack_info=True` の呼び出し元情報は `stack_info` に格納し、改行はJSON内でエスケープします。
 
 ```json
-{"timestamp": "2026-10-24T00:00:00.000+00:00", "level": "WARNING", "logger": "API", "message": "Blacklist Redis URL is not configured"}
+{"timestamp": "2026-10-24T00:00:00.000+00:00", "level": "WARNING", "logger": "API", "message": "Blacklist Redis URL is not configured", "request_id": null}
 ```
 
 アプリの出力レベルは既存の `LOG_LEVEL`（`DEBUG` / `INFO` / `ERROR`、既定値 `DEBUG`）、SQLログの有効化は `DATABASE_DEBUG=1` で指定します。Uvicornの既定の出力レベルは `INFO` です。
+
+HTTPリクエストごとにUUID v4の32桁の16進数IDを発行し、レスポンスの `X-Request-ID` ヘッダーで返します。同じリクエスト内のアプリ・SQL・Uvicornアクセス／エラーログの `request_id` で検索すると、そのリクエストに関連するログを追跡できます。同期エンドポイントやストリーミング応答でも同じIDを使い、エラー応答にもヘッダーを付けます。クライアントから送られた `X-Request-ID` は流用せず、新しいIDを発行します。起動時などHTTPリクエスト外のログは `request_id: null` です。
 
 ログ設定は `config/logging.json` に格納し、Dockerの起動コマンドに組み込んでいます。直接起動する場合もリポジトリルートで `python -m uvicorn src.main:app --log-config config/logging.json` を指定してください。
 
