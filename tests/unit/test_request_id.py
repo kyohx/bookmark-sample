@@ -2,6 +2,7 @@ import asyncio
 import io
 import json
 import logging
+from threading import Barrier, get_ident
 from unittest.mock import AsyncMock
 from uuid import UUID
 
@@ -111,6 +112,77 @@ def test_stream_and_background_logs_keep_request_id(app_and_logs):
     logs = entries(output)
     assert [entry["message"] for entry in logs] == ["stream start", "stream end", "background"]
     assert all(entry["request_id"] == request_id for entry in logs)
+
+
+@pytest.mark.parametrize("fail_one", [False, True])
+def test_parallel_sync_workers_keep_ids_separate_and_reset_on_reuse(app_and_logs, fail_one):
+    """defエンドポイントを別スレッドで同時実行し、再利用時もIDが混ざらない。"""
+    app, output, logger = app_and_logs
+    barrier = Barrier(2, timeout=5)
+    workers = {}
+    event_loop_thread = get_ident()
+
+    @app.get("/parallel/{index}")
+    def parallel(index: int, request: Request):
+        request_id = get_request_id()
+        assert request_id is not None
+        assert request_id == request.state.request_id
+        workers[index] = (get_ident(), request_id)
+        logger.info("worker %s before barrier", index)
+        # asyncioのイベントループではなく、2つの同期ワーカーが同時に到達する必要がある。
+        barrier.wait()
+        logger.info("worker %s after barrier", index)
+        assert get_request_id() == request_id
+        if fail_one and index == 1:
+            raise RuntimeError("worker failure")
+        return {"request_id": request_id}
+
+    @app.get("/reuse")
+    def reuse():
+        logger.info("reused worker")
+        return {"request_id": get_request_id(), "thread_id": get_ident()}
+
+    async def exercise():
+        async with httpx2.AsyncClient(
+            transport=httpx2.ASGITransport(app=app, raise_app_exceptions=False),
+            base_url="http://test",
+        ) as client:
+            responses = await asyncio.gather(client.get("/parallel/0"), client.get("/parallel/1"))
+            # 同じイベントループのAnyIOプールを再利用する。
+            reused = [await client.get("/reuse") for _ in range(3)]
+            assert get_request_id() is None
+            return responses, reused
+
+    responses, reused = asyncio.run(exercise())
+    assert [response.status_code for response in responses] == [200, 500 if fail_one else 200]
+    worker_threads = {thread_id for thread_id, _ in workers.values()}
+    assert len(worker_threads) == 2
+    assert event_loop_thread not in worker_threads
+    ids = []
+    logs = entries(output)
+    for index, response in enumerate(responses):
+        request_id = response.headers["X-Request-ID"]
+        ids.append(request_id)
+        assert request_id == workers[index][1]
+        if response.status_code == 200:
+            assert response.json()["request_id"] == request_id
+        worker_logs = [entry for entry in logs if entry["message"].startswith(f"worker {index} ")]
+        assert [entry["message"] for entry in worker_logs] == [
+            f"worker {index} before barrier",
+            f"worker {index} after barrier",
+        ]
+        assert all(entry["request_id"] == request_id for entry in worker_logs)
+    for response in reused:
+        assert response.status_code == 200
+        request_id = response.headers["X-Request-ID"]
+        ids.append(request_id)
+        assert response.json()["request_id"] == request_id
+        assert response.json()["thread_id"] in worker_threads
+    assert len(set(ids)) == 5
+    assert [entry["request_id"] for entry in logs if entry["message"] == "reused worker"] == ids[2:]
+    assert get_request_id() is None
+    logger.info("outside request")
+    assert entries(output)[-1]["request_id"] is None
 
 
 def test_concurrent_async_requests_do_not_share_ids(app_and_logs):
