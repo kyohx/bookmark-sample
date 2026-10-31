@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from fastapi.testclient import TestClient
 
 from src.libs.version import APP_VERSION
@@ -25,6 +27,7 @@ class TestGetVersion(BaseTest):
 
         # レスポンスの検証
         assert response.status_code == 200
+        assert UUID(response.headers["X-Request-ID"]).version == 4
         response_body = response.json()
         assert "version" in response_body
         assert response_body["version"] == APP_VERSION
