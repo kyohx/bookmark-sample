@@ -75,11 +75,6 @@ class AuthorizeService(ServiceBase):
         self.access_token_expire_minutes = self.config.access_token_expire_minutes
         self.blacklist_service = TokenBlacklistService()
 
-    @staticmethod
-    def _get_ttl_seconds(expire_at: int) -> int:
-        now = int(datetime.now(UTC).timestamp())
-        return max(expire_at - now, 0)
-
     @classmethod
     def verify_password(cls, plain_password: str, hashed_password: str) -> bool:
         """
@@ -287,20 +282,6 @@ class AuthorizeService(ServiceBase):
         family = payload.fam
         exp = payload.exp
 
-        if self.blacklist_service.is_family_denied(username, family):
-            raise self.Error("Could not validate credentials")
-
-        current_jti = self.blacklist_service.get_current_jti(username, family)
-        if current_jti and current_jti != refresh_jti:
-            ttl_seconds = self._get_ttl_seconds(exp)
-            self.blacklist_service.deny_family(
-                username, family, ttl_seconds, reason="reuse detected"
-            )
-            self.blacklist_service.deny_jti(refresh_jti, ttl_seconds, reason="reuse detected")
-            raise self.Error("Could not validate credentials")
-
-        if self.blacklist_service.is_jti_denied(refresh_jti):
-            raise self.Error("Could not validate credentials")
         user = self.get_user(name=username)
         if user.disabled:
             raise self.Error("Inactive user")
@@ -315,15 +296,15 @@ class AuthorizeService(ServiceBase):
             data={"sub": user.name, "jti": new_refresh_jti, "fam": family},
             expires_delta=refresh_token_expires,
         )
-        ttl_seconds_old = self._get_ttl_seconds(exp)
-        ttl_seconds_new = int(refresh_token_expires.total_seconds())
-        self.blacklist_service.touch_session(
-            user.name,
-            family,
-            self._decode_token(new_refresh_token, RefreshTokenPayload).exp,
-        )
-        self.blacklist_service.deny_jti(refresh_jti, ttl_seconds_old, reason="rotated")
-        self.blacklist_service.set_current_jti(user.name, family, new_refresh_jti, ttl_seconds_new)
+        if not self.blacklist_service.rotate_refresh_token(
+            user=user.name,
+            family=family,
+            old_jti=refresh_jti,
+            new_jti=new_refresh_jti,
+            old_expires_at=exp,
+            new_expires_at=self._decode_token(new_refresh_token, RefreshTokenPayload).exp,
+        ):
+            raise self.Error("Could not validate credentials")
         return Token(
             access_token=new_access_token,
             refresh_token=new_refresh_token,

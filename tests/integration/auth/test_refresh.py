@@ -1,4 +1,5 @@
 from datetime import timedelta
+from uuid import uuid4
 
 import pytest
 from fastapi.testclient import TestClient
@@ -202,45 +203,18 @@ class TestRefreshToken(BaseTest):
         )
 
         service = AuthorizeService(session=db_session)
-        family = "family-1"
-        refresh_jti = "jti-1"
+        family = uuid4().hex
+        refresh_jti = uuid4().hex
         refresh_token = service.create_refresh_token(
             data={"sub": "test_user", "jti": refresh_jti, "fam": family},
             expires_delta=timedelta(days=1),
         )
 
-        class StubBlacklist:
-            def __init__(self) -> None:
-                self.denied_family: tuple[str, str, int, str] | None = None
-                self.denied_jti: tuple[str, int, str] | None = None
-
-            def is_jti_denied(self, jti: str) -> bool:
-                return False
-
-            def is_family_denied(self, user: str, family_id: str) -> bool:
-                return False
-
-            def get_current_jti(self, user: str, family_id: str) -> str:
-                return "other-jti"
-
-            def deny_family(self, user: str, family_id: str, ttl: int, reason: str) -> None:
-                self.denied_family = (user, family_id, ttl, reason)
-
-            def deny_jti(self, jti: str, ttl: int, reason: str) -> None:
-                self.denied_jti = (jti, ttl, reason)
-
-        stub = StubBlacklist()
-        service.blacklist_service = stub
+        blacklist = service.blacklist_service
+        blacklist.set_current_jti("test_user", family, "other-jti", 86400)
 
         with pytest.raises(AuthorizeService.Error):
             service.refresh(refresh_token)
 
-        assert stub.denied_family is not None
-        assert stub.denied_jti is not None
-        assert stub.denied_family[0] == "test_user"
-        assert stub.denied_family[1] == family
-        assert stub.denied_family[2] >= 0
-        assert stub.denied_family[3] == "reuse detected"
-        assert stub.denied_jti[0] == refresh_jti
-        assert stub.denied_jti[1] >= 0
-        assert stub.denied_jti[2] == "reuse detected"
+        assert blacklist.is_family_denied("test_user", family)
+        assert blacklist.is_jti_denied(refresh_jti)
