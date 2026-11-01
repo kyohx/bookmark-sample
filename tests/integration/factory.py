@@ -1,3 +1,4 @@
+from sqlalchemy import insert, select
 from sqlalchemy.orm import Session
 
 from src.dao.models.bookmark import BookmarkDao
@@ -19,30 +20,47 @@ class DataFactory:
         self.session = session
 
     def create_bookmark(self, url: str, memo: str, tagnames: list[str]) -> BookmarkDao:
-        bookmark = BookmarkDao(
-            url=url,
-            memo=memo,
-            hashed_id=get_hashed_id(url),
-        )
-        self.session.add(bookmark)
-        self.session.flush()
+        return self.create_bookmarks([(url, memo, tagnames)])[0]
 
-        already_exsist_tag_names = [
-            tag.name for tag in self.session.query(TagDao).filter(TagDao.name.in_(tagnames)).all()
+    def create_bookmarks(self, entries: list[tuple[str, str, list[str]]]) -> list[BookmarkDao]:
+        """タグの取得と関連の登録をまとめ、入力順でブックマークを返す。"""
+        if not entries:
+            return []
+
+        bookmarks = [
+            BookmarkDao(url=url, memo=memo, hashed_id=get_hashed_id(url))
+            for url, memo, _ in entries
         ]
-        add_tagnames = list(set(tagnames) - set(already_exsist_tag_names))
-
-        if add_tagnames:
-            tags = [TagDao(name=tag) for tag in add_tagnames]
-            self.session.add_all(tags)
-            self.session.flush()
-
-        for tagname in tagnames:
-            tag = self.session.query(TagDao).filter(TagDao.name == tagname).one()
-            self.session.add(BookmarkTagDao(bookmark_id=bookmark.id, tag_id=tag.id))
-
+        # autoflush=Falseのセッションでも、登録待ちのタグを後続の検索に反映する。
+        self.session.add_all(bookmarks)
         self.session.flush()
-        return bookmark
+
+        tagnames = dict.fromkeys(name for _, _, names in entries for name in names)
+        tags = (
+            {
+                tag.name: tag
+                for tag in self.session.scalars(select(TagDao).where(TagDao.name.in_(tagnames)))
+            }
+            if tagnames
+            else {}
+        )
+        for name in tagnames:
+            if name not in tags:
+                tags[name] = TagDao(name=name)
+
+        # IDを取得してから関連を一括登録する。タグはこの呼び出し内で共有する。
+        self.session.add_all(tags.values())
+        self.session.flush()
+
+        associations = [
+            {"bookmark_id": bookmark.id, "tag_id": tags[name].id}
+            for bookmark, (_, _, names) in zip(bookmarks, entries, strict=True)
+            for name in names
+        ]
+        if associations:
+            self.session.execute(insert(BookmarkTagDao), associations)
+
+        return bookmarks
 
     def create_user(
         self,
