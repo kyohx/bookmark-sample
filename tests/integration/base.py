@@ -19,16 +19,18 @@ class BaseTest:
         テスト用ブックマークを作成する
         """
         factory = DataFactory(db_session)
-        return [
-            factory.create_bookmark(
-                url=f"{TEST_URL}/{i}",
-                memo=f"Example{i}",
-                tagnames=tag_names
-                if tag_names
-                else [f"{TEST_TAG_NAME}_1_{i}", f"{TEST_TAG_NAME}_2_{i}"],
-            )
-            for i in range(1, num + 1)
-        ]
+        return factory.create_bookmarks(
+            [
+                (
+                    f"{TEST_URL}/{i}",
+                    f"Example{i}",
+                    tag_names
+                    if tag_names
+                    else [f"{TEST_TAG_NAME}_1_{i}", f"{TEST_TAG_NAME}_2_{i}"],
+                )
+                for i in range(1, num + 1)
+            ]
+        )
 
     def get_tags(self, db_session: SessionForTest, bookmark_dao: BookmarkDao) -> list[TagDao]:
         """ "
