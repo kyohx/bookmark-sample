@@ -69,55 +69,77 @@ def test_exception_chain_and_stack_info_stay_in_one_json_line(json_logger):
     assert "test_exception_chain_and_stack_info" in entry["stack_info"]
 
 
-@pytest.mark.parametrize(
-    ("level", "expected_levels"),
-    [
-        ("DEBUG", ["DEBUG", "INFO", "WARNING", "ERROR"]),
-        ("INFO", ["INFO", "WARNING", "ERROR"]),
-        ("ERROR", ["ERROR"]),
-    ],
-)
-@pytest.mark.parametrize("sql_debug", [False, True])
-def test_runtime_logging_config_outputs_json_without_duplicates(level, expected_levels, sql_debug):
-    # 別プロセスでUvicornの実設定を使い、pytest自身のログ設定への影響を避ける。
+@pytest.fixture(scope="module")
+def runtime_logging_output(request):
+    # LOG_LEVELごとに別プロセスで実設定を読み込み、SQLデバッグON/OFFの出力を共有する。
+    # pytest自身のログ設定を変更せず、同じモジュールのインポートを繰り返さない。
     result = subprocess.run(
         [
             sys.executable,
             "-c",
             """
+import io
+import json
 import logging
-import os
+from contextlib import redirect_stdout
 
 from uvicorn import Config
 from sqlalchemy import create_engine, text
 
-Config('src.main:app', log_config='config/logging.json')
-from src.libs.log import get_logger
+output = io.StringIO()
+outputs = {}
+with redirect_stdout(output):
+    Config('src.main:app', log_config='config/logging.json')
+    from src.libs.log import get_logger
 
-logger = get_logger()
-assert logger is get_logger()
-for level in (logging.DEBUG, logging.INFO, logging.WARNING, logging.ERROR):
-    logger.log(level, 'アプリ %s', logging.getLevelName(level))
-logging.getLogger('uvicorn.error').info('サーバ起動 %s', 'ready')
-logging.getLogger('uvicorn.access').info(
-    '%s - "%s %s HTTP/%s" %d', '127.0.0.1:12345', 'GET', '/version', '1.1', 200
-)
-logging.getLogger('third_party').warning('ライブラリ警告')
-engine = create_engine('sqlite://', echo=os.environ['DATABASE_DEBUG'] == '1')
-with engine.connect() as connection:
-    connection.execute(text('SELECT 1'))
-engine.dispose()
+    for sql_debug in (False, True):
+        logger = get_logger()
+        assert logger is get_logger()
+        for level in (logging.DEBUG, logging.INFO, logging.WARNING, logging.ERROR):
+            logger.log(level, 'アプリ %s', logging.getLevelName(level))
+        logging.getLogger('uvicorn.error').info('サーバ起動 %s', 'ready')
+        logging.getLogger('uvicorn.access').info(
+            '%s - "%s %s HTTP/%s" %d', '127.0.0.1:12345', 'GET', '/version', '1.1', 200
+        )
+        logging.getLogger('third_party').warning('ライブラリ警告')
+        engine = create_engine('sqlite://', echo=sql_debug)
+        with engine.connect() as connection:
+            connection.execute(text('SELECT 1'))
+        engine.dispose()
+        outputs[str(int(sql_debug))] = output.getvalue()
+        output.seek(0)
+        output.truncate()
+print(json.dumps(outputs))
 """,
         ],
         cwd=ROOT,
-        env={**os.environ, "LOG_LEVEL": level, "DATABASE_DEBUG": str(int(sql_debug))},
+        env={**os.environ, "LOG_LEVEL": request.param},
         capture_output=True,
         text=True,
         check=True,
         timeout=30,
     )
     assert result.stderr == ""
-    entries = [json.loads(line) for line in result.stdout.splitlines()]
+    return json.loads(result.stdout)
+
+
+@pytest.mark.parametrize(
+    ("runtime_logging_output", "expected_levels"),
+    [
+        ("DEBUG", ["DEBUG", "INFO", "WARNING", "ERROR"]),
+        ("INFO", ["INFO", "WARNING", "ERROR"]),
+        ("ERROR", ["ERROR"]),
+    ],
+    indirect=["runtime_logging_output"],
+    scope="module",
+)
+@pytest.mark.parametrize("sql_debug", [False, True])
+def test_runtime_logging_config_outputs_json_without_duplicates(
+    runtime_logging_output, expected_levels, sql_debug
+):
+    entries = [
+        json.loads(line) for line in runtime_logging_output[str(int(sql_debug))].splitlines()
+    ]
     assert all(entry["request_id"] is None for entry in entries)
     app_entries = [entry for entry in entries if entry["logger"] == "API"]
     assert [entry["level"] for entry in app_entries] == expected_levels
