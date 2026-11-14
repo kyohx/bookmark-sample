@@ -161,14 +161,6 @@ task build_app
 
 共通の `Dockerfile` を使い、Compose は開発依存とホットリロードを含む `development` ターゲットをビルドします。ソースコードは `/opt/app` にマウントし、コンテナ用の仮想環境はマウントと重ならない `/opt/venv` に置いています。依存関係を変更した場合は API コンテナを再ビルドしてください。
 
-Render 用は既定の最終ターゲット `app` を使います。開発依存を除き、`src/` と `config/` だけをコピーします。ローカルでも次のコマンドでビルドできます。
-
-```bash
-docker build --pull -t bookmark-api .
-```
-
-依存関係は `uv.lock` と `pyproject.toml` の整合性を検証してインストールします。ソースコードだけの変更では依存レイヤーを再利用します。Python のベースイメージはビルド・実行ともに Debian trixie を使い、更新は `--pull` を付けて取り込みます。
-
 #### ソースコードのフォーマット
 
 ```bash
