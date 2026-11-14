@@ -3,7 +3,7 @@ services:
   api:
     build:
       context: .
-      dockerfile: ./docker/api/Dockerfile
+      target: development
     container_name: api
     hostname: api
     environment:

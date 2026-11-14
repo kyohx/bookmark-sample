@@ -27,7 +27,7 @@ Web URL ブックマーク管理API (サンプルコード)
 - `src/` : Web API ソースコード
 - `tests/` : テストコード
 - `compose.yaml` : ローカル環境向け docker compose 設定ファイル
-- `Dockerfile` : Render SaaS環境向け Dockerfile
+- `Dockerfile` : 開発環境・Render SaaS環境で共用する Dockerfile
 - `openapi.json` : OpenAPI(API仕様)ファイル
 - `pyproject.toml` : プロジェクト設定ファイル
 - `uv.lock` : パッケージ依存関係ロックファイル
@@ -158,6 +158,8 @@ docker compose down -v
 ```bash
 task build_app
 ```
+
+共通の `Dockerfile` を使い、Compose は開発依存とホットリロードを含む `development` ターゲットをビルドします。ソースコードは `/opt/app` にマウントし、コンテナ用の仮想環境はマウントと重ならない `/opt/venv` に置いています。依存関係を変更した場合は API コンテナを再ビルドしてください。
 
 #### ソースコードのフォーマット
 
