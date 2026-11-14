@@ -1,14 +1,13 @@
-.*_cache
+# Only dependency metadata and runtime files are needed in the build context.
+*
+!pyproject.toml
+!uv.lock
+!src/
+!src/**
+!config/
+!config/**
+
 **/__pycache__
-.git
-.github
-.venv
-.env
-.dockerignore
-.gitignore
-docker
-tests
-/*.md
-LICENSE
-compose.yaml
-openapi.json
+**/*.py[cod]
+**/.env
+**/.env.*
