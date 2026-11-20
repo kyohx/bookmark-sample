@@ -36,13 +36,13 @@ class BookmarkDaoOperator(BaseDaoOperator[BookmarkDao]):
         Returns:
             該当するブックマークDAOのリスト
         """
-        statement = (
-            select(BookmarkDao)
-            .join(BookmarkTagDao, BookmarkDao.id == BookmarkTagDao.bookmark_id)
+        matching_tag = (
+            select(1)
+            .select_from(BookmarkTagDao)
             .join(TagDao, BookmarkTagDao.tag_id == TagDao.id)
-            .where(TagDao.name.in_(tags))
-            .distinct()
-            .order_by(*self.LIST_ORDER_BY)
+            .where(BookmarkTagDao.bookmark_id == BookmarkDao.id, TagDao.name.in_(tags))
+            .exists()
         )
+        statement = select(BookmarkDao).where(matching_tag).order_by(*self.LIST_ORDER_BY)
         statement = self.pagenation(statement)
         return list(self.session.scalars(statement).all())

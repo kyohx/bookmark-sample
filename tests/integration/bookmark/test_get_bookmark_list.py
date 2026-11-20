@@ -227,7 +227,13 @@ class TestGetBookmarkList(BaseTest):
     ):
         """作成日時の降順・同時刻はID降順で、ページ境界でも順序を固定する。"""
         tags = ["test_tag1", "test_tag2"]
-        bookmarks = self.create_bookmarks(db_session, num=5, tag_names=tags)
+        bookmark_tags = [tags[:1], tags, tags[1:], tags, tags[1:] + ["other"]]
+        bookmarks = DataFactory(db_session).create_bookmarks(
+            [
+                (f"https://example.com/{i}", f"Example{i}", names)
+                for i, names in enumerate(bookmark_tags)
+            ]
+        )
         base_time = datetime(2025, 1, 1, 12)
         # 同じ日付内で時刻を入れ替え、作成日時とIDの順序が異なるデータを用意する。
         for i, seconds in enumerate((1, 3, 2, 3, 3)):
@@ -245,7 +251,9 @@ class TestGetBookmarkList(BaseTest):
         # ページ指定なしの既定取得にも同じ順序を適用する。
         response = client.get(self.api_path(), params=params)
         assert response.status_code == 200
-        assert [bookmark["hashed_id"] for bookmark in response.json()["bookmarks"]] == expected
+        results = response.json()["bookmarks"]
+        assert [bookmark["hashed_id"] for bookmark in results] == expected
+        assert results[0]["tags"] == bookmark_tags[4]
 
         for page in range(1, 5):
             response = client.get(self.api_path(), params=params | {"page": page, "size": 2})
