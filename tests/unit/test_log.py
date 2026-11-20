@@ -172,7 +172,10 @@ def test_runtime_logging_config_outputs_json_without_duplicates(
 
 
 def test_real_uvicorn_access_error_and_sql_logs_share_response_request_id():
-    """ソケットを使わず実UvicornのHTTP処理を動かし、サーバーログまで検証する。"""
+    """
+    異常系:
+    ソケットを使わず実UvicornのHTTP処理を動かし、サーバーログまで検証する。
+    """
     result = subprocess.run(
         [
             sys.executable,

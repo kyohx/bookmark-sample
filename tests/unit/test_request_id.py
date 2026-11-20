@@ -137,7 +137,10 @@ def test_stream_and_background_logs_keep_request_id(app_and_logs):
 
 @pytest.mark.parametrize("fail_one", [False, True])
 def test_parallel_sync_workers_keep_ids_separate_and_reset_on_reuse(app_and_logs, fail_one):
-    """defエンドポイントを別スレッドで同時実行し、再利用時もIDが混ざらない。"""
+    """
+    正常系:
+    defエンドポイントを別スレッドで同時実行し、再利用時もIDが混ざらない。
+    """
     app, output, logger = app_and_logs
     barrier = Barrier(2, timeout=5)
     workers = {}

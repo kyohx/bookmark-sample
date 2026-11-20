@@ -79,7 +79,10 @@ def test_concurrent_refresh_has_only_one_success(
     monkeypatch: pytest.MonkeyPatch,
     registered: bool,
 ) -> None:
-    """既存・未登録セッションとも、同じJWTの同時更新は1件だけ成功する。"""
+    """
+    異常系:
+    既存・未登録セッションとも、同じJWTの同時更新は1件だけ成功する。
+    """
     user = UserEntity(
         name="user", hashed_password="unused", authority=AuthorityEnum.READWRITE, disabled=False
     )

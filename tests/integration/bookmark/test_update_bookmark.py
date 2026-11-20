@@ -240,7 +240,7 @@ class TestUpdateBookmark(BaseTest):
         db_session: SessionForTest,
         mock_get_current_active_user: None,
     ):
-        """ "
+        """
         異常系:
         ハッシュIDが存在しないブックマークを更新
         """

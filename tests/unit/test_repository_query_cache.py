@@ -77,7 +77,10 @@ def test_list_cache_preserves_creation_order_and_ignores_legacy_cache(
     monkeypatch: pytest.MonkeyPatch,
     kind: str,
 ) -> None:
-    """旧順序のキャッシュが残っていても、新順序で取得してキャッシュする。"""
+    """
+    正常系:
+    旧順序のキャッシュが残っていても、新順序で取得してキャッシュする。
+    """
     factory = UnitDataFactory(session)
     records = []
     for i, seconds in enumerate((1, 3, 2, 3, 3)):

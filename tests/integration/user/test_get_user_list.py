@@ -26,7 +26,7 @@ class TestGetUserList(BaseTest):
         mock_get_current_active_user: None,
     ):
         """
-        通常系:
+        正常系:
         ユーザーリスト全件取得
         """
         self.create_user(db_session, "test1")
@@ -114,7 +114,10 @@ class TestGetUserList(BaseTest):
         db_session: SessionForTest,
         mock_get_current_active_user: None,
     ):
-        """作成日時の降順・同時刻はID降順で、ページ境界でも順序を固定する。"""
+        """
+        正常系:
+        作成日時の降順・同時刻はID降順で、ページ境界でも順序を固定する。
+        """
         for i in range(5):
             self.create_user(db_session, f"test{i}")
         users = db_session.query(UserDao).order_by(UserDao.id).all()
