@@ -144,7 +144,10 @@ def test_refresh_redis_failure_follows_fail_open(
 
 
 def test_refresh_rejected_rotation_does_not_return_tokens(service: AuthorizeService) -> None:
-    """トークン更新が拒否された場合に認証エラーになることを確認する。"""
+    """
+    異常系:
+    トークン更新が拒否された場合に認証エラーになることを確認する
+    """
     service.get_user = Mock(
         return_value=UserEntity(
             name="test_user",
@@ -161,7 +164,10 @@ def test_refresh_rejected_rotation_does_not_return_tokens(service: AuthorizeServ
 
 
 def test_refresh_disabled_user_does_not_rotate(service: AuthorizeService) -> None:
-    """無効化されたユーザーはトークンのローテーションに進めない。"""
+    """
+    異常系:
+    無効化されたユーザーはトークンのローテーションに進めない
+    """
     service.get_user = Mock(
         return_value=UserEntity(
             name="test_user",

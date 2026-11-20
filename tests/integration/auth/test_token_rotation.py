@@ -48,7 +48,10 @@ def rotate(blacklist: TokenBlacklistService, **overrides) -> bool:
 
 
 def test_rotation_updates_tokens_and_session(blacklist: TokenBlacklistService) -> None:
-    """更新後のトークン状態、セッション情報、各キーの有効期限を確認する。"""
+    """
+    正常系:
+    更新後のトークン状態、セッション情報、各キーの有効期限を確認する
+    """
     timestamp = now()
     blacklist.record_session("user", "family", timestamp + 60, "device")
     blacklist.set_current_jti("user", "family", "old", 60)
@@ -131,7 +134,10 @@ def test_concurrent_refresh_has_only_one_success(
 def test_denied_rotation_does_not_change_current_token(
     blacklist: TokenBlacklistService, denied: str
 ) -> None:
-    """拒否された更新が現在のトークンとセッションを変更しないことを確認する。"""
+    """
+    異常系:
+    拒否された更新が現在のトークンとセッションを変更しないことを確認する
+    """
     blacklist.record_session("user", "family", now() + 60)
     blacklist.set_current_jti("user", "family", "old", 60)
     if denied == "family":
@@ -151,7 +157,10 @@ def test_denied_rotation_does_not_change_current_token(
 def test_expired_rotation_does_not_create_state(
     blacklist: TokenBlacklistService, expired: str
 ) -> None:
-    """旧トークンまたは新トークンが期限切れなら、Redis に更新状態を作らない。"""
+    """
+    異常系:
+    旧トークンまたは新トークンが期限切れなら、Redis に更新状態を作らない
+    """
     assert not rotate(blacklist, **{expired: now() - 1})
     assert blacklist.get_current_jti("user", "family") is None
     assert not blacklist.is_jti_denied("old")
@@ -159,7 +168,10 @@ def test_expired_rotation_does_not_create_state(
 
 
 def test_rotation_then_revocation_rejects_new_token(blacklist: TokenBlacklistService) -> None:
-    """セッション失効後は直前に更新したトークンも更新できないことを確認する。"""
+    """
+    異常系:
+    セッション失効後は直前に更新したトークンも更新できないことを確認する
+    """
     assert rotate(blacklist)
     assert blacklist.revoke_session("user", "family")
     assert not rotate(blacklist, old_jti="new", new_jti="next")
@@ -170,7 +182,10 @@ def test_rotation_then_revocation_rejects_new_token(blacklist: TokenBlacklistSer
 def test_list_sessions_cleans_index_without_removing_concurrent_refresh(
     blacklist: TokenBlacklistService, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """欠損や期限切れを整理し、並行する更新で再登録されたセッションを保持する。"""
+    """
+    異常系:
+    欠損や期限切れを整理し、並行する更新で再登録されたセッションを保持する
+    """
     redis = blacklist.redis
     assert redis is not None
     timestamp = now()

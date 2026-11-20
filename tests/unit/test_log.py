@@ -27,7 +27,10 @@ def json_logger():
 
 @pytest.mark.parametrize("level", [logging.DEBUG, logging.INFO, logging.WARNING, logging.ERROR])
 def test_log_is_one_json_line_with_interpolated_message(json_logger, level):
-    """各ログレベルで補間と特殊文字のエスケープが行われ、1行の JSON になる。"""
+    """
+    正常系:
+    各ログレベルで補間と特殊文字のエスケープが行われ、1行の JSON になる
+    """
     logger, output = json_logger
     message = '日本語 "quoted" \\path\n次の行\r\n\tタブ'
     before = datetime.now(UTC)
@@ -50,7 +53,10 @@ def test_log_is_one_json_line_with_interpolated_message(json_logger, level):
 
 
 def test_exception_chain_and_stack_info_stay_in_one_json_line(json_logger):
-    """原因例外を含む例外チェーンとスタック情報が1行の JSON に収まる。"""
+    """
+    異常系:
+    原因例外を含む例外チェーンとスタック情報が1行の JSON に収まる
+    """
     logger, output = json_logger
     try:
         try:
@@ -141,7 +147,10 @@ print(json.dumps(outputs))
 def test_runtime_logging_config_outputs_json_without_duplicates(
     runtime_logging_output, expected_levels, sql_debug
 ):
-    """実設定でログレベルと SQL デバッグが反映され、各ロガーの出力が重複しない。"""
+    """
+    正常系:
+    実設定でログレベルと SQL デバッグが反映され、各ロガーの出力が重複しない
+    """
     entries = [
         json.loads(line) for line in runtime_logging_output[str(int(sql_debug))].splitlines()
     ]

@@ -10,7 +10,10 @@ from .support import TEST_HASHED_PASSWORD, SessionForTest
 
 
 def test_batch_bookmarks_preserve_order_and_tag_associations(db_session: SessionForTest):
-    """一括作成が入力順を保ち、タグの共有と紐付けを正しく行うことを確認する。"""
+    """
+    正常系:
+    一括作成が入力順を保ち、タグの共有と紐付けを正しく行うことを確認する
+    """
     existing = TagDao(name="existing")
     # 未flushのタグも重複作成せず再利用できる。
     db_session.add(existing)
@@ -49,7 +52,10 @@ def test_batch_bookmarks_preserve_order_and_tag_associations(db_session: Session
 
 
 def test_fixed_password_hash_uses_production_settings():
-    """固定のパスワードハッシュが現行のハッシュ設定で再計算を要しないことを確認する。"""
+    """
+    正常系:
+    固定のパスワードハッシュが現行のハッシュ設定で再計算を要しないことを確認する
+    """
     # パスワードの一致は既存のログインテストで検証し、ここではコスト等の設定差を検知する。
     assert not AuthorizeService.password_hasher.current_hasher.check_needs_rehash(
         TEST_HASHED_PASSWORD

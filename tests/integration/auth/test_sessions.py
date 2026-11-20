@@ -39,7 +39,10 @@ class TestSessions(BaseTest):
         db_session: SessionForTest,
         mock_get_current_active_user: None,
     ) -> None:
-        """一覧に端末情報が表示され、指定セッションだけが失効することを確認する。"""
+        """
+        正常系:
+        一覧に端末情報が表示され、指定セッションだけが失効することを確認する
+        """
         name = self._create_user(db_session)
         first_token = self._login(client, name, "first device")
         second_token = self._login(client, name, "second device")
@@ -76,7 +79,10 @@ class TestSessions(BaseTest):
         db_session: SessionForTest,
         mock_get_current_active_user: None,
     ) -> None:
-        """トークンを更新しても同じセッションが一覧に残ることを確認する。"""
+        """
+        正常系:
+        トークンを更新しても同じセッションが一覧に残ることを確認する
+        """
         name = self._create_user(db_session)
         token = self._login(client, name)
         family = self._family(db_session, token)
@@ -94,7 +100,10 @@ class TestSessions(BaseTest):
         db_session: SessionForTest,
         mock_get_current_active_user: None,
     ) -> None:
-        """旧トークンの再利用を拒否し、一覧にセッションの失効状態を反映する。"""
+        """
+        異常系:
+        旧トークンの再利用を拒否し、一覧にセッションの失効状態を反映する
+        """
         name = self._create_user(db_session)
         token = self._login(client, name)
         refresh_path = app.url_path_for("refresh_token")
@@ -110,7 +119,10 @@ class TestSessions(BaseTest):
         db_session: SessionForTest,
         mock_get_current_active_user: None,
     ) -> None:
-        """台帳登録前に発行されたトークンを更新すると、セッションが一覧に現れる。"""
+        """
+        正常系:
+        台帳登録前に発行されたトークンを更新すると、セッションが一覧に現れる
+        """
         name = self._create_user(db_session)
         service = AuthorizeService(db_session)
         token = service.create_refresh_token(
@@ -135,7 +147,10 @@ class TestSessions(BaseTest):
         db_session: SessionForTest,
         mock_get_current_active_user: None,
     ) -> None:
-        """存在しないセッションの失効と存在しないユーザーの一覧取得は 404 を返す。"""
+        """
+        異常系:
+        存在しないセッションの失効と存在しないユーザーの一覧取得は 404 を返す
+        """
         name = self._create_user(db_session)
         path = app.url_path_for("revoke_user_session", name=name, session_id="missing")
         assert client.delete(path).status_code == 404
@@ -148,7 +163,10 @@ class TestSessions(BaseTest):
         db_session: SessionForTest,
         mock_get_current_active_user: None,
     ) -> None:
-        """他のユーザー名での失効要求は 404 になり、元のセッションは更新できる。"""
+        """
+        異常系:
+        他のユーザー名での失効要求は 404 になり、元のセッションは更新できる
+        """
         owner = self._create_user(db_session)
         other = self._create_user(db_session)
         token = self._login(client, owner)
@@ -168,14 +186,20 @@ class TestSessions(BaseTest):
         db_session: SessionForTest,
         mock_get_current_active_not_admin_user: None,
     ) -> None:
-        """管理者権限がない場合、セッションの一覧取得と失効は 403 を返す。"""
+        """
+        異常系:
+        管理者権限がない場合、セッションの一覧取得と失効は 403 を返す
+        """
         name = self._create_user(db_session)
         assert client.get(app.url_path_for("get_user_sessions", name=name)).status_code == 403
         path = app.url_path_for("revoke_user_session", name=name, session_id="unknown")
         assert client.delete(path).status_code == 403
 
     def test_blacklist_routes_are_removed(self, client: TestClient) -> None:
-        """旧ブラックリスト API の各経路が 404 を返すことを確認する。"""
+        """
+        異常系:
+        旧ブラックリスト API の各経路が 404 を返すことを確認する
+        """
         assert client.post("/auth/blacklist/family", json={}).status_code == 404
         assert client.delete("/auth/blacklist/family/user/family").status_code == 404
         assert client.post("/auth/blacklist/jti", json={}).status_code == 404

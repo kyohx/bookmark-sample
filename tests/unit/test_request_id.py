@@ -75,7 +75,10 @@ def entries(output):
 
 
 def test_request_id_matches_header_state_and_sync_log(app_and_logs):
-    """サーバーが発行した ID がヘッダー、リクエスト状態、同期ログで一致する。"""
+    """
+    正常系:
+    サーバーが発行した ID がヘッダー、リクエスト状態、同期ログで一致する
+    """
     app, output, logger = app_and_logs
     with TestClient(app) as client:
         first = client.get("/inspect", headers={"X-Request-ID": "client-supplied"})
@@ -98,7 +101,10 @@ def test_request_id_matches_header_state_and_sync_log(app_and_logs):
     [("/missing", 404), ("/typed?number=bad", 422), ("/unauthorized", 401), ("/failure", 500)],
 )
 def test_error_responses_include_request_id(app_and_logs, path, status):
-    """各エラー応答にも個別の ID が付き、ログと対応することを確認する。"""
+    """
+    異常系:
+    各エラー応答にも個別の ID が付き、ログと対応することを確認する
+    """
     app, output, _ = app_and_logs
     with TestClient(app, raise_server_exceptions=False) as client:
         response = client.get(path)
@@ -114,7 +120,10 @@ def test_error_responses_include_request_id(app_and_logs, path, status):
 
 
 def test_stream_and_background_logs_keep_request_id(app_and_logs):
-    """ストリーミング本文とバックグラウンドログが同じリクエストIDを保持する。"""
+    """
+    正常系:
+    ストリーミング本文とバックグラウンドログが同じリクエストIDを保持する
+    """
     app, output, _ = app_and_logs
     with TestClient(app) as client:
         response = client.get("/stream")
@@ -201,7 +210,10 @@ def test_parallel_sync_workers_keep_ids_separate_and_reset_on_reuse(app_and_logs
 
 
 def test_concurrent_async_requests_do_not_share_ids(app_and_logs):
-    """並行する非同期リクエストのログとレスポンスが別々の ID を保持する。"""
+    """
+    正常系:
+    並行する非同期リクエストのログとレスポンスが別々の ID を保持する
+    """
     app, output, logger = app_and_logs
 
     async def exercise():
@@ -245,7 +257,10 @@ def test_concurrent_async_requests_do_not_share_ids(app_and_logs):
 
 @pytest.mark.parametrize("scope_type", ["lifespan", "websocket"])
 def test_non_http_scopes_pass_through_without_request_id(scope_type):
-    """lifespan と WebSocket のスコープを ID なしで内側に引き渡す。"""
+    """
+    正常系:
+    lifespan と WebSocket のスコープを ID なしで内側に引き渡す
+    """
     seen = []
 
     async def inner(scope, receive, send):
@@ -260,7 +275,10 @@ def test_non_http_scopes_pass_through_without_request_id(scope_type):
 
 @pytest.mark.parametrize("error", [None, RuntimeError, asyncio.CancelledError])
 def test_context_is_restored_after_response_exception_or_cancellation(error):
-    """正常終了・例外・キャンセルのいずれでも外側のコンテキストが復元される。"""
+    """
+    異常系:
+    正常終了・例外・キャンセルのいずれでも外側のコンテキストが復元される
+    """
 
     async def inner(scope, receive, send):
         """HTTP リクエスト内の ID を確認し、指定されていれば例外を送出する。"""
