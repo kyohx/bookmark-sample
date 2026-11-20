@@ -13,14 +13,17 @@ from src.services.token_blacklist import TokenBlacklistService
 
 @pytest.fixture
 def service() -> AuthorizeService:
+    """DB セッションをモックに差し替えた認証サービスを作成する。"""
     return AuthorizeService(session=Mock())
 
 
 def encode(service: AuthorizeService, payload: dict) -> str:
+    """認証サービスの鍵とアルゴリズムでテスト用 JWT を署名する。"""
     return jwt.encode(payload, service.jwt_secret_key, algorithm=service.ALGORITHM)
 
 
 def claims(kind: str) -> dict:
+    """指定種別に必要なクレームを含むテスト用ペイロードを生成する。"""
     payload = {
         "sub": "test_user",
         "exp": int(datetime.now(UTC).timestamp()) + 3600,
@@ -141,6 +144,7 @@ def test_refresh_redis_failure_follows_fail_open(
 
 
 def test_refresh_rejected_rotation_does_not_return_tokens(service: AuthorizeService) -> None:
+    """トークン更新が拒否された場合に認証エラーになることを確認する。"""
     service.get_user = Mock(
         return_value=UserEntity(
             name="test_user",
@@ -157,6 +161,7 @@ def test_refresh_rejected_rotation_does_not_return_tokens(service: AuthorizeServ
 
 
 def test_refresh_disabled_user_does_not_rotate(service: AuthorizeService) -> None:
+    """無効化されたユーザーはトークンのローテーションに進めない。"""
     service.get_user = Mock(
         return_value=UserEntity(
             name="test_user",

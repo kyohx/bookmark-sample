@@ -26,11 +26,13 @@ class Widget(Base):
 
 @pytest.fixture
 def session(sqlite_session_factory) -> Iterator[Session]:
+    """Widget テーブルを持つテスト用 SQLite セッションを提供する。"""
     with sqlite_session_factory(Base.metadata) as db_session:
         yield db_session
 
 
 def _create_widget(session: Session, name: str = "cached") -> int:
+    """テスト用の Widget を1件保存し、その ID を返す。"""
     # テスト用の Widget を 1 件作成する
     widget = Widget(name=name)
     session.add(widget)
@@ -40,6 +42,7 @@ def _create_widget(session: Session, name: str = "cached") -> int:
 
 
 def _require_widget(widget: Widget | None) -> Widget:
+    """取得した Widget が存在することを確認して返す。"""
     # 取得結果が None でないことを型付きで保証する
     assert widget is not None
     return widget
@@ -53,6 +56,7 @@ def test_default_key_skips_session_argument(session: Session) -> None:
 
     # テスト対象関数の定義
     def load_widget(db: Session, widget_id: int, include_deleted: bool = False) -> None:
+        """Session を除外するキー生成テストで、対象のシグネチャを提供する。"""
         del db, widget_id, include_deleted
 
     # キャッシュキーの生成
@@ -72,9 +76,11 @@ def test_default_key_skips_self_with_session_attr(session: Session) -> None:
 
     class Repository:
         def __init__(self, db: Session) -> None:
+            """キャッシュキー生成で参照するカスタムの DB 属性を設定する。"""
             self.db: Session = db
 
         def load(self, widget_id: int) -> None:
+            """自動生成キーから self を除外するテストの対象メソッド。"""
             del widget_id
 
     # テストデータの準備
@@ -95,6 +101,7 @@ def test_template_key_generator_binds_argument_names(session: Session) -> None:
 
     # テスト対象関数の定義
     def load_widget(db: Session, widget_id: int, include_deleted: bool = False) -> None:
+        """テンプレート展開テスト用に、名前付き引数と既定値を用意する。"""
         del db, widget_id, include_deleted
 
     # テンプレートキー生成関数の作成
@@ -114,6 +121,7 @@ def test_default_key_sorts_keyword_arguments(session: Session) -> None:
     def load_widget(
         db: Session, widget_id: int, include_deleted: bool = False, limit: int = 10
     ) -> None:
+        """キーワード引数順の正規化を検証するため、複数の既定引数を用意する。"""
         del db, widget_id, include_deleted, limit
 
     # kwargs の投入順が違っても、同じキーに正規化されることを確認する。
@@ -143,12 +151,14 @@ def test_query_cache_caches_detached_model(session: Session, memory_region: Cach
 
     class Repository:
         def __init__(self, db: Session) -> None:
+            """テスト用セッションとリージョンを保持し、DB 参照回数を初期化する。"""
             self.session: Session = db
             self.region = region
             self.calls: int = 0
 
         @query_cache(key_func="widget:{widget_id}")
         def get_by_id(self, widget_id: int) -> Widget | None:
+            """DB 参照を数え、指定 ID の Widget を読み込む。"""
             self.calls += 1
             return self.session.get(Widget, widget_id)
 
@@ -182,6 +192,7 @@ def test_query_cache_caches_none_result(memory_region: CacheRegion) -> None:
     # テスト対象関数の定義
     @query_cache(region=region, key_func="widget:{widget_id}")
     def load_widget(widget_id: int) -> Widget | None:
+        """キャッシュミス時の実行を数え、取得結果として None を返す。"""
         nonlocal calls
         calls += 1
         return None
@@ -208,6 +219,7 @@ def test_query_cache_caches_empty_list(memory_region: CacheRegion) -> None:
     # テスト対象関数の定義
     @query_cache(region=region, key_func="widgets:{prefix}")
     def load_widgets(prefix: str) -> list[Widget]:
+        """キャッシュミス時の実行を数え、取得結果として空リストを返す。"""
         nonlocal calls
         calls += 1
         return []
@@ -233,12 +245,14 @@ def test_query_cache_supports_custom_session_and_region_attributes(session: Sess
 
     class Repository:
         def __init__(self, db: Session) -> None:
+            """セッションとリージョンをテスト対象のカスタム属性名に設定する。"""
             self.db: Session = db
             self.cache = region
             self.calls: int = 0
 
         @query_cache(key_func="widget:{widget_id}", session_attr="db", region_attr="cache")
         def get_by_id(self, widget_id: int) -> Widget | None:
+            """カスタムの DB 属性を通じて Widget を読み込み、参照回数を数える。"""
             self.calls += 1
             return self.db.get(Widget, widget_id)
 
@@ -272,6 +286,7 @@ def test_query_cache_supports_function_style_with_session_argument(
     # テスト対象関数の定義
     @query_cache(region=region, key_func=lambda db, widget_id: f"widget:{widget_id}")
     def load_widget(db: Session, widget_id: int) -> Widget | None:
+        """明示的に渡されたセッションで Widget を読み込み、参照回数を数える。"""
         nonlocal calls
         calls += 1
         return db.get(Widget, widget_id)
@@ -302,6 +317,7 @@ def test_unless_skips_cache(memory_region: CacheRegion) -> None:
     # テスト対象関数の定義
     @query_cache(region=region, key_func="value:{value}", unless=lambda value: value > 0)
     def double(value: int) -> int:
+        """キャッシュをスキップしたときの実行を数え、入力値を2倍にする。"""
         nonlocal calls
         calls += 1
         return value * 2
@@ -327,6 +343,7 @@ def test_null_cache_region_never_caches() -> None:
     # テスト対象関数の定義
     @query_cache(region=region, key_func="value:{value}")
     def double(value: int) -> int:
+        """NullCacheRegion 使用時の実行を数え、入力値を2倍にする。"""
         nonlocal calls
         calls += 1
         return value * 2
@@ -350,6 +367,7 @@ def test_missing_region_attribute_raises_attribute_error() -> None:
     class Repository:
         @query_cache()
         def load(self, value: int) -> int:
+            """リージョン属性を持たないリポジトリで呼び出すキャッシュ対象メソッド。"""
             return value
 
     # テスト対象の準備
@@ -421,6 +439,7 @@ def test_redis_backend_fails_open_when_redis_is_unavailable() -> None:
     # テスト対象関数の定義
     @query_cache(region=region, key_func="value:{value}")
     def double(value: int) -> int:
+        """Redis 障害時の実行を数え、入力値を2倍にする。"""
         nonlocal calls
         calls += 1
         return value * 2

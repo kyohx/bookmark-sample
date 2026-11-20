@@ -20,6 +20,7 @@ class TestUpdateBookmark(BaseTest):
     """
 
     def api_path(self, hashed_id: str) -> str:
+        """指定したハッシュIDのブックマークを更新する API のパスを返す。"""
         return app.url_path_for("update_bookmark", hashed_id=hashed_id)
 
     def test_update_normal(

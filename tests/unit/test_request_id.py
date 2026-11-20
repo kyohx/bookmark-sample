@@ -21,6 +21,7 @@ from src.main import create_app
 
 @pytest.fixture
 def app_and_logs():
+    """リクエストIDの検証用ルートと JSON ログの出力先を備えたアプリを用意する。"""
     output = io.StringIO()
     logger = logging.Logger("test.request_id", logging.INFO)
     handler = logging.StreamHandler(output)
@@ -30,26 +31,33 @@ def app_and_logs():
 
     @app.get("/inspect")
     def inspect_request(request: Request):
+        """同期ルートでログを出し、コンテキストとリクエスト状態の ID を返す。"""
         logger.info("sync endpoint")
         return {"request_id": get_request_id(), "state_id": request.state.request_id}
 
     @app.get("/typed")
     def typed(number: int):
+        """整数クエリの入力検証に使うルート。"""
         return number
 
     @app.get("/unauthorized")
     def unauthorized():
+        """警告ログを残して HTTP 401 を発生させる。"""
         logger.warning("unauthorized")
         raise HTTPException(status_code=401)
 
     @app.get("/failure")
     def failure():
+        """エラーログの直後に未処理例外を発生させる。"""
         logger.error("before failure")
         raise RuntimeError("test failure")
 
     @app.get("/stream")
     async def stream():
+        """ストリーミング本文とバックグラウンドログを送るレスポンスを返す。"""
+
         async def body():
+            """待機を挟んで2つのチャンクを出力し、それぞれでリクエストIDを参照する。"""
             logger.info("stream start")
             yield f"{get_request_id()}:first\n"
             await asyncio.sleep(0)
@@ -62,10 +70,12 @@ def app_and_logs():
 
 
 def entries(output):
+    """出力バッファの JSON ログを行ごとに読み取る。"""
     return [json.loads(line) for line in output.getvalue().splitlines()]
 
 
 def test_request_id_matches_header_state_and_sync_log(app_and_logs):
+    """サーバーが発行した ID がヘッダー、リクエスト状態、同期ログで一致する。"""
     app, output, logger = app_and_logs
     with TestClient(app) as client:
         first = client.get("/inspect", headers={"X-Request-ID": "client-supplied"})
@@ -88,6 +98,7 @@ def test_request_id_matches_header_state_and_sync_log(app_and_logs):
     [("/missing", 404), ("/typed?number=bad", 422), ("/unauthorized", 401), ("/failure", 500)],
 )
 def test_error_responses_include_request_id(app_and_logs, path, status):
+    """各エラー応答にも個別の ID が付き、ログと対応することを確認する。"""
     app, output, _ = app_and_logs
     with TestClient(app, raise_server_exceptions=False) as client:
         response = client.get(path)
@@ -103,6 +114,7 @@ def test_error_responses_include_request_id(app_and_logs, path, status):
 
 
 def test_stream_and_background_logs_keep_request_id(app_and_logs):
+    """ストリーミング本文とバックグラウンドログが同じリクエストIDを保持する。"""
     app, output, _ = app_and_logs
     with TestClient(app) as client:
         response = client.get("/stream")
@@ -124,6 +136,7 @@ def test_parallel_sync_workers_keep_ids_separate_and_reset_on_reuse(app_and_logs
 
     @app.get("/parallel/{index}")
     def parallel(index: int, request: Request):
+        """同期ワーカーを待機点で同期させ、前後で同じ ID を参照できることを確認する。"""
         request_id = get_request_id()
         assert request_id is not None
         assert request_id == request.state.request_id
@@ -139,10 +152,12 @@ def test_parallel_sync_workers_keep_ids_separate_and_reset_on_reuse(app_and_logs
 
     @app.get("/reuse")
     def reuse():
+        """再利用された同期ワーカーで現在のリクエストIDとスレッドIDを返す。"""
         logger.info("reused worker")
         return {"request_id": get_request_id(), "thread_id": get_ident()}
 
     async def exercise():
+        """同期ルートを並行実行した後、同じワーカープールで追加リクエストを送る。"""
         async with httpx2.AsyncClient(
             transport=httpx2.ASGITransport(app=app, raise_app_exceptions=False),
             base_url="http://test",
@@ -186,14 +201,17 @@ def test_parallel_sync_workers_keep_ids_separate_and_reset_on_reuse(app_and_logs
 
 
 def test_concurrent_async_requests_do_not_share_ids(app_and_logs):
+    """並行する非同期リクエストのログとレスポンスが別々の ID を保持する。"""
     app, output, logger = app_and_logs
 
     async def exercise():
+        """待機点を共有する非同期ルートを登録し、リクエストを2件並行して送る。"""
         both_started = asyncio.Event()
         started = 0
 
         @app.get("/concurrent")
         async def concurrent():
+            """両方のリクエストが到達するまで待機し、前後で ID が変わらないことを確認する。"""
             nonlocal started
             request_id = get_request_id()
             logger.info("before await")
@@ -227,9 +245,11 @@ def test_concurrent_async_requests_do_not_share_ids(app_and_logs):
 
 @pytest.mark.parametrize("scope_type", ["lifespan", "websocket"])
 def test_non_http_scopes_pass_through_without_request_id(scope_type):
+    """lifespan と WebSocket のスコープを ID なしで内側に引き渡す。"""
     seen = []
 
     async def inner(scope, receive, send):
+        """内側の ASGI アプリに渡されたスコープとリクエストIDを記録する。"""
         seen.append((scope, get_request_id()))
 
     scope = {"type": scope_type}
@@ -240,12 +260,16 @@ def test_non_http_scopes_pass_through_without_request_id(scope_type):
 
 @pytest.mark.parametrize("error", [None, RuntimeError, asyncio.CancelledError])
 def test_context_is_restored_after_response_exception_or_cancellation(error):
+    """正常終了・例外・キャンセルのいずれでも外側のコンテキストが復元される。"""
+
     async def inner(scope, receive, send):
+        """HTTP リクエスト内の ID を確認し、指定されていれば例外を送出する。"""
         assert get_request_id() != "parent-context"
         if error:
             raise error("test")
 
     async def exercise():
+        """親コンテキストをセットし、ミドルウェア終了後に復元されることを確認する。"""
         token = request_id_context.set("parent-context")
         try:
             middleware = RequestIdMiddleware(inner)

@@ -27,6 +27,7 @@ from tests.unit.factory import UnitDataFactory
 
 @pytest.fixture
 def session(sqlite_session_factory) -> Iterator[Session]:
+    """本体の DAO テーブルを持つテスト用 SQLite セッションを提供する。"""
     with sqlite_session_factory(BaseDao.metadata) as db_session:
         yield db_session
 
@@ -37,6 +38,7 @@ class ConcurrentVersionRegion:
     """
 
     def __init__(self, parties: int) -> None:
+        """単一のキャッシュ値と、並行アクセスを再現する同期機構を初期化する。"""
         self._value: object = NO_VALUE
         self._barrier = Barrier(parties)
         self._lock = Lock()
@@ -44,11 +46,13 @@ class ConcurrentVersionRegion:
     def get(
         self, key: str, expiration_time: float | None = None, ignore_expiration: bool = False
     ) -> object:
+        """参加スレッドがそろってから、テスト用リージョンの値を返す。"""
         del key, expiration_time, ignore_expiration
         self._barrier.wait()
         return self._value
 
     def get_or_create(self, key: str, creator, expiration_time: float | None = None) -> object:
+        """ロック内で未初期化の値を生成し、全スレッドに同じ値を返す。"""
         del key, expiration_time
         with self._lock:
             if self._value is NO_VALUE:
@@ -56,10 +60,12 @@ class ConcurrentVersionRegion:
             return self._value
 
     def set(self, key: str, value: object, expiration_time: int | None = None) -> None:
+        """テスト用リージョンが保持する単一の値を上書きする。"""
         del key, expiration_time
         self._value = value
 
     def delete(self, key: str) -> None:
+        """テスト用リージョンをキャッシュミスの状態に戻す。"""
         del key
         self._value = NO_VALUE
 
@@ -134,6 +140,7 @@ def test_user_repository_find_one_cache_and_invalidation(
     original = repository.user_operator.find_one_by_name
 
     def wrapped(name: str) -> UserDao | None:
+        """ユーザー詳細を問い合わせ、DB 参照回数を数える。"""
         # 実 DB 参照回数を数え、2 回目以降が cache hit かを判定する。
         nonlocal calls
         calls += 1
@@ -174,6 +181,7 @@ def test_user_repository_find_one_not_found_is_not_cached(
     original = repository.user_operator.find_one_by_name
 
     def wrapped(name: str) -> UserDao | None:
+        """存在しないユーザーの問い合わせが DB に到達するたびに数える。"""
         # NotFoundError で終わるケースでも、都度 DB 参照が走ることを確認する。
         nonlocal calls
         calls += 1
@@ -211,6 +219,7 @@ def test_user_repository_find_all_cache_is_invalidated_on_add(
     original = repository.user_operator.find_all
 
     def wrapped() -> list[UserDao]:
+        """ユーザー一覧の実クエリを呼び出して回数を数える。"""
         # 一覧キャッシュの有無を DB 呼び出し回数で見る。
         nonlocal calls
         calls += 1
@@ -269,12 +278,14 @@ def test_user_repository_find_all_cache_separates_page_number(
     original_second_page = second_page_repository.user_operator.find_all
 
     def wrapped_first_page() -> list[UserDao]:
+        """キャッシュキーの分離を検証するため、1ページ目の実クエリを数える。"""
         # 同じ region を共有しても、ページ番号が違えば別クエリとして評価されることを見る。
         nonlocal first_page_calls
         first_page_calls += 1
         return original_first_page()
 
     def wrapped_second_page() -> list[UserDao]:
+        """キャッシュキーの分離を検証するため、2ページ目の実クエリを数える。"""
         # page=2 の取得が page=1 のキャッシュを誤 reuse しないことを見る。
         nonlocal second_page_calls
         second_page_calls += 1
@@ -323,12 +334,14 @@ def test_user_repository_find_all_cache_invalidation_reaches_all_pages(
     original_second_page = second_page_repository.user_operator.find_all
 
     def wrapped_first_page() -> list[UserDao]:
+        """ユーザー追加前後の1ページ目の実クエリを数える。"""
         # 追加前後で page=1 の一覧が再評価されるかを追跡する。
         nonlocal first_page_calls
         first_page_calls += 1
         return original_first_page()
 
     def wrapped_second_page() -> list[UserDao]:
+        """ユーザー追加前後の2ページ目の実クエリを数える。"""
         # version bump により page=2 の一覧も巻き込んで無効化されることを見る。
         nonlocal second_page_calls
         second_page_calls += 1
@@ -388,12 +401,14 @@ def test_bookmark_repository_find_one_cache_and_invalidation(
     original_find_tags = repository.tag_operator.find_by_bookmark_id
 
     def wrapped_find_one(hashed_id: str) -> BookmarkDao | None:
+        """ブックマーク本体の取得クエリを数える。"""
         # 本体 bookmark 取得クエリの呼び出し回数を追跡する。
         nonlocal bookmark_calls
         bookmark_calls += 1
         return original_find_one(hashed_id)
 
     def wrapped_find_tags(bookmark_id: int) -> list[TagDao]:
+        """ブックマーク詳細に付けるタグの取得クエリを数える。"""
         # タグ解決クエリも別に数え、詳細全体が cache hit していることを確認する。
         nonlocal tag_calls
         tag_calls += 1
@@ -438,6 +453,7 @@ def test_bookmark_repository_find_one_not_found_is_not_cached(
     original = repository.bookmark_operator.find_one_by_hashed_id
 
     def wrapped(hashed_id: str) -> BookmarkDao | None:
+        """存在しないブックマークの取得クエリを数える。"""
         # 未ヒット時もキャッシュせず、毎回 bookmark 本体を問い合わせることを見る。
         nonlocal bookmark_calls
         bookmark_calls += 1
@@ -481,18 +497,21 @@ def test_bookmark_repository_delete_one_invalidates_detail_and_lists(
     original_find_by_tags = repository.bookmark_operator.find_by_tags
 
     def wrapped_find_one(hashed_id: str) -> BookmarkDao | None:
+        """詳細取得と削除時のブックマーク参照を共通のカウンタで数える。"""
         # 詳細キャッシュの有無と、delete 時の再参照を同じカウンタで追跡する。
         nonlocal detail_calls
         detail_calls += 1
         return original_find_one(hashed_id)
 
     def wrapped_find_all() -> list[BookmarkDao]:
+        """ブックマーク削除前後の全件一覧クエリを数える。"""
         # 全件一覧が delete 後に再評価されるかを確認する。
         nonlocal list_calls
         list_calls += 1
         return original_find_all()
 
     def wrapped_find_by_tags(tag_names: list[str]) -> list[BookmarkDao]:
+        """ブックマーク削除前後のタグ絞り込みクエリを数える。"""
         # タグ検索一覧も version bump で巻き込んで無効化されることを見る。
         nonlocal tag_list_calls
         tag_list_calls += 1
@@ -555,6 +574,7 @@ def test_bookmark_repository_tag_list_cache_normalizes_key_and_invalidates_on_ad
     original = repository.bookmark_operator.find_by_tags
 
     def wrapped(tag_names: list[str]) -> list[BookmarkDao]:
+        """キー正規化と無効化を検証するため、タグ絞り込みクエリを数える。"""
         # タグ一覧クエリの実行回数で、キー正規化と無効化の両方を確認する。
         nonlocal calls
         calls += 1
@@ -609,6 +629,7 @@ def test_bookmark_repository_tag_list_cache_escapes_delimiters(
     original = repository.bookmark_operator.find_by_tags
 
     def wrapped(tag_names: list[str]) -> list[BookmarkDao]:
+        """異なるタグ条件ごとに実行される絞り込みクエリを数える。"""
         # 条件が異なる 2 回の検索で、それぞれ別キーが使われることを確認する。
         nonlocal calls
         calls += 1
@@ -648,6 +669,7 @@ def test_bookmark_repository_tag_list_cache_normalizes_duplicate_tags(
     original = repository.bookmark_operator.find_by_tags
 
     def wrapped(tag_names: list[str]) -> list[BookmarkDao]:
+        """重複を含むタグ条件のキー共有を確認するため、絞り込みクエリを数える。"""
         # SQL 上は同義な ["tag1"] と ["tag1", "tag1"] が同じキーを使うことを見る。
         nonlocal calls
         calls += 1
@@ -693,12 +715,14 @@ def test_bookmark_repository_tag_list_cache_separates_page_size(
     original_large_page = large_page_repository.bookmark_operator.find_by_tags
 
     def wrapped_small_page(tag_names: list[str]) -> list[BookmarkDao]:
+        """ページサイズ1のタグ絞り込みクエリを数える。"""
         # size=1 の取得が size=2 のキャッシュと混ざらないことを確認する。
         nonlocal small_page_calls
         small_page_calls += 1
         return original_small_page(tag_names)
 
     def wrapped_large_page(tag_names: list[str]) -> list[BookmarkDao]:
+        """ページサイズ2のタグ絞り込みクエリを数える。"""
         # 同じタグ条件でもページサイズが違えば別キーで評価されることを見る。
         nonlocal large_page_calls
         large_page_calls += 1
@@ -748,12 +772,14 @@ def test_bookmark_repository_tag_list_cache_invalidation_reaches_all_pages(
     original_large_page = large_page_repository.bookmark_operator.find_by_tags
 
     def wrapped_small_page(tag_names: list[str]) -> list[BookmarkDao]:
+        """ブックマーク追加前後のページサイズ1の絞り込みクエリを数える。"""
         # 追加前後で size=1 のタグ検索一覧が再評価されるかを追跡する。
         nonlocal small_page_calls
         small_page_calls += 1
         return original_small_page(tag_names)
 
     def wrapped_large_page(tag_names: list[str]) -> list[BookmarkDao]:
+        """ブックマーク追加前後のページサイズ2の絞り込みクエリを数える。"""
         # tag-list version の更新が size=2 の一覧にも波及することを見る。
         nonlocal large_page_calls
         large_page_calls += 1
@@ -803,6 +829,7 @@ def test_bump_cache_versions_does_not_depend_on_current_version(
     repository = UserRepository(session, region=memory_region)
 
     def fail_get_version(namespace: str) -> str:
+        """バージョン更新時に旧バージョンが参照されたらテストを失敗させる。"""
         raise AssertionError(f"_get_cache_version should not be called during bump: {namespace}")
 
     monkeypatch.setattr(repository, "_get_cache_version", fail_get_version)
@@ -835,6 +862,7 @@ def test_detail_cache_is_deleted_after_commit_but_same_transaction_reads_bypass_
     original = repository.user_operator.find_one_by_name
 
     def wrapped(name: str) -> UserDao | None:
+        """コミット前後にユーザー詳細を DB から読み込んだ回数を数える。"""
         # commit 前後の再読込が DB を見に行く回数を追跡する。
         nonlocal calls
         calls += 1
@@ -888,6 +916,7 @@ def test_list_cache_invalidation_is_discarded_on_rollback(
     original = repository.user_operator.find_all
 
     def wrapped() -> list[UserDao]:
+        """ロールバック前後にユーザー一覧を DB から読み込んだ回数を数える。"""
         # rollback 後に既存一覧キャッシュへ戻れるかを DB 呼び出し回数で確認する。
         nonlocal calls
         calls += 1
@@ -950,6 +979,7 @@ def test_install_session_cache_invalidation_listeners_is_thread_safe(
     barrier = Barrier(5)
 
     def fake_listen(target: object, identifier: str, fn: object) -> None:
+        """登録時に待ち時間を入れ、イベントリスナーの登録回数を数える。"""
         del target, identifier, fn
         sleep(0.01)
 
@@ -961,6 +991,7 @@ def test_install_session_cache_invalidation_listeners_is_thread_safe(
     monkeypatch.setattr(cache_invalidation, "_LISTENERS_INSTALLED", False)
 
     def worker() -> None:
+        """全ワーカーが待機点に到達してからリスナー登録を試みる。"""
         barrier.wait()
         cache_invalidation.install_session_cache_invalidation_listeners()
 
@@ -984,6 +1015,7 @@ def test_get_cache_version_initialization_is_atomic(session: Session) -> None:
     versions: list[str] = []
 
     def worker() -> None:
+        """一覧の初回キャッシュバージョンを取得し、スレッド間で比較できるよう記録する。"""
         # 初期 version 生成は region.get_or_create() に集約され、並行時も 1 値だけ返る。
         versions.append(repository._get_cache_version("list"))
 

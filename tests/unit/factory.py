@@ -17,6 +17,7 @@ class UnitDataFactory:
     """
 
     def __init__(self, session: Session):
+        """単体テストのデータ作成に使う DB セッションを保持する。"""
         self.session = session
 
     def create_user(
@@ -25,6 +26,7 @@ class UnitDataFactory:
         disabled: bool = False,
         authority: AuthorityEnum = AuthorityEnum.READWRITE,
     ) -> UserDao:
+        """単体テスト用の固定ハッシュと指定された権限でユーザーを作成する。"""
         user = UserDao(
             name=name,
             hashed_password=_UNIT_TEST_HASHED_PASSWORD,
@@ -36,6 +38,7 @@ class UnitDataFactory:
         return user
 
     def create_bookmark(self, url: str, memo: str, tag_names: list[str]) -> BookmarkDao:
+        """ブックマークを作成し、指定されたタグを紐付ける。"""
         bookmark = BookmarkDao(url=url, memo=memo, hashed_id=get_hashed_id(url))
         self.session.add(bookmark)
         self.session.flush()
@@ -47,6 +50,7 @@ class UnitDataFactory:
         return bookmark
 
     def _get_or_create_tag(self, name: str) -> TagDao:
+        """同名のタグを取得し、存在しなければ作成する。"""
         # タグは bookmark 間で共有されるので、同名タグは再利用する。
         tag = self.session.execute(select(TagDao).where(TagDao.name == name)).scalar_one_or_none()
         if tag is not None:

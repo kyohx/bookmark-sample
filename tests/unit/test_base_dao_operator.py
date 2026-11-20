@@ -30,6 +30,7 @@ class _OpWithoutTimestamp(BaseDaoOperator[_DaoWithoutCreatedAt]):
 
 @pytest.fixture
 def session(sqlite_session_factory) -> Iterator[Session]:
+    """DAO のテーブルを持つテスト用 SQLite セッションを提供する。"""
     # テスト用の in-memory SQLite セッションを用意
     with sqlite_session_factory(BaseDao.metadata) as db_session:
         yield db_session

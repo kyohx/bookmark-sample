@@ -43,6 +43,7 @@ def db_engine() -> Engine:
 
 @lru_cache
 def get_test_session_factory() -> scoped_session[SessionForTest]:
+    """テスト用 MySQL に接続するスコープ付きセッションファクトリを返す。"""
     return scoped_session(
         sessionmaker(
             autocommit=False,
@@ -85,6 +86,7 @@ def mock_get_current_active_user() -> None:
     """
 
     def get_current_active_user_for_testing() -> UserEntity:
+        """ログイン済みの管理者ユーザーを返す。"""
         return UserEntity(
             name="test_user",
             hashed_password="****",
@@ -103,6 +105,7 @@ def mock_get_current_active_not_admin_user() -> None:
     """
 
     def get_current_active_user_for_testing() -> UserEntity:
+        """ログイン済みの読み書き可能な一般ユーザーを返す。"""
         return UserEntity(
             name="test_user",
             hashed_password="****",
@@ -121,6 +124,7 @@ def mock_get_current_active_read_user() -> None:
     """
 
     def get_current_active_user_for_testing() -> UserEntity:
+        """ログイン済みの読み取り専用ユーザーを返す。"""
         return UserEntity(
             name="test_user",
             hashed_password="****",
@@ -139,6 +143,7 @@ def mock_get_disabled_user_from_token() -> None:
     """
 
     def get_user_from_token_for_testing() -> UserEntity:
+        """トークンに対応する無効化済みユーザーを返す。"""
         return UserEntity(
             name="test_user",
             hashed_password="****",
@@ -157,6 +162,7 @@ def scope_function_test() -> Iterator[None]:
     session = get_test_session_factory()()
 
     def get_session_for_testing() -> Iterator[SessionForTest]:
+        """テストと API が同じ DB セッションを使えるようにする。"""
         yield session
 
     # テスト用依存処理をリセット

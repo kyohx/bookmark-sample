@@ -16,6 +16,7 @@ class TestAddUser(BaseTest):
     """
 
     def api_path(self) -> str:
+        """ユーザー追加 API のパスを返す。"""
         return app.url_path_for("add_user")
 
     def test_add_normal(

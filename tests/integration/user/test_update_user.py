@@ -16,6 +16,7 @@ class TestUpdateUser(BaseTest):
     """
 
     def api_path(self, name: str) -> str:
+        """指定したユーザー名の情報を更新する API のパスを返す。"""
         return app.url_path_for("update_user", name=name)
 
     def test_update_normal(

@@ -16,6 +16,7 @@ class TestGetUserList(BaseTest):
     """
 
     def api_path(self) -> str:
+        """ユーザー一覧取得 API のパスを返す。"""
         return app.url_path_for("get_users")
 
     def test_get_list_normal(

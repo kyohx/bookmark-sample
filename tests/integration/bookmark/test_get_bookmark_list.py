@@ -17,6 +17,7 @@ class TestGetBookmarkList(BaseTest):
     """
 
     def api_path(self) -> str:
+        """ブックマーク一覧取得 API のパスを返す。"""
         return app.url_path_for("get_bookmarks")
 
     def test_get_list_normal(

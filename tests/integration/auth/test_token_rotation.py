@@ -30,10 +30,12 @@ def blacklist(monkeypatch: pytest.MonkeyPatch) -> Iterator[TokenBlacklistService
 
 
 def now() -> int:
+    """現在の UTC 時刻を秒単位の Unix タイムスタンプで返す。"""
     return int(datetime.now(UTC).timestamp())
 
 
 def rotate(blacklist: TokenBlacklistService, **overrides) -> bool:
+    """テスト用の既定値に上書き指定を反映してトークンを更新する。"""
     params = {
         "user": "user",
         "family": "family",
@@ -46,6 +48,7 @@ def rotate(blacklist: TokenBlacklistService, **overrides) -> bool:
 
 
 def test_rotation_updates_tokens_and_session(blacklist: TokenBlacklistService) -> None:
+    """更新後のトークン状態、セッション情報、各キーの有効期限を確認する。"""
     timestamp = now()
     blacklist.record_session("user", "family", timestamp + 60, "device")
     blacklist.set_current_jti("user", "family", "old", 60)
@@ -91,12 +94,14 @@ def test_concurrent_refresh_has_only_one_success(
     original_rotate = TokenBlacklistService.rotate_refresh_token
 
     def simultaneous_rotate(self, **kwargs):
+        """両リクエストがそろってから実際のトークン更新を呼び出す。"""
         barrier.wait(timeout=10)
         return original_rotate(self, **kwargs)
 
     monkeypatch.setattr(TokenBlacklistService, "rotate_refresh_token", simultaneous_rotate)
 
     def refresh():
+        """共有トークンで更新 API を1回呼び出す。"""
         with TestClient(app) as client:
             return client.post(app.url_path_for("refresh_token"), json={"refresh_token": token})
 
@@ -126,6 +131,7 @@ def test_concurrent_refresh_has_only_one_success(
 def test_denied_rotation_does_not_change_current_token(
     blacklist: TokenBlacklistService, denied: str
 ) -> None:
+    """拒否された更新が現在のトークンとセッションを変更しないことを確認する。"""
     blacklist.record_session("user", "family", now() + 60)
     blacklist.set_current_jti("user", "family", "old", 60)
     if denied == "family":
@@ -145,6 +151,7 @@ def test_denied_rotation_does_not_change_current_token(
 def test_expired_rotation_does_not_create_state(
     blacklist: TokenBlacklistService, expired: str
 ) -> None:
+    """旧トークンまたは新トークンが期限切れなら、Redis に更新状態を作らない。"""
     assert not rotate(blacklist, **{expired: now() - 1})
     assert blacklist.get_current_jti("user", "family") is None
     assert not blacklist.is_jti_denied("old")
@@ -152,6 +159,7 @@ def test_expired_rotation_does_not_create_state(
 
 
 def test_rotation_then_revocation_rejects_new_token(blacklist: TokenBlacklistService) -> None:
+    """セッション失効後は直前に更新したトークンも更新できないことを確認する。"""
     assert rotate(blacklist)
     assert blacklist.revoke_session("user", "family")
     assert not rotate(blacklist, old_jti="new", new_jti="next")
@@ -162,6 +170,7 @@ def test_rotation_then_revocation_rejects_new_token(blacklist: TokenBlacklistSer
 def test_list_sessions_cleans_index_without_removing_concurrent_refresh(
     blacklist: TokenBlacklistService, monkeypatch: pytest.MonkeyPatch
 ) -> None:
+    """欠損や期限切れを整理し、並行する更新で再登録されたセッションを保持する。"""
     redis = blacklist.redis
     assert redis is not None
     timestamp = now()
@@ -176,6 +185,7 @@ def test_list_sessions_cleans_index_without_removing_concurrent_refresh(
     original_eval = redis.eval
 
     def refresh_before_cleanup(*args):
+        """欠損インデックスを整理する直前にトークンを更新する。"""
         # ハッシュ取得後、欠損インデックスの削除直前に同じfamilyが再登録される。
         with monkeypatch.context() as refresh_patch:
             refresh_patch.setattr(redis, "eval", original_eval)

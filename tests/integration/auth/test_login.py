@@ -13,6 +13,7 @@ class TestLogin(BaseTest):
     """
 
     def api_path(self) -> str:
+        """ログイン API のパスを返す。"""
         return app.url_path_for("login")
 
     def test_login_normal(

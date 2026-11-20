@@ -13,6 +13,7 @@ class TestGetBookmark(BaseTest):
     """
 
     def api_path(self, hashed_id: str) -> str:
+        """指定したハッシュIDのブックマークを取得する API のパスを返す。"""
         return app.url_path_for("get_bookmark", hashed_id=hashed_id)
 
     def test_get_one_normal(

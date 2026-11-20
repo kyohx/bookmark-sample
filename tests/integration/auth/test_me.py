@@ -13,6 +13,7 @@ class TestMe(BaseTest):
     """
 
     def api_path(self) -> str:
+        """現在のユーザー情報を取得する API のパスを返す。"""
         return app.url_path_for("me")
 
     def test_get_login_user_normal(
