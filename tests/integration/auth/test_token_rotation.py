@@ -157,3 +157,43 @@ def test_rotation_then_revocation_rejects_new_token(blacklist: TokenBlacklistSer
     assert not rotate(blacklist, old_jti="new", new_jti="next")
     assert blacklist.get_current_jti("user", "family") == "new"
     assert blacklist.list_sessions("user")[0].revoked
+
+
+def test_list_sessions_cleans_index_without_removing_concurrent_refresh(
+    blacklist: TokenBlacklistService, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    redis = blacklist.redis
+    assert redis is not None
+    timestamp = now()
+    blacklist.record_session("user", "older", timestamp + 3600, "older device")
+    blacklist.record_session("user", "newer", timestamp + 60, "newer device")
+    redis.hset(blacklist._session_key("user", "older"), "created_at", timestamp - 1)
+    index_key = blacklist._sessions_key("user")
+    redis.zadd(
+        index_key, {"expired": timestamp, "missing": timestamp + 60, "family": timestamp + 60}
+    )
+
+    original_eval = redis.eval
+
+    def refresh_before_cleanup(*args):
+        # ハッシュ取得後、欠損インデックスの削除直前に同じfamilyが再登録される。
+        with monkeypatch.context() as refresh_patch:
+            refresh_patch.setattr(redis, "eval", original_eval)
+            assert rotate(blacklist)
+        return original_eval(*args)
+
+    monkeypatch.setattr(redis, "eval", refresh_before_cleanup)
+    sessions = blacklist.list_sessions("user")
+
+    assert [(session.id, session.user_agent) for session in sessions] == [
+        ("newer", "newer device"),
+        ("older", "older device"),
+    ]
+    assert redis.zscore(index_key, "expired") is None
+    assert redis.zscore(index_key, "missing") is None
+    assert redis.zscore(index_key, "family") is not None
+    assert {session.id for session in blacklist.list_sessions("user")} == {
+        "older",
+        "newer",
+        "family",
+    }

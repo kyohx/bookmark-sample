@@ -62,6 +62,16 @@ return 1
 """
 
 
+# KEYS: セッション一覧、欠損していた各セッション。ARGV: 対応するfamily。
+_REMOVE_MISSING_SESSIONS_SCRIPT: Final[str] = """
+for i, family in ipairs(ARGV) do
+    if redis.call('EXISTS', KEYS[i + 1]) == 0 then
+        redis.call('ZREM', KEYS[1], family)
+    end
+end
+"""
+
+
 class TokenBlacklistService(ServiceBase):
     """
     リフレッシュトークンブラックリストサービス
@@ -218,17 +228,29 @@ class TokenBlacklistService(ServiceBase):
         redis = self._require_redis()
         now = int(datetime.now(UTC).timestamp())
         try:
-            redis.zremrangebyscore(self._sessions_key(user), "-inf", now)
-            families = redis.zrange(self._sessions_key(user), 0, -1)
+            index_key = self._sessions_key(user)
+            with redis.pipeline() as pipe:
+                pipe.zremrangebyscore(index_key, "-inf", now)
+                pipe.zrange(index_key, 0, -1)
+                _, raw_families = pipe.execute()
+            families = [
+                family.decode() if isinstance(family, bytes) else family
+                for family in raw_families
+                if isinstance(family, str | bytes)
+            ]
+            if not families:
+                return []
+
+            with redis.pipeline(transaction=False) as pipe:
+                for family in families:
+                    pipe.hgetall(self._session_key(user, family))
+                session_data = pipe.execute()
+
             sessions = []
-            for family in families:
-                if isinstance(family, bytes):
-                    family = family.decode()
-                if not isinstance(family, str):
-                    continue
-                data = redis.hgetall(self._session_key(user, family))
+            missing = []
+            for family, data in zip(families, session_data, strict=True):
                 if not data:
-                    redis.zrem(self._sessions_key(user), family)
+                    missing.append(family)
                     continue
                 data = {
                     key.decode() if isinstance(key, bytes) else key: value.decode()
@@ -245,6 +267,15 @@ class TokenBlacklistService(ServiceBase):
                         revoked=data["revoked"] == "1",
                         user_agent=data["user_agent"] or None,
                     )
+                )
+            if missing:
+                # 読み取り後にリフレッシュで再登録されたセッションは一覧に残す。
+                redis.eval(
+                    _REMOVE_MISSING_SESSIONS_SCRIPT,
+                    1 + len(missing),
+                    index_key,
+                    *(self._session_key(user, family) for family in missing),
+                    *missing,
                 )
             return sorted(sessions, key=lambda session: session.created_at, reverse=True)
         except RedisError as exc:
