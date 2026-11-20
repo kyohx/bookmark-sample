@@ -12,6 +12,13 @@ class BookmarkUsecase(UsecaseBase):
     """
 
     def __init__(self, *args, **kwargs) -> None:
+        """
+        基底クラスで権限を確認し、ページ情報付きのブックマークリポジトリを初期化する。
+
+        Args:
+            *args: 基底ユースケースに渡す位置引数
+            **kwargs: 基底ユースケースに渡すキーワード引数
+        """
         super().__init__(*args, **kwargs)
         self.bookmark_repository = BookmarkRepository(self.session, page=self.page)
 

@@ -21,4 +21,5 @@ class UserEntity(BaseModel):
 
     @field_serializer("authority")
     def serialize_authority(self, value: AuthorityEnum) -> int:
+        """権限レベルを列挙値に対応する整数としてシリアライズする。"""
         return value.value

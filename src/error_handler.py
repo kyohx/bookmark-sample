@@ -24,6 +24,17 @@ def _detail_response(
     *,
     headers: dict[str, str] | None = None,
 ) -> JSONResponse:
+    """
+    エラー詳細を含む JSON レスポンスを生成する。
+
+    Args:
+        status_code: HTTP ステータスコード
+        detail: エラー詳細
+        headers: レスポンスに追加するヘッダー
+
+    Returns:
+        エラーレスポンス
+    """
     return JSONResponse(
         status_code=status_code,
         content={"detail": detail},
@@ -37,6 +48,17 @@ def _database_error_response(
     status_code: int,
     message: str,
 ) -> JSONResponse:
+    """
+    データベース例外に対するエラーレスポンスを生成する。HTTP 500 の場合は例外をログに記録する。
+
+    Args:
+        exc: 発生したデータベース例外
+        status_code: HTTP ステータスコード
+        message: クライアントに返すエラー詳細
+
+    Returns:
+        エラーレスポンス
+    """
     # 異常系エラーはログにスタックトレースを出す
     if status_code == status.HTTP_500_INTERNAL_SERVER_ERROR:
         logger.exception(str(exc), exc_info=exc)
@@ -48,6 +70,16 @@ def _resolve_database_error(
     *,
     rules: Mapping[int, DatabaseErrorRule],
 ) -> DatabaseErrorRule:
+    """
+    DB ドライバーのエラーコードに対応するレスポンス情報を取得する。
+
+    Args:
+        exc: 発生したデータベース例外
+        rules: エラーコードとレスポンス情報の対応表
+
+    Returns:
+        HTTP ステータスコードとエラーメッセージ。対応するルールがなければ HTTP 500 を返す
+    """
     status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
     message = "Internal Server Error"
     if exc.orig is not None and hasattr(exc.orig, "args"):
@@ -64,6 +96,7 @@ def add_error_handlers(app: FastAPI) -> None:
 
     @app.exception_handler(AuthorizeService.Error)
     async def auth_error_handler(request: Request, exc: AuthorizeService.Error):
+        """認証エラーを Bearer 認証ヘッダー付きの HTTP 401 に変換する。"""
         return _detail_response(
             status.HTTP_401_UNAUTHORIZED,
             str(exc),
@@ -72,26 +105,32 @@ def add_error_handlers(app: FastAPI) -> None:
 
     @app.exception_handler(TokenBlacklistService.Error)
     async def blacklist_error_handler(request: Request, exc: TokenBlacklistService.Error):
+        """トークンブラックリストサービスのエラーを HTTP 503 に変換する。"""
         return _detail_response(status.HTTP_503_SERVICE_UNAVAILABLE, str(exc))
 
     @app.exception_handler(AuthorityService.Error)
     async def authority_error_handler(request: Request, exc: AuthorityService.Error):
+        """権限エラーを HTTP 403 に変換する。"""
         return _detail_response(status.HTTP_403_FORBIDDEN, str(exc))
 
     @app.exception_handler(UsecaseBase.OperationError)
     async def operation_error_handler(request: Request, exc: UsecaseBase.OperationError):
+        """ユースケースの操作エラーを HTTP 400 に変換する。"""
         return _detail_response(status.HTTP_400_BAD_REQUEST, str(exc))
 
     @app.exception_handler(UsecaseBase.NotFoundError)
     async def usecase_not_found_handler(request: Request, exc: UsecaseBase.NotFoundError):
+        """ユースケースの対象データが見つからない場合に HTTP 404 を返す。"""
         return _detail_response(status.HTTP_404_NOT_FOUND, str(exc))
 
     @app.exception_handler(BaseRepository.NotFoundError)
     async def repository_not_found_handler(request: Request, exc: BaseRepository.NotFoundError):
+        """リポジトリの対象データが見つからない場合に HTTP 404 を返す。"""
         return _detail_response(status.HTTP_404_NOT_FOUND, str(exc))
 
     @app.exception_handler(IntegrityError)
     async def integrity_error_handler(request: Request, exc: IntegrityError):
+        """一意制約違反を HTTP 409、外部キーの参照先不足を HTTP 424、その他を HTTP 500 に変換する。"""
         status_code, message = _resolve_database_error(
             exc,
             rules={
@@ -112,6 +151,7 @@ def add_error_handlers(app: FastAPI) -> None:
 
     @app.exception_handler(OperationalError)
     async def operational_error_handler(request: Request, exc: OperationalError):
+        """デッドロックを HTTP 409、その他のデータベース操作エラーを HTTP 500 に変換する。"""
         status_code, message = _resolve_database_error(
             exc,
             rules={

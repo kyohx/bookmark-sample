@@ -9,6 +9,15 @@ class JsonFormatter(Formatter):
     """改行や例外を含むログを1行のJSONとして出力する。"""
 
     def format(self, record: LogRecord) -> str:
+        """
+        ログと例外情報を1行の JSON に整形する。
+
+        Args:
+            record: ロガーが生成したログレコード
+
+        Returns:
+            リクエストIDや、存在する場合は例外・スタック情報を含む JSON 文字列
+        """
         entry = {
             "timestamp": datetime.fromtimestamp(record.created, UTC).isoformat(
                 timespec="milliseconds"

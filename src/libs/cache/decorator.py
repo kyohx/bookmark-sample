@@ -26,14 +26,38 @@ class _CacheRegionLike(Protocol):
         key: str,
         expiration_time: float | None = None,
         ignore_expiration: bool = False,
-    ) -> Any: ...
+    ) -> Any:
+        """
+        指定キーに対応するキャッシュ値を取得する。
+
+        Args:
+            key: キャッシュキー
+            expiration_time: 取得時に適用する有効期間（秒）
+            ignore_expiration: 有効期限の判定を省略するかどうか
+
+        Returns:
+            キャッシュ値。取得できない場合は NO_VALUE
+        """
+        ...
 
     def get_or_create(
         self,
         key: str,
         creator: Callable[[], Any],
         expiration_time: float | None = None,
-    ) -> Any: ...
+    ) -> Any:
+        """
+        キャッシュ値を取得し、利用できない場合は生成する。
+
+        Args:
+            key: キャッシュキー
+            creator: キャッシュ値を生成する関数
+            expiration_time: 取得時に適用する有効期間（秒）
+
+        Returns:
+            取得または生成したキャッシュ値
+        """
+        ...
 
 
 class _DecoratorProtocol(Protocol[P, T]):
@@ -41,7 +65,9 @@ class _DecoratorProtocol(Protocol[P, T]):
     戻り値注釈内で ParamSpec を Callable にネストしないようにするデコレータ用の Protocol
     """
 
-    def __call__(self, func: Callable[P, T]) -> Callable[P, T]: ...
+    def __call__(self, func: Callable[P, T]) -> Callable[P, T]:
+        """対象関数と同じシグネチャを持つラッパーを返す。"""
+        ...
 
 
 def query_cache(
@@ -69,8 +95,11 @@ def query_cache(
     session_resolver = SessionResolver(session_attr=session_attr)
 
     def decorator(func: Callable[P, T]) -> Callable[P, T]:
+        """キャッシュ設定を対象関数に適用する。"""
+
         @wraps(func)
         def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
+            """キャッシュを参照し、必要に応じて対象関数を実行する。"""
             cache_region = _resolve_region(region, args=args, region_attr=region_attr)
             if unless is not None and unless(*args, **kwargs):
                 return func(*args, **kwargs)
@@ -79,6 +108,7 @@ def query_cache(
             session = session_resolver.resolve(args, dict(kwargs))
 
             def execute_and_prepare_result() -> T:
+                """対象関数を実行し、結果に含まれる ORM オブジェクトをセッションから切り離す。"""
                 result = func(*args, **kwargs)
                 if session is not None:
                     # Session に紐づいた ORM オブジェクトのままキャッシュしない。

@@ -12,6 +12,15 @@ _blacklist_redis_client: Redis | None = None
 
 
 def _merge_blacklist_redis_url_query(redis_url: str) -> str:
+    """
+    ブラックリスト用 Redis URL に未指定の接続オプションを補う。
+
+    Args:
+        redis_url: 元の Redis 接続 URL
+
+    Returns:
+        レスポンスのデコード設定と、rediss の場合は TLS 設定を補った URL
+    """
     parts = urlsplit(redis_url)
     query_params = parse_qsl(parts.query, keep_blank_values=True)
     existing_keys = {key for key, _ in query_params}

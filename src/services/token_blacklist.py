@@ -87,6 +87,7 @@ class TokenBlacklistService(ServiceBase):
         pass
 
     def __init__(self) -> None:
+        """ブラックリスト用 Redis クライアント、障害時の動作、既定の有効期間を設定する。"""
         self.redis = get_blacklist_redis_client()
         self.fail_open = _config.blacklist_redis_fail_open
         self.default_ttl_seconds = _config.blacklist_redis_default_ttl_days * 24 * 60 * 60
@@ -147,12 +148,23 @@ class TokenBlacklistService(ServiceBase):
         return f"{self.KEY_PREFIX}:family:deny:{user}:{family}"
 
     def _session_key(self, user: str, family: str) -> str:
+        """ユーザー名と family からセッションのハッシュキーを生成する。"""
         return f"{self.KEY_PREFIX}:session:{user}:{family}"
 
     def _sessions_key(self, user: str) -> str:
+        """ユーザーのセッション一覧を管理するソート済みセットのキーを生成する。"""
         return f"{self.KEY_PREFIX}:sessions:{user}"
 
     def _require_redis(self):
+        """
+        設定済みのブラックリスト用 Redis クライアントを取得する。
+
+        Returns:
+            ブラックリスト用 Redis クライアント
+
+        Raises:
+            TokenBlacklistService.Error: Redis クライアントが未設定の場合
+        """
         if self.redis is None:
             raise self.Error("Redis unavailable")
         return self.redis

@@ -18,6 +18,7 @@ class RequestForAddBookmark(BaseModel):
 
     @field_serializer("url")
     def serialize_url(self, value) -> str:
+        """URLを文字列としてシリアライズする。"""
         return str(value)
 
     model_config = ConfigDict(
@@ -43,6 +44,7 @@ class ResponseForAddBookmark(BaseModel):
 
     @classmethod
     def from_entity(cls, bookmark: BookmarkEntity) -> Self:
+        """追加したブックマークから追加レスポンスを生成する。"""
         return cls(added_bookmark=Bookmark.from_entity(bookmark))
 
     model_config = ConfigDict(
