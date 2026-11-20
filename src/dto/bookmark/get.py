@@ -13,6 +13,7 @@ class ResponseForGetBookmark(BaseModel):
 
     @classmethod
     def from_entity(cls, bookmark: BookmarkEntity) -> Self:
+        """ブックマークエンティティから詳細取得レスポンスを生成する。"""
         return cls(bookmark=Bookmark.from_entity(bookmark))
 
     model_config = ConfigDict(

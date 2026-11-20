@@ -17,6 +17,13 @@ class BookmarkRepository(BaseRepository):
     LIST_CACHE_NAMESPACES = ("list", "tag-list")
 
     def __init__(self, *args, **kwargs) -> None:
+        """
+        ブックマーク、タグ、紐付けを操作する DAO を初期化する。
+
+        Args:
+            *args: 基底リポジトリに渡す位置引数
+            **kwargs: 基底リポジトリに渡すキーワード引数
+        """
         super().__init__(*args, **kwargs)
         self.bookmark_operator = BookmarkDaoOperator(self.session, page=self.page)
         self.tag_operator = TagDaoOperator(self.session)
@@ -188,9 +195,11 @@ class BookmarkRepository(BaseRepository):
 
     @staticmethod
     def _find_one_cache_key(hashed_id: str | None) -> str:
+        """指定したハッシュIDのブックマーク詳細キャッシュキーを生成する。"""
         return f"bookmark:detail:{hashed_id}"
 
     def _find_all_cache_key(self) -> str:
+        """バージョンとページ情報を含むブックマーク一覧キャッシュキーを生成する。"""
         version = self._get_cache_version("list")
         return (
             f"bookmark:list:all:order:created_at-desc:id-desc:"
@@ -198,6 +207,15 @@ class BookmarkRepository(BaseRepository):
         )
 
     def _find_by_tags_cache_key(self, tag_names: list[str]) -> str:
+        """
+        正規化したタグ名、バージョン、ページ情報から絞り込み一覧のキャッシュキーを生成する。
+
+        Args:
+            tag_names: 絞り込み対象のタグ名リスト
+
+        Returns:
+            タグの順序や重複に依存しないキャッシュキー
+        """
         version = self._get_cache_version("tag-list")
         # タグ順や重複に依存しないように正規化し、区切り文字を含むタグでもキー衝突しないようにする。
         normalized_tags = ",".join(quote(tag_name, safe="") for tag_name in sorted(set(tag_names)))

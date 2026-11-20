@@ -28,4 +28,5 @@ class BookmarkEntity(BaseModel):
 
     @field_serializer("url")
     def serialize_url(self, value) -> str:
+        """URLを文字列としてシリアライズする。"""
         return str(value)

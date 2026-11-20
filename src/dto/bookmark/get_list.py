@@ -34,6 +34,18 @@ class Bookmark(BaseModel):
     @field_validator("created_at", mode="before")
     @classmethod
     def parse_created_at(cls, value) -> str:
+        """
+        作成日時をレスポンス用の文字列に変換する。
+
+        Args:
+            value: 文字列または datetime の作成日時
+
+        Returns:
+            入力文字列またはタイムゾーン付き・秒精度の ISO 8601 形式の文字列
+
+        Raises:
+            ValueError: 入力が文字列でも datetime でもない場合
+        """
         if isinstance(value, str):
             return value
         if isinstance(value, datetime):
@@ -43,6 +55,18 @@ class Bookmark(BaseModel):
     @field_validator("updated_at", mode="before")
     @classmethod
     def parse_updated_at(cls, value) -> str:
+        """
+        更新日時をレスポンス用の文字列に変換する。
+
+        Args:
+            value: 文字列または datetime の更新日時
+
+        Returns:
+            入力文字列またはタイムゾーン付き・秒精度の ISO 8601 形式の文字列
+
+        Raises:
+            ValueError: 入力が文字列でも datetime でもない場合
+        """
         if isinstance(value, str):
             return value
         if isinstance(value, datetime):
@@ -51,6 +75,7 @@ class Bookmark(BaseModel):
 
     @classmethod
     def from_entity(cls, bookmark: BookmarkEntity) -> Self:
+        """ブックマークエンティティを検証してレスポンス用のブックマーク情報を生成する。"""
         return cls.model_validate(bookmark.model_dump(exclude_none=True))
 
 
@@ -61,6 +86,7 @@ class ResponseForGetBookmarkList(BaseModel):
 
     @classmethod
     def from_entities(cls, bookmarks: list[BookmarkEntity]) -> Self:
+        """ブックマークエンティティを入力順に変換して一覧レスポンスを生成する。"""
         return cls(bookmarks=[Bookmark.from_entity(bookmark) for bookmark in bookmarks])
 
     model_config = ConfigDict(

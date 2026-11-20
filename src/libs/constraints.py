@@ -6,6 +6,18 @@ from pydantic import AfterValidator, Field, HttpUrl, SecretStr, StringConstraint
 
 
 def is_unique(values):
+    """
+    入力値に重複がないことを検証する。
+
+    Args:
+        values: 検証対象のシーケンス。要素はハッシュ可能であること
+
+    Returns:
+        重複のない元の入力値
+
+    Raises:
+        ValueError: 重複した値を含む場合
+    """
     if len(values) != len(set(values)):
         raise ValueError("values must be unique")
     return values

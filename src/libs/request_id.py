@@ -10,9 +10,23 @@ class RequestIdMiddleware:
     """HTTPリクエストごとのIDをログとレスポンスヘッダーに引き継ぐ。"""
 
     def __init__(self, app: ASGIApp) -> None:
+        """
+        リクエストIDを付与するミドルウェアを初期化する。
+
+        Args:
+            app: 呼び出しを委譲する内側の ASGI アプリ
+        """
         self.app = app
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        """
+        HTTP リクエストの ID を発行し、ログのコンテキストとレスポンスに引き継ぐ。
+
+        Args:
+            scope: 接続またはリクエストの ASGI スコープ
+            receive: ASGI メッセージを受信する関数
+            send: ASGI メッセージを送信する関数
+        """
         if scope["type"] != "http":
             await self.app(scope, receive, send)
             return
@@ -23,6 +37,7 @@ class RequestIdMiddleware:
         token = request_id_context.set(request_id)
 
         async def send_with_request_id(message: Message) -> None:
+            """HTTP レスポンスの開始メッセージにリクエストIDを付けて送信する。"""
             if message["type"] == "http.response.start":
                 MutableHeaders(scope=message)["X-Request-ID"] = request_id
             await send(message)

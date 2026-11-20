@@ -16,9 +16,19 @@ class _CacheRegionLike(Protocol):
     commit 後無効化で必要な最小限のキャッシュリージョン操作を表す Protocol。
     """
 
-    def set(self, key: str, value: Any) -> None: ...
+    def set(self, key: str, value: Any) -> None:
+        """
+        指定キーにキャッシュ値を保存する。
 
-    def delete(self, key: str) -> None: ...
+        Args:
+            key: キャッシュキー
+            value: 保存する値
+        """
+        ...
+
+    def delete(self, key: str) -> None:
+        """指定キーに対応するキャッシュ値を削除する。"""
+        ...
 
 
 @dataclass

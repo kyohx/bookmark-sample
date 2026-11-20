@@ -12,6 +12,15 @@ _logger = get_logger()
 
 
 def _build_connection_kwargs(config: Config) -> dict[str, Any]:
+    """
+    キャッシュ用 Redis の TLS 接続オプションを組み立てる。
+
+    Args:
+        config: キャッシュ用 Redis の接続設定を含むアプリ設定
+
+    Returns:
+        rediss の接続オプション。それ以外のスキームでは空の辞書
+    """
     connection_kwargs: dict[str, Any] = {}
     if urlsplit(config.cache_redis_url).scheme != "rediss":
         return connection_kwargs
@@ -31,6 +40,12 @@ def _build_connection_kwargs(config: Config) -> dict[str, Any]:
 
 @lru_cache
 def get_query_cache_region() -> CacheRegion | NullCacheRegion:
+    """
+    設定に従ってプロセス内で共有するクエリキャッシュリージョンを返す。
+
+    Returns:
+        有効かつ URL が設定されていれば Redis リージョン、それ以外は NullCacheRegion
+    """
     config = get_config()
     if not config.cache_enabled:
         return NullCacheRegion()

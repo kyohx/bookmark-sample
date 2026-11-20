@@ -39,6 +39,7 @@ class ResponseForUpdateUser(BaseModel):
 
     @classmethod
     def from_entity(cls, user: UserEntity) -> Self:
+        """更新したユーザーから更新レスポンスを生成する。"""
         return cls(updated_user=UserDetail.from_entity(user))
 
     model_config = ConfigDict(

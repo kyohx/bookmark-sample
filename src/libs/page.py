@@ -16,6 +16,12 @@ class Page(BaseModel):
     model_config = ConfigDict(frozen=True)
 
     def __init__(self, **data):
+        """
+        ページ情報を検証し、SQL のオフセットを計算する。
+
+        Args:
+            **data: ページ番号とページサイズを含むモデル入力
+        """
         super().__init__(**data)
         # SQLで使用するオフセットを計算しておく
         self._offset = (self.number - 1) * self.size

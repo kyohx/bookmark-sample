@@ -17,6 +17,7 @@ class SessionDetail(BaseModel):
 
     @classmethod
     def from_entity(cls, session: RefreshSession) -> Self:
+        """セッションの日時を文字列に変換し、レスポンス用のセッション情報を生成する。"""
         return cls(
             id=session.id,
             created_at=datetime_to_str(session.created_at),
@@ -32,4 +33,5 @@ class ResponseForGetSessions(BaseModel):
 
     @classmethod
     def from_entities(cls, sessions: list[RefreshSession]) -> Self:
+        """セッション情報を入力順に変換して一覧レスポンスを生成する。"""
         return cls(sessions=[SessionDetail.from_entity(session) for session in sessions])

@@ -11,6 +11,12 @@ from .libs.version import APP_VERSION
 
 class RequestIdFastAPI(FastAPI):
     def build_middleware_stack(self) -> ASGIApp:
+        """
+        エラーレスポンスにもリクエストIDを付けられるよう、ミドルウェアスタックの最外側を包む。
+
+        Returns:
+            リクエストIDを付与する ASGI ミドルウェア
+        """
         # ServerErrorMiddlewareが生成する500応答にもIDを付けるため、最外側で包む。
         return RequestIdMiddleware(super().build_middleware_stack())
 

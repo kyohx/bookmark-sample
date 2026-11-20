@@ -36,6 +36,7 @@ class ResponseForUpdateBookmark(BaseModel):
 
     @classmethod
     def from_entity(cls, bookmark: BookmarkEntity) -> Self:
+        """更新したブックマークから更新レスポンスを生成する。"""
         return cls(updated_bookmark=Bookmark.from_entity(bookmark))
 
     model_config = ConfigDict(

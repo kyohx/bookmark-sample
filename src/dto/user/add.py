@@ -36,6 +36,7 @@ class ResponseForAddUser(BaseModel):
 
     @classmethod
     def from_entity(cls, user: UserEntity) -> Self:
+        """追加したユーザーから追加レスポンスを生成する。"""
         return cls(added_user=UserDetail.from_entity(user))
 
     model_config = ConfigDict(

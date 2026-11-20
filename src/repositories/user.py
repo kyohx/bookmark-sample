@@ -13,6 +13,13 @@ class UserRepository(BaseRepository):
     LIST_CACHE_NAMESPACES = ("list",)
 
     def __init__(self, *args, **kwargs) -> None:
+        """
+        ページ情報を引き継いでユーザー DAO 操作クラスを初期化する。
+
+        Args:
+            *args: 基底リポジトリに渡す位置引数
+            **kwargs: 基底リポジトリに渡すキーワード引数
+        """
         super().__init__(*args, **kwargs)
         self.user_operator = UserDaoOperator(self.session, page=self.page)
 
@@ -92,8 +99,10 @@ class UserRepository(BaseRepository):
 
     @staticmethod
     def _find_one_cache_key(name: str) -> str:
+        """指定したユーザー名の詳細キャッシュキーを生成する。"""
         return f"user:detail:{name}"
 
     def _find_all_cache_key(self) -> str:
+        """バージョンとページ情報を含むユーザー一覧キャッシュキーを生成する。"""
         version = self._get_cache_version("list")
         return f"user:list:order:created_at-desc:id-desc:v:{version}:{self._page_cache_fragment()}"

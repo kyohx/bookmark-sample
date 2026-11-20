@@ -16,4 +16,5 @@ class AuthorityEnum(IntEnum):
     ADMIN = 9
 
     def __str__(self) -> str:
+        """権限の列挙名を小文字で返す。"""
         return self.name.lower()

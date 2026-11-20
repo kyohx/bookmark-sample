@@ -69,6 +69,12 @@ class AuthorizeService(ServiceBase):
         pass
 
     def __init__(self, session: Session) -> None:
+        """
+        JWT の発行設定とトークンブラックリストサービスを初期化する。
+
+        Args:
+            session: 認証対象ユーザーの取得に使うデータベースセッション
+        """
         self.session = session
         self.jwt_secret_key = self.config.jwt_secret_key
         self.refresh_token_expire_days = self.config.refresh_token_expire_days

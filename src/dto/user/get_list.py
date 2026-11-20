@@ -14,6 +14,7 @@ class ResponseForGetUserList(BaseModel):
 
     @classmethod
     def from_entities(cls, users: list[UserEntity]) -> Self:
+        """ユーザーエンティティを入力順に変換して一覧レスポンスを生成する。"""
         return cls(users=[UserDetail.from_entity(user) for user in users])
 
     model_config = ConfigDict(

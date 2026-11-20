@@ -44,6 +44,7 @@ class KeyGenerator:
         """
 
         def key_func(*args: object, **kwargs: object) -> str:
+            """渡された引数をテンプレートに展開してキャッシュキーを返す。"""
             return KeyGenerator._render_template(template, func, args, kwargs)
 
         return key_func
