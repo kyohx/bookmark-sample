@@ -15,6 +15,7 @@ class TestGetVersion(BaseTest):
     """
 
     def api_path(self) -> str:
+        """バージョン取得 API のパスを返す。"""
         return app.url_path_for("get_version")
 
     def test_get_version(self, client: TestClient, db_session: SessionForTest):

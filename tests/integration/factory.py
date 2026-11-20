@@ -17,9 +17,11 @@ class DataFactory:
     """
 
     def __init__(self, session: Session):
+        """テストデータの作成に使う DB セッションを保持する。"""
         self.session = session
 
     def create_bookmark(self, url: str, memo: str, tagnames: list[str]) -> BookmarkDao:
+        """指定されたタグ付きのブックマークを1件作成する。"""
         return self.create_bookmarks([(url, memo, tagnames)])[0]
 
     def create_bookmarks(self, entries: list[tuple[str, str, list[str]]]) -> list[BookmarkDao]:
@@ -68,6 +70,7 @@ class DataFactory:
         disabled: bool = False,
         authority: AuthorityEnum = AuthorityEnum.READWRITE,
     ) -> UserDao:
+        """固定のパスワードハッシュでテストユーザーを作成する。"""
         user = UserDao(
             name=name,
             hashed_password=TEST_HASHED_PASSWORD,

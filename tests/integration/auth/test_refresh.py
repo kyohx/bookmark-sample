@@ -18,6 +18,7 @@ class TestRefreshToken(BaseTest):
     """
 
     def api_path(self) -> str:
+        """トークン更新 API のパスを返す。"""
         return app.url_path_for("refresh_token")
 
     def test_refresh_normal(

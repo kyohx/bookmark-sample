@@ -30,13 +30,17 @@ class _OpWithoutTimestamp(BaseDaoOperator[_DaoWithoutCreatedAt]):
 
 @pytest.fixture
 def session(sqlite_session_factory) -> Iterator[Session]:
+    """DAO のテーブルを持つテスト用 SQLite セッションを提供する。"""
     # テスト用の in-memory SQLite セッションを用意
     with sqlite_session_factory(BaseDao.metadata) as db_session:
         yield db_session
 
 
 def test_save_adds_object_with_created_at_none(session: Session) -> None:
-    """created_at 属性を持ち (None の) DAO は session.add されることを検証"""
+    """
+    正常系:
+    created_at 属性を持ち (None の) DAO は session.add されることを検証
+    """
     op = _OpWithTimestamp(session)
     dao = _DaoWithCreatedAt()
 
@@ -50,7 +54,10 @@ def test_save_adds_object_with_created_at_none(session: Session) -> None:
 
 
 def test_save_does_not_add_object_without_created_at(session: Session) -> None:
-    """created_at 属性を持たない DAO は session.add されず、DB に挿入されないことを検証"""
+    """
+    正常系:
+    created_at 属性を持たない DAO は session.add されず、DB に挿入されないことを検証
+    """
     op = _OpWithoutTimestamp(session)
     dao = _DaoWithoutCreatedAt()
 

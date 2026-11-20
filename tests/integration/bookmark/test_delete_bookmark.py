@@ -15,6 +15,7 @@ class TestDeleteBookmark(BaseTest):
     """
 
     def api_path(self, hashed_id: str) -> str:
+        """指定したハッシュIDのブックマークを削除する API のパスを返す。"""
         return app.url_path_for("delete_bookmark", hashed_id=hashed_id)
 
     def test_delete_normal(

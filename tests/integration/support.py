@@ -14,6 +14,7 @@ class SessionForTest(Session):
     """
 
     def commit(self) -> None:
+        """コミットを行わず、変更を flush して ORM の状態を期限切れにする。"""
         # 実際にコミットしないようにする
         self.flush()
         self.expire_all()

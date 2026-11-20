@@ -16,6 +16,7 @@ class TestGetUser(BaseTest):
     """
 
     def api_path(self, name: str) -> str:
+        """指定したユーザー名の詳細を取得する API のパスを返す。"""
         return app.url_path_for("get_user", name=name)
 
     def test_get_one_normal(
@@ -95,6 +96,7 @@ class TestGetUser(BaseTest):
         """
 
         def get_current_active_user_for_not_admin_testing():
+            """ログイン済みの読み書き可能な一般ユーザーを返す。"""
             return UserEntity(
                 name="test_user",
                 hashed_password="****",

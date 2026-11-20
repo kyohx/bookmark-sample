@@ -17,6 +17,7 @@ if str(ROOT) not in sys.path:
 
 @contextmanager
 def _session_scope(metadata: MetaData) -> Iterator[Session]:
+    """指定のテーブルを作成したインメモリ SQLite のセッションを提供する。"""
     engine = create_engine("sqlite:///:memory:")
     metadata.create_all(engine)
     session_factory = sessionmaker(bind=engine, expire_on_commit=False)
@@ -26,11 +27,13 @@ def _session_scope(metadata: MetaData) -> Iterator[Session]:
 
 @pytest.fixture
 def sqlite_session_factory() -> Callable[[MetaData], Iterator[Session]]:
+    """テストごとに独立した SQLite セッションを作成できるようにする。"""
     # テストごとに独立した in-memory SQLite を組み立てる。
     return _session_scope
 
 
 @pytest.fixture
 def memory_region() -> CacheRegion:
+    """テスト用のメモリキャッシュリージョンを作成する。"""
     # unit テストでは副作用の少ないメモリキャッシュを共通利用する。
     return create_memory_region()

@@ -13,14 +13,17 @@ from src.services.token_blacklist import TokenBlacklistService
 
 @pytest.fixture
 def service() -> AuthorizeService:
+    """DB セッションをモックに差し替えた認証サービスを作成する。"""
     return AuthorizeService(session=Mock())
 
 
 def encode(service: AuthorizeService, payload: dict) -> str:
+    """認証サービスの鍵とアルゴリズムでテスト用 JWT を署名する。"""
     return jwt.encode(payload, service.jwt_secret_key, algorithm=service.ALGORITHM)
 
 
 def claims(kind: str) -> dict:
+    """指定種別に必要なクレームを含むテスト用ペイロードを生成する。"""
     payload = {
         "sub": "test_user",
         "exp": int(datetime.now(UTC).timestamp()) + 3600,
@@ -33,7 +36,10 @@ def claims(kind: str) -> dict:
 
 @pytest.mark.parametrize("kind", ["access", "refresh"])
 def test_valid_token(service: AuthorizeService, kind: str) -> None:
-    """正しい署名とクレームを持つ JWT は型付きモデルになる。"""
+    """
+    正常系:
+    正しい署名とクレームを持つ JWT は型付きモデルになる。
+    """
     model = AccessTokenPayload if kind == "access" else RefreshTokenPayload
     payload = claims(kind)
     decoded = service._decode_token(encode(service, payload), model)
@@ -55,7 +61,10 @@ def test_valid_token(service: AuthorizeService, kind: str) -> None:
     ],
 )
 def test_invalid_claim(service: AuthorizeService, kind: str, field: str, value: object) -> None:
-    """不正な型は、DB・Redis に到達する前に認証エラーになる。"""
+    """
+    異常系:
+    不正な型は、DB・Redis に到達する前に認証エラーになる。
+    """
     payload = claims(kind)
     payload[field] = value
     service.get_user = Mock()
@@ -81,7 +90,10 @@ def test_invalid_claim(service: AuthorizeService, kind: str, field: str, value: 
     ],
 )
 def test_missing_claim(service: AuthorizeService, kind: str, field: str) -> None:
-    """必須クレームの欠落を拒否する。"""
+    """
+    異常系:
+    必須クレームの欠落を拒否する。
+    """
     payload = claims(kind)
     del payload[field]
     model = AccessTokenPayload if kind == "access" else RefreshTokenPayload
@@ -92,7 +104,10 @@ def test_missing_claim(service: AuthorizeService, kind: str, field: str) -> None
 @pytest.mark.parametrize("kind", ["access", "refresh"])
 @pytest.mark.parametrize("invalid", ["wrong_type", "expired", "signature", "malformed"])
 def test_invalid_token(service: AuthorizeService, kind: str, invalid: str) -> None:
-    """種別不一致・期限切れ・署名不正・壊れた JWT を拒否する。"""
+    """
+    異常系:
+    種別不一致・期限切れ・署名不正・壊れた JWT を拒否する。
+    """
     payload = claims(kind)
     model = AccessTokenPayload if kind == "access" else RefreshTokenPayload
     if invalid == "wrong_type":
@@ -113,7 +128,10 @@ def test_invalid_token(service: AuthorizeService, kind: str, invalid: str) -> No
 def test_refresh_redis_failure_follows_fail_open(
     service: AuthorizeService, fail_open: bool, redis_available: bool
 ) -> None:
-    """原子的な更新に失敗した場合も fail-open 設定どおりに動く。"""
+    """
+    異常系:
+    原子的な更新に失敗した場合も fail-open 設定どおりに動く。
+    """
     service.get_user = Mock(
         return_value=UserEntity(
             name="test_user",
@@ -141,6 +159,10 @@ def test_refresh_redis_failure_follows_fail_open(
 
 
 def test_refresh_rejected_rotation_does_not_return_tokens(service: AuthorizeService) -> None:
+    """
+    異常系:
+    トークン更新が拒否された場合に認証エラーになることを確認する
+    """
     service.get_user = Mock(
         return_value=UserEntity(
             name="test_user",
@@ -157,6 +179,10 @@ def test_refresh_rejected_rotation_does_not_return_tokens(service: AuthorizeServ
 
 
 def test_refresh_disabled_user_does_not_rotate(service: AuthorizeService) -> None:
+    """
+    異常系:
+    無効化されたユーザーはトークンのローテーションに進めない
+    """
     service.get_user = Mock(
         return_value=UserEntity(
             name="test_user",

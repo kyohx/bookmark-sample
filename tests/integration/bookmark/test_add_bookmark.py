@@ -16,6 +16,7 @@ class TestAddBookmark(BaseTest):
     """
 
     def api_path(self) -> str:
+        """ブックマーク追加 API のパスを返す。"""
         return app.url_path_for("add_bookmark")
 
     def test_add_normal(

@@ -20,6 +20,10 @@ class TestDatetimeResponse(BaseTest):
         mock_get_current_active_user: None,
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
+        """
+        正常系:
+        MySQL から取得したブックマーク・ユーザーの日時に設定済みのオフセットが付く
+        """
         config = util.get_config().model_copy(update={"database_timezone": "Asia/Tokyo"})
         monkeypatch.setattr(util, "get_config", lambda: config)
         if resource == "bookmark":

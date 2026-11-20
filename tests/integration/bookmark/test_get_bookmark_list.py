@@ -17,6 +17,7 @@ class TestGetBookmarkList(BaseTest):
     """
 
     def api_path(self) -> str:
+        """ブックマーク一覧取得 API のパスを返す。"""
         return app.url_path_for("get_bookmarks")
 
     def test_get_list_normal(
@@ -26,7 +27,7 @@ class TestGetBookmarkList(BaseTest):
         mock_get_current_active_user: None,
     ):
         """
-        通常系:
+        正常系:
         ブックマークリスト全件取得
         """
         bookmarks = self.create_bookmarks(db_session, num=2)
@@ -65,7 +66,7 @@ class TestGetBookmarkList(BaseTest):
         mock_get_current_active_user: None,
     ):
         """
-        通常系:
+        正常系:
         タグ名でブックマークリスト取得
         """
         bookmarks = self.create_bookmarks(db_session, num=2)
@@ -225,7 +226,10 @@ class TestGetBookmarkList(BaseTest):
         mock_get_current_active_user: None,
         tag_filter: bool,
     ):
-        """作成日時の降順・同時刻はID降順で、ページ境界でも順序を固定する。"""
+        """
+        正常系:
+        作成日時の降順・同時刻はID降順で、ページ境界でも順序を固定する。
+        """
         tags = ["test_tag1", "test_tag2"]
         bookmark_tags = [tags[:1], tags, tags[1:], tags, tags[1:] + ["other"]]
         bookmarks = DataFactory(db_session).create_bookmarks(

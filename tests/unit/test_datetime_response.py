@@ -22,6 +22,10 @@ from src.libs.enum import AuthorityEnum
     ],
 )
 def test_naive_datetime_uses_database_timezone(monkeypatch, db_timezone, expected):
+    """
+    正常系:
+    タイムゾーンなしの日時に DB の設定を適用して秒精度に変換する
+    """
     config = util.get_config().model_copy(update={"database_timezone": db_timezone})
     monkeypatch.setattr(util, "get_config", lambda: config)
 
@@ -43,6 +47,10 @@ def test_naive_datetime_uses_database_timezone(monkeypatch, db_timezone, expecte
     ],
 )
 def test_aware_datetime_preserves_offset_and_truncates_subseconds(value, expected):
+    """
+    正常系:
+    タイムゾーン付きの日時を元のオフセットのまま秒精度で往復できることを確認する
+    """
     assert util.datetime_to_str(value) == expected
     parsed = util.str_to_datetime(expected)
     assert parsed.utcoffset() == value.utcoffset()
@@ -54,11 +62,19 @@ def test_aware_datetime_preserves_offset_and_truncates_subseconds(value, expecte
     ["2025-01-01 12:34:56", "2025-01-01T12:34:56", "2025-01-01T12:34:56.123+09:00"],
 )
 def test_datetime_field_rejects_legacy_naive_and_fractional_strings(value):
+    """
+    異常系:
+    オフセットのない日時文字列と小数秒付きの日時文字列を拒否する
+    """
     with pytest.raises(ValidationError):
         TypeAdapter(FIELD_STRING_DATETIME).validate_python(value)
 
 
 def test_response_details_serialize_all_datetime_fields(monkeypatch):
+    """
+    正常系:
+    ブックマーク・ユーザー・セッションの日時をオフセット付きの秒精度で返す
+    """
     config = util.get_config().model_copy(update={"database_timezone": "Asia/Tokyo"})
     monkeypatch.setattr(util, "get_config", lambda: config)
     created = datetime(2025, 1, 1, 12, 34, 56, 123456)

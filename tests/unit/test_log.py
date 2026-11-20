@@ -16,6 +16,7 @@ ROOT = Path(__file__).resolve().parents[2]
 
 @pytest.fixture
 def json_logger():
+    """JSON フォーマッターを設定したロガーと出力バッファを用意する。"""
     output = io.StringIO()
     handler = logging.StreamHandler(output)
     handler.setFormatter(JsonFormatter())
@@ -26,6 +27,10 @@ def json_logger():
 
 @pytest.mark.parametrize("level", [logging.DEBUG, logging.INFO, logging.WARNING, logging.ERROR])
 def test_log_is_one_json_line_with_interpolated_message(json_logger, level):
+    """
+    正常系:
+    各ログレベルで補間と特殊文字のエスケープが行われ、1行の JSON になる
+    """
     logger, output = json_logger
     message = '日本語 "quoted" \\path\n次の行\r\n\tタブ'
     before = datetime.now(UTC)
@@ -48,6 +53,10 @@ def test_log_is_one_json_line_with_interpolated_message(json_logger, level):
 
 
 def test_exception_chain_and_stack_info_stay_in_one_json_line(json_logger):
+    """
+    異常系:
+    原因例外を含む例外チェーンとスタック情報が1行の JSON に収まる
+    """
     logger, output = json_logger
     try:
         try:
@@ -71,6 +80,7 @@ def test_exception_chain_and_stack_info_stay_in_one_json_line(json_logger):
 
 @pytest.fixture(scope="module")
 def runtime_logging_output(request):
+    """別プロセスで実際の設定を読み込み、SQL デバッグ有無それぞれの出力を返す。"""
     # LOG_LEVELごとに別プロセスで実設定を読み込み、SQLデバッグON/OFFの出力を共有する。
     # pytest自身のログ設定を変更せず、同じモジュールのインポートを繰り返さない。
     result = subprocess.run(
@@ -137,6 +147,10 @@ print(json.dumps(outputs))
 def test_runtime_logging_config_outputs_json_without_duplicates(
     runtime_logging_output, expected_levels, sql_debug
 ):
+    """
+    正常系:
+    実設定でログレベルと SQL デバッグが反映され、各ロガーの出力が重複しない
+    """
     entries = [
         json.loads(line) for line in runtime_logging_output[str(int(sql_debug))].splitlines()
     ]
@@ -158,7 +172,10 @@ def test_runtime_logging_config_outputs_json_without_duplicates(
 
 
 def test_real_uvicorn_access_error_and_sql_logs_share_response_request_id():
-    """ソケットを使わず実UvicornのHTTP処理を動かし、サーバーログまで検証する。"""
+    """
+    異常系:
+    ソケットを使わず実UvicornのHTTP処理を動かし、サーバーログまで検証する。
+    """
     result = subprocess.run(
         [
             sys.executable,
@@ -183,6 +200,7 @@ config.app = app
 
 @app.get('/ok')
 def ok():
+    '''アプリと SQL のログを出力し、正常応答を返す。'''
     get_logger().info('sync endpoint')
     engine = create_engine('sqlite://', echo=True)
     with engine.connect() as connection:
@@ -192,10 +210,12 @@ def ok():
 
 @app.get('/failure')
 def failure():
+    '''エラーログ出力後に未処理の例外を送出する。'''
     get_logger().error('before failure')
     raise RuntimeError('test unhandled error')
 
 async def main():
+    '''Uvicorn の HTTP 処理を直接呼び出し、応答のリクエストIDを出力する。'''
     for path, status in (('/ok', 200), ('/failure', 500)):
         state = ServerState()
         protocol = H11Protocol(config, state, {})
